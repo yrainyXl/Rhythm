@@ -59,7 +59,7 @@ export default function TodayPage() {
   return (
     <AuthGuard>
       <div className="p-4 space-y-4">
-        {/* Date header (always visible) */}
+        {/* Date header */}
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
           <p className="text-sm text-white/80">{dateDisplay}</p>
           {!isInitializing && totalOccurrences > 0 && (

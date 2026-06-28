@@ -6,16 +6,15 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  --rhythm-void: #0B1019;
+  --rhythm-depth: #111823;
+  --rhythm-surface: #161D2B;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 @layer base {

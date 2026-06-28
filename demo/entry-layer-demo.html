@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rhythm · 入口层 Demo</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1c1c2a;
+    --text-primary: #e0dcd5;
+    --text-secondary: rgba(224, 220, 213, 0.55);
+    --text-tertiary: rgba(224, 220, 213, 0.3);
+    --accent: #8bab9e;
+    --accent-warm: #c9a06c;
+    --accent-lavender: #b8a9c9;
+    --circle-fill: rgba(139, 171, 158, 0.12);
+    --ring-stroke: rgba(255, 255, 255, 0.06);
+    --transition-speed: 0.8s;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    height: 100dvh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    transition: background var(--transition-speed) ease;
+  }
+
+  #atmosphere {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.7;
+  }
+
+  #app {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    gap: 0;
+  }
+
+  /* ── Date row ── */
+  .date-row {
+    position: absolute;
+    top: max(3rem, 6dvh);
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    transition: color var(--transition-speed) ease;
+    font-family: "Noto Serif SC", "STSong", serif;
+  }
+
+  /* ── Breathing circle ── */
+  .circle-container {
+    position: relative;
+    width: 140px;
+    height: 140px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: none;
+    margin-bottom: 2rem;
+  }
+
+  .breathing-circle {
+    width: 100%;
+    height: 100%;
+    animation: breathe 4s ease-in-out infinite;
+    transition: transform 0.3s ease;
+  }
+
+  .circle-container.pressing .breathing-circle {
+    animation: none;
+    transform: scale(1.02);
+  }
+
+  .circle-container.completed .breathing-circle {
+    animation: completePulse 0.8s ease-out forwards;
+  }
+
+  @keyframes breathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  @keyframes completePulse {
+    0% { transform: scale(1); }
+    30% { transform: scale(1.08); }
+    60% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+  }
+
+  .bg-ring {
+    fill: none;
+    stroke: var(--ring-stroke);
+    stroke-width: 1;
+    transition: stroke var(--transition-speed) ease;
+  }
+
+  .progress-ring {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 80px 80px;
+    transition: stroke 0.5s ease;
+  }
+
+  .inner-glow {
+    fill: var(--circle-fill);
+    transition: fill var(--transition-speed) ease, r 0.5s ease;
+  }
+
+  /* ── Moment content ── */
+  .moment-content {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 100px;
+    transition: opacity 0.5s ease;
+  }
+
+  .practice-name {
+    font-size: 1.15rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: 0.04em;
+    transition: color var(--transition-speed) ease;
+  }
+
+  .day-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-family: "Noto Serif SC", "STSong", serif;
+    transition: color var(--transition-speed) ease;
+  }
+
+  .action-desc {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    margin-top: 0.15rem;
+    transition: color var(--transition-speed) ease;
+  }
+
+  .moment-text {
+    font-family: "Noto Serif SC", "STSong", serif;
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 280px;
+    transition: color var(--transition-speed) ease;
+  }
+
+  .moment-subtext {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    font-family: "Noto Serif SC", "STSong", serif;
+    transition: color var(--transition-speed) ease;
+  }
+
+  .moment-options {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.8rem;
+  }
+
+  .moment-option {
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.3s ease, color 0.3s ease;
+    font-family: "Noto Serif SC", "STSong", serif;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .moment-option.primary {
+    color: var(--text-secondary);
+    opacity: 0.8;
+  }
+
+  .moment-option.secondary {
+    color: var(--text-tertiary);
+    opacity: 0.5;
+  }
+
+  .moment-option:hover {
+    opacity: 1;
+  }
+
+  /* ── Completion overlay ── */
+  .completion-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    z-index: 2;
+  }
+
+  .completion-overlay.visible {
+    opacity: 1;
+  }
+
+  .completion-text {
+    font-family: "Noto Serif SC", "STSong", serif;
+    font-size: 1rem;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 2rem;
+    transition: opacity 0.8s ease 0.3s;
+    opacity: 0;
+  }
+
+  .completion-overlay.visible .completion-text {
+    opacity: 1;
+  }
+
+  .completion-question {
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    font-family: "Noto Serif SC", "STSong", serif;
+    opacity: 0;
+    transition: opacity 0.6s ease 1.2s;
+  }
+
+  .completion-overlay.visible .completion-question {
+    opacity: 0.7;
+  }
+
+  /* ── Swipe hints ── */
+  .swipe-hint {
+    position: absolute;
+    bottom: max(4rem, 8dvh);
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+  }
+
+  .swipe-hint.visible {
+    opacity: 0.5;
+  }
+
+  /* ── Tab switcher ── */
+  .tab-switcher {
+    position: absolute;
+    bottom: max(1.2rem, 2.5dvh);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.6rem;
+    z-index: 3;
+  }
+
+  .tab-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-tertiary);
+    cursor: pointer;
+    transition: all 0.4s ease;
+    border: none;
+    padding: 0;
+  }
+
+  .tab-dot.active {
+    background: var(--accent);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .tab-dot:hover {
+    background: var(--text-secondary);
+  }
+
+  .tab-dot.active:hover {
+    background: var(--accent);
+  }
+
+  /* ── Gesture state indicators ── */
+  .gesture-indicator {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: "Noto Serif SC", "STSong", serif;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 380px) {
+    .circle-container { width: 120px; height: 120px; margin-bottom: 1.5rem; }
+    .practice-name { font-size: 1.05rem; }
+    .moment-text { font-size: 0.95rem; max-width: 250px; }
+    .completion-text { font-size: 0.9rem; }
+  }
+
+  @media (min-width: 768px) {
+    .circle-container { width: 160px; height: 160px; margin-bottom: 2.5rem; }
+    .practice-name { font-size: 1.25rem; }
+    .moment-text { font-size: 1.1rem; max-width: 320px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .breathing-circle { animation: none; }
+    .circle-container.completed .breathing-circle { animation: none; }
+    body, .bg-ring, .inner-glow, .progress-ring,
+    .date-row, .practice-name, .day-count, .action-desc,
+    .moment-text, .moment-subtext { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="atmosphere"></canvas>
+
+<div id="app">
+  <div class="date-row" id="dateRow">6月28日 · 星期日</div>
+
+  <div class="circle-container" id="circleContainer">
+    <svg class="breathing-circle" viewBox="0 0 160 160" id="breathingSvg">
+      <circle class="bg-ring" cx="80" cy="80" r="72"/>
+      <circle class="progress-ring" id="progressRing" cx="80" cy="80" r="72"
+              stroke-dasharray="452.39" stroke-dashoffset="452.39"/>
+      <circle class="inner-glow" id="innerGlow" cx="80" cy="80" r="48"/>
+    </svg>
+    <div class="completion-overlay" id="completionOverlay">
+      <div class="completion-text" id="completionText"></div>
+      <div class="completion-question" id="completionQuestion"></div>
+    </div>
+  </div>
+
+  <div class="moment-content" id="momentContent"></div>
+
+  <div class="swipe-hint" id="swipeHint">← 今天先放下  ·  按住留下这一刻  ·  靠近一点 →</div>
+
+  <div class="tab-switcher" id="tabSwitcher"></div>
+</div>
+
+<script>
+// ── Moment definitions ──
+const moments = [
+  {
+    id: 'action',
+    name: '行动时刻',
+    emoji: '○',
+    atmosphere: { hue: 215, saturation: 15, lightness: 12, accentHue: 160 },
+    dateText: '6月28日 · 星期日',
+    content: `
+      <div class="practice-name">早起不看手机</div>
+      <div class="day-count">第 4 天</div>
+      <div class="action-desc">不看手机 3 分钟即可</div>
+    `,
+    completionText: '这 3 分钟，<br>已经留在今天里。',
+    completionQuestion: '更接近平静了，还是只是完成了？',
+    canComplete: true
+  },
+  {
+    id: 'rest',
+    name: '停靠时刻',
+    emoji: '◐',
+    atmosphere: { hue: 25, saturation: 30, lightness: 10, accentHue: 35 },
+    dateText: '6月28日 · 星期日 · 22:46',
+    content: `
+      <div class="moment-text">今天不需要补齐什么。</div>
+      <div class="moment-subtext">愿意留下一点关于今天的感受吗？</div>
+    `,
+    completionText: '收到了。<br>晚安。',
+    completionQuestion: '',
+    canComplete: true
+  },
+  {
+    id: 'thought',
+    name: '念头时刻',
+    emoji: '~',
+    atmosphere: { hue: 270, saturation: 12, lightness: 13, accentHue: 275 },
+    dateText: '6月28日 · 星期日',
+    content: `
+      <div class="moment-text" style="font-size:1.2rem;font-weight:300;color:var(--text-primary);opacity:0.8;">「专注」</div>
+      <div class="moment-text" style="font-size:0.95rem;opacity:0.4;">「分心的时候越来越多」</div>
+      <div class="moment-text" style="font-size:0.8rem;opacity:0.2;">「安静下来」</div>
+      <div class="moment-text" style="margin-top:0.6rem;">这几天你三次写到了……<br>它还没有离开。</div>
+      <div class="moment-options">
+        <button class="moment-option primary" onclick="showThoughtDetail()">想再想想</button>
+        <button class="moment-option secondary" onclick="dismissThought()">先放在这里</button>
+      </div>
+    `,
+    canComplete: false
+  },
+  {
+    id: 'closure',
+    name: '收束时刻',
+    emoji: '◎',
+    atmosphere: { hue: 190, saturation: 18, lightness: 11, accentHue: 170 },
+    dateText: '6月28日 · 星期日',
+    content: `
+      <div class="practice-name">早起不看手机</div>
+      <div class="day-count">7 天结束了</div>
+      <div class="moment-text" style="margin-top:0.3rem;">这段练习，已经陪了你 7 天。</div>
+      <div class="moment-subtext" style="margin-top:0.2rem;">它有没有让你靠近一点，<br>原本想成为的状态？</div>
+    `,
+    completionText: '记住了。<br>这条实践已经加入你的方法地图。',
+    completionQuestion: '下一步：一直保持 · 再试一轮 · 先放一放',
+    canComplete: true
+  },
+  {
+    id: 'silent',
+    name: '空白时刻',
+    emoji: '·',
+    atmosphere: { hue: 240, saturation: 8, lightness: 9, accentHue: 220 },
+    dateText: '6月28日 · 星期日',
+    content: `
+      <div class="moment-text">此刻，没有什么需要完成。</div>
+      <div class="moment-subtext">想留下什么时，这里都在。</div>
+    `,
+    completionText: '留下了。',
+    completionQuestion: '',
+    canComplete: true
+  }
+];
+
+// ── State ──
+let currentMoment = 0;
+let isPressing = false;
+let pressStartTime = 0;
+let pressDuration = 0;
+let animationId = null;
+let completed = false;
+const PRESS_DURATION = 3000; // 3 seconds to complete
+
+// ── DOM refs ──
+const body = document.body;
+const canvas = document.getElementById('atmosphere');
+const ctx = canvas.getContext('2d');
+const dateRow = document.getElementById('dateRow');
+const circleContainer = document.getElementById('circleContainer');
+const progressRing = document.getElementById('progressRing');
+const innerGlow = document.getElementById('innerGlow');
+const completionOverlay = document.getElementById('completionOverlay');
+const completionText = document.getElementById('completionText');
+const completionQuestion = document.getElementById('completionQuestion');
+const momentContent = document.getElementById('momentContent');
+const swipeHint = document.getElementById('swipeHint');
+const tabSwitcher = document.getElementById('tabSwitcher');
+
+// ── Build tab dots ──
+moments.forEach((m, i) => {
+  const dot = document.createElement('button');
+  dot.className = 'tab-dot' + (i === 0 ? ' active' : '');
+  dot.setAttribute('aria-label', m.name);
+  dot.addEventListener('click', () => switchMoment(i));
+  tabSwitcher.appendChild(dot);
+});
+
+// ── Canvas setup ──
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// ── Atmosphere render ──
+function drawAtmosphere(hue, saturation, lightness) {
+  const w = canvas.width;
+  const h = canvas.height;
+  const baseHSL = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+  // Subtle radial gradient from center-top
+  const gradient = ctx.createRadialGradient(w * 0.5, h * 0.35, 0, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
+  gradient.addColorStop(0, `hsla(${hue}, ${saturation + 5}%, ${lightness + 4}%, 0.15)`);
+  gradient.addColorStop(0.4, `hsla(${hue}, ${saturation}%, ${lightness + 1}%, 0.06)`);
+  gradient.addColorStop(1, 'transparent');
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, w, h);
+}
+
+// ── Switch moment ──
+function switchMoment(index) {
+  if (index === currentMoment && !completed) return;
+
+  currentMoment = index;
+  completed = false;
+
+  const m = moments[index];
+
+  // Update body background
+  body.style.setProperty('--bg', `hsl(${m.atmosphere.hue}, ${m.atmosphere.saturation}%, ${m.atmosphere.lightness}%)`);
+  body.style.background = `hsl(${m.atmosphere.hue}, ${m.atmosphere.saturation}%, ${m.atmosphere.lightness}%)`;
+  body.style.setProperty('--accent', `hsl(${m.atmosphere.accentHue}, 25%, 55%)`);
+
+  // Update atmosphere canvas
+  drawAtmosphere(m.atmosphere.hue, m.atmosphere.saturation, m.atmosphere.lightness);
+
+  // Update date
+  dateRow.textContent = m.dateText;
+
+  // Reset circle
+  progressRing.style.strokeDashoffset = '452.39';
+  progressRing.style.stroke = `hsl(${m.atmosphere.accentHue}, 25%, 55%)`;
+  innerGlow.setAttribute('r', '48');
+  innerGlow.style.fill = `hsla(${m.atmosphere.accentHue}, 25%, 55%, 0.08)`;
+  circleContainer.classList.remove('pressing', 'completed');
+  completionOverlay.classList.remove('visible');
+
+  // Update content
+  momentContent.innerHTML = m.content;
+  momentContent.style.opacity = '1';
+
+  // Update tabs
+  document.querySelectorAll('.tab-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === index);
+  });
+
+  // Show swipe hint only for action moment
+  swipeHint.classList.toggle('visible', m.id === 'action' && !completed);
+}
+
+// ── Long press handling ──
+function getEventPos(e) {
+  if (e.touches) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  return { x: e.clientX, y: e.clientY };
+}
+
+function onPressStart(e) {
+  if (completed || !moments[currentMoment].canComplete) return;
+  e.preventDefault();
+
+  isPressing = true;
+  pressStartTime = performance.now();
+  circleContainer.classList.add('pressing');
+
+  requestAnimationFrame(updatePress);
+}
+
+function onPressMove(e) {
+  if (!isPressing) return;
+  // Check if finger moved too far from circle (cancel press)
+  const rect = circleContainer.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const pos = getEventPos(e);
+  const dist = Math.sqrt((pos.x - cx) ** 2 + (pos.y - cy) ** 2);
+
+  if (dist > rect.width * 1.2) {
+    cancelPress();
+  }
+}
+
+function onPressEnd(e) {
+  if (!isPressing) return;
+  isPressing = false;
+  circleContainer.classList.remove('pressing');
+
+  if (pressDuration >= PRESS_DURATION) {
+    completeMoment();
+  } else {
+    // Reset progress
+    progressRing.style.strokeDashoffset = '452.39';
+    pressDuration = 0;
+  }
+}
+
+function cancelPress() {
+  isPressing = false;
+  circleContainer.classList.remove('pressing');
+  progressRing.style.strokeDashoffset = '452.39';
+  pressDuration = 0;
+}
+
+function updatePress(timestamp) {
+  if (!isPressing) return;
+
+  pressDuration = timestamp - pressStartTime;
+  const progress = Math.min(pressDuration / PRESS_DURATION, 1);
+  const circumference = 452.39;
+  progressRing.style.strokeDashoffset = circumference * (1 - progress);
+
+  // Inner glow grows slightly during press
+  const r = 48 + progress * 8;
+  innerGlow.setAttribute('r', r);
+
+  if (progress < 1) {
+    animationId = requestAnimationFrame(updatePress);
+  } else {
+    // Press complete
+    isPressing = false;
+    circleContainer.classList.remove('pressing');
+    completeMoment();
+  }
+}
+
+function completeMoment() {
+  completed = true;
+  const m = moments[currentMoment];
+
+  // Fill the ring
+  progressRing.style.strokeDashoffset = '0';
+  progressRing.style.stroke = `hsl(${m.atmosphere.accentHue}, 30%, 60%)`;
+  innerGlow.style.fill = `hsla(${m.atmosphere.accentHue}, 30%, 60%, 0.18)`;
+  innerGlow.setAttribute('r', '60');
+
+  // Pulse animation
+  circleContainer.classList.add('completed');
+
+  // Show completion overlay
+  completionText.innerHTML = m.completionText;
+  completionQuestion.textContent = m.completionQuestion;
+  completionOverlay.classList.add('visible');
+
+  // Hide swipe hint after completion
+  swipeHint.classList.remove('visible');
+
+  // Fade moment content slightly
+  momentContent.style.opacity = '0.5';
+
+  // Auto-reset after 5 seconds for demo purposes
+  setTimeout(() => {
+    if (completed && currentMoment === moments.indexOf(m)) {
+      resetMoment();
+    }
+  }, 5000);
+}
+
+function resetMoment() {
+  completed = false;
+  const m = moments[currentMoment];
+
+  progressRing.style.strokeDashoffset = '452.39';
+  progressRing.style.stroke = `hsl(${m.atmosphere.accentHue}, 25%, 55%)`;
+  innerGlow.setAttribute('r', '48');
+  innerGlow.style.fill = `hsla(${m.atmosphere.accentHue}, 25%, 55%, 0.08)`;
+  circleContainer.classList.remove('completed');
+  completionOverlay.classList.remove('visible');
+  momentContent.style.opacity = '1';
+
+  if (m.id === 'action') {
+    swipeHint.classList.add('visible');
+  }
+}
+
+// ── Swipe handling ──
+let swipeStartX = 0;
+let swipeStartY = 0;
+
+function onSwipeStart(e) {
+  if (isPressing || completed) return;
+  const pos = getEventPos(e);
+  swipeStartX = pos.x;
+  swipeStartY = pos.y;
+}
+
+function onSwipeEnd(e) {
+  if (isPressing || completed) return;
+  const pos = e.changedTouches ? { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY } : { x: e.clientX, y: e.clientY };
+  const dx = pos.x - swipeStartX;
+  const dy = pos.y - swipeStartY;
+
+  // Down swipe → next moment (simulating "enter skeleton")
+  if (dy > 80 && Math.abs(dy) > Math.abs(dx)) {
+    const next = (currentMoment + 1) % moments.length;
+    switchMoment(next);
+    return;
+  }
+
+  // Left swipe → skip / let go
+  if (dx < -60 && Math.abs(dx) > Math.abs(dy)) {
+    if (moments[currentMoment].id === 'action') {
+      // Show "let go" state briefly
+      const origContent = momentContent.innerHTML;
+      momentContent.innerHTML = '<div class="moment-text" style="opacity:0.6;">没关系，<br>今天还是你的。</div>';
+      momentContent.style.opacity = '1';
+      setTimeout(() => {
+        if (momentContent.innerHTML.includes('没关系')) {
+          momentContent.innerHTML = origContent;
+        }
+      }, 2000);
+    } else {
+      const next = (currentMoment + 1) % moments.length;
+      switchMoment(next);
+    }
+  }
+
+  // Right swipe → quick feel (for action moment) or previous moment
+  if (dx > 60 && Math.abs(dx) > Math.abs(dy)) {
+    if (moments[currentMoment].id === 'action') {
+      const origContent = momentContent.innerHTML;
+      momentContent.innerHTML = `
+        <div class="moment-text" style="font-size:0.9rem;">今天的感受</div>
+        <div class="moment-options" style="font-size:1.5rem;gap:1.2rem;">
+          <button class="moment-option primary" style="font-size:1.5rem;">😊</button>
+          <button class="moment-option primary" style="font-size:1.5rem;">😐</button>
+          <button class="moment-option primary" style="font-size:1.5rem;">😞</button>
+        </div>
+      `;
+      momentContent.style.opacity = '1';
+      // Clicking an emoji goes back
+      momentContent.querySelectorAll('.moment-option').forEach(btn => {
+        btn.addEventListener('click', () => {
+          momentContent.innerHTML = origContent;
+        });
+      });
+    } else {
+      const prev = (currentMoment - 1 + moments.length) % moments.length;
+      switchMoment(prev);
+    }
+  }
+}
+
+// ── Event listeners ──
+circleContainer.addEventListener('mousedown', onPressStart);
+circleContainer.addEventListener('touchstart', onPressStart, { passive: false });
+window.addEventListener('mousemove', onPressMove);
+window.addEventListener('touchmove', onPressMove, { passive: false });
+window.addEventListener('mouseup', onPressEnd);
+window.addEventListener('touchend', onPressEnd);
+window.addEventListener('touchcancel', cancelPress);
+
+// Swipe on the whole app area
+const app = document.getElementById('app');
+app.addEventListener('touchstart', onSwipeStart, { passive: true });
+app.addEventListener('touchend', onSwipeEnd);
+app.addEventListener('mousedown', onSwipeStart);
+app.addEventListener('mouseup', onSwipeEnd);
+
+// ── Keyboard navigation ──
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') {
+    switchMoment((currentMoment + 1) % moments.length);
+  } else if (e.key === 'ArrowLeft') {
+    switchMoment((currentMoment - 1 + moments.length) % moments.length);
+  } else if (e.key === ' ' || e.key === 'Enter') {
+    if (!isPressing && !completed && moments[currentMoment].canComplete) {
+      // Simulate long press with spacebar
+      onPressStart({ preventDefault: () => {} });
+      // Auto-complete after a short delay for keyboard users
+      pressDuration = PRESS_DURATION;
+      setTimeout(() => {
+        if (isPressing) {
+          isPressing = false;
+          circleContainer.classList.remove('pressing');
+          progressRing.style.strokeDashoffset = '0';
+          completeMoment();
+        }
+      }, 1500);
+    }
+  } else if (e.key === 'r' || e.key === 'R') {
+    resetMoment();
+  }
+});
+
+// ── Swipe hint for thought moment options ──
+window.showThoughtDetail = function() {
+  const origContent = momentContent.innerHTML;
+  momentContent.innerHTML = `
+    <div class="moment-text" style="font-size:0.95rem;">好，<br>可以去「输入的花园」再看看。</div>
+    <div class="moment-subtext" style="margin-top:0.5rem;">下滑进入骨架层</div>
+  `;
+  setTimeout(() => {
+    if (currentMoment === moments.findIndex(m => m.id === 'thought')) {
+      momentContent.innerHTML = origContent;
+    }
+  }, 2500);
+};
+
+window.dismissThought = function() {
+  const origContent = momentContent.innerHTML;
+  momentContent.innerHTML = `
+    <div class="moment-text" style="font-size:0.95rem;opacity:0.5;">放在了这里。<br>随时可以回来。</div>
+  `;
+  setTimeout(() => {
+    if (currentMoment === moments.findIndex(m => m.id === 'thought')) {
+      momentContent.innerHTML = origContent;
+    }
+  }, 2000);
+};
+
+// ── Initialize ──
+// Pick a moment based on time of day
+const hour = new Date().getHours();
+let defaultMoment;
+if (hour >= 6 && hour < 10) {
+  defaultMoment = 0; // Action moment (morning)
+} else if (hour >= 21 || hour < 6) {
+  defaultMoment = 1; // Rest moment (evening)
+} else if (hour >= 10 && hour < 17) {
+  defaultMoment = 0; // Action moment (daytime)
+} else {
+  defaultMoment = 1; // Rest moment (late afternoon/evening)
+}
+
+switchMoment(defaultMoment);
+
+console.log('Rhythm 入口层 Demo');
+console.log('─────────────────');
+console.log('切换时刻：← → 方向键 或 点击底部圆点');
+console.log('长按完成：按住圆形 3 秒 或 按空格键');
+console.log('左右滑动：靠近/放下');
+console.log('下滑：进入下一个时刻');
+console.log('重置：按 R 键');
+</script>
+</body>
+</html>

@@ -17,7 +17,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile } = useAuthStore()
 
-  const showNav = !['/login', '/onboarding'].includes(pathname)
+  const showNav = !['/login', '/onboarding', '/'].includes(pathname)
 
   return (
     <div className="max-w-lg mx-auto min-h-screen bg-white shadow-sm relative">

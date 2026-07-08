@@ -18,23 +18,30 @@ export function AuthProviderClient({ children }: { children: React.ReactNode }) 
     const supabase = createBrowserClient()
 
     const initializeAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+      // 兜底：万一 getSession() 因浏览器环境异常挂起，也在 3 秒后
+      // 强制结束加载态，避免应用永久停在转圈画面。
+      const failsafe = setTimeout(() => setLoading(false), 3000)
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
 
-      if (session?.user) {
-        setUser(session.user)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
+        if (session?.user) {
+          setUser(session.user)
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single()
 
-        if (profile) {
-          setProfile(profile as Profile)
+          if (profile) {
+            setProfile(profile as Profile)
+          }
         }
+      } finally {
+        clearTimeout(failsafe)
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     initializeAuth()

@@ -3,7 +3,16 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
 export const createBrowserClient = () => {
-  return createClientComponentClient<Database>()
+  return createClientComponentClient<Database>({
+    options: {
+      auth: {
+        // iOS Safari 独立 PWA 模式下 navigator.locks 会永久挂起，
+        // 导致 getSession() 卡死、应用停在加载态。用直接执行的 no-op
+        // lock 绕过 Web Locks，session 仍从 localStorage 正常读取。
+        lock: async (_name, _acquireTimeout, fn) => fn(),
+      },
+    },
+  })
 }
 
 export const createServerClient = () => {

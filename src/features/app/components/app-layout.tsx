@@ -4,13 +4,13 @@ import { useAuthStore } from '@/features/auth/store/auth-store'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { NotificationPrompt } from '@/features/notifications/notification-prompt'
-import { CalendarCheck, Target, LineChart, Heart, User } from 'lucide-react'
+import { CalendarCheck, Target, LineChart, BookOpen, User } from 'lucide-react'
 
 const navItems = [
   { href: '/today', label: '今天', Icon: CalendarCheck },
   { href: '/habits', label: '计划', Icon: Target },
   { href: '/records', label: '记录', Icon: LineChart },
-  { href: '/couple', label: '我们', Icon: Heart },
+  { href: '/couple', label: '词条', Icon: BookOpen },
   { href: '/me', label: '我的', Icon: User },
 ]
 

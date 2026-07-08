@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useHabitStore } from '@/features/habits/store/habit-store'
 import { HabitItem, HabitDetailForm } from '@/features/habits/components/habit-item'
-import { RandomHighlight } from '@/features/records/components/random-highlight'
 
 function getLocalDate(): string {
   return new Date().toISOString().split('T')[0]
@@ -80,9 +79,6 @@ export default function TodayPage() {
             </div>
           )}
         </div>
-
-        {/* Random highlight */}
-        <RandomHighlight />
 
         {/* Loading state */}
         {isInitializing && (

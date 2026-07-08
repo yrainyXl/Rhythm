@@ -41,14 +41,14 @@ export default function OnboardingPage() {
 
   if (step === 'welcome') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-sm text-center">
           <div className="mb-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-rhythm-glow-soft border border-rhythm-border rounded-2xl flex items-center justify-center mx-auto mb-4">
               <span className="text-3xl">🌙</span>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900">欢迎来到 Rhythm</h1>
-            <p className="text-gray-500 mt-2 text-sm">
+            <h1 className="text-2xl r-title">欢迎来到 Rhythm</h1>
+            <p className="text-rhythm-text-muted mt-2 text-sm">
               先花一分钟设置你的基本信息
             </p>
           </div>
@@ -57,14 +57,14 @@ export default function OnboardingPage() {
             <button
               type="button"
               onClick={() => setStep('timezone')}
-              className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              className="r-btn-primary w-full py-2.5 px-4 text-sm"
             >
               开始设置
             </button>
             <button
               type="button"
               onClick={() => router.push('/today')}
-              className="w-full py-2.5 px-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="w-full py-2.5 px-4 text-sm text-rhythm-text-muted hover:text-rhythm-text-secondary transition-colors"
             >
               跳过，稍后再说
             </button>
@@ -76,16 +76,16 @@ export default function OnboardingPage() {
 
   if (step === 'timezone') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
           <div className="mb-3">
-            <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-              <span className="w-2 h-2 bg-blue-600 rounded-full" />
-              <span className="w-2 h-2 bg-gray-300 rounded-full" />
-              <span className="w-2 h-2 bg-gray-300 rounded-full" />
+            <div className="flex items-center gap-2 text-sm text-rhythm-text-muted mb-6">
+              <span className="w-2 h-2 bg-rhythm-glow rounded-full" />
+              <span className="w-2 h-2 bg-rhythm-border rounded-full" />
+              <span className="w-2 h-2 bg-rhythm-border rounded-full" />
             </div>
-            <h2 className="text-xl font-bold text-gray-900">怎么称呼你？</h2>
-            <p className="text-gray-500 mt-1 text-sm">设置一个昵称，后续可以修改</p>
+            <h2 className="text-xl r-title">怎么称呼你？</h2>
+            <p className="text-rhythm-text-muted mt-1 text-sm">设置一个昵称，后续可以修改</p>
           </div>
 
           <input
@@ -94,16 +94,16 @@ export default function OnboardingPage() {
             onChange={(e) => setNickname(e.target.value)}
             placeholder="输入昵称或称呼"
             maxLength={20}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-6"
+            className="r-input mb-6"
           />
 
-          <h2 className="text-xl font-bold text-gray-900 mb-1">所在时区</h2>
-          <p className="text-gray-500 text-sm mb-3">用于正确计算每天的日期</p>
+          <h2 className="text-xl r-title mb-1">所在时区</h2>
+          <p className="text-rhythm-text-muted text-sm mb-3">用于正确计算每天的日期</p>
 
           <select
             value={timezone}
             onChange={(e) => setTimezone(e.target.value)}
-            className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white mb-6"
+            className="r-input appearance-none mb-6"
           >
             <option value="Asia/Shanghai">中国标准时间 (UTC+8)</option>
             <option value="Asia/Tokyo">日本标准时间 (UTC+9)</option>
@@ -123,7 +123,7 @@ export default function OnboardingPage() {
           <button
             type="button"
             onClick={() => setStep('sleep-schedule')}
-            className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            className="r-btn-primary w-full py-2.5 px-4 text-sm"
           >
             下一步
           </button>
@@ -134,38 +134,38 @@ export default function OnboardingPage() {
 
   if (step === 'sleep-schedule') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-white px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-sm">
-          <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-            <span className="w-2 h-2 bg-blue-600 rounded-full" />
-            <span className="w-2 h-2 bg-blue-600 rounded-full" />
-            <span className="w-2 h-2 bg-gray-300 rounded-full" />
+          <div className="flex items-center gap-2 text-sm text-rhythm-text-muted mb-6">
+            <span className="w-2 h-2 bg-rhythm-glow rounded-full" />
+            <span className="w-2 h-2 bg-rhythm-glow rounded-full" />
+            <span className="w-2 h-2 bg-rhythm-border rounded-full" />
           </div>
 
-          <h2 className="text-xl font-bold text-gray-900 mb-1">作息时间</h2>
-          <p className="text-gray-500 text-sm mb-6">设置你常用的作息时间，后续可以随时修改</p>
+          <h2 className="text-xl r-title mb-1">作息时间</h2>
+          <p className="text-rhythm-text-muted text-sm mb-6">设置你常用的作息时间，后续可以随时修改</p>
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="r-label">
                 通常起床时间
               </label>
               <input
                 type="time"
                 value={wakeTime}
                 onChange={(e) => setWakeTime(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="r-input"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="r-label">
                 通常睡觉时间
               </label>
               <input
                 type="time"
                 value={sleepTime}
                 onChange={(e) => setSleepTime(e.target.value)}
-                className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="r-input"
               />
             </div>
           </div>
@@ -175,14 +175,14 @@ export default function OnboardingPage() {
               type="button"
               onClick={saveProfile}
               disabled={isLoading}
-              className="w-full py-2.5 px-4 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="r-btn-primary w-full py-2.5 px-4 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? '保存中...' : '完成设置'}
             </button>
             <button
               type="button"
               onClick={() => setStep('timezone')}
-              className="w-full py-2.5 px-4 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+              className="w-full py-2.5 px-4 text-sm text-rhythm-text-muted hover:text-rhythm-text-secondary transition-colors"
             >
               上一步
             </button>

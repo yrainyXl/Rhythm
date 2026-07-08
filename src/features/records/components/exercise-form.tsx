@@ -146,8 +146,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="text-4xl mb-3">💪</div>
-          <p className="text-lg font-bold text-gray-900 mb-1">已记录！</p>
+          <p className="text-lg r-title mb-1">已记录！</p>
         </div>
       </div>
     )
@@ -156,19 +155,19 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Date */}
-      <div className="bg-white rounded-xl border p-4">
-        <label className="block text-xs text-gray-500 mb-1">运动日期</label>
+      <div className="r-card p-4">
+        <label className="r-label">运动日期</label>
         <input
           type="date"
           value={exerciseDate}
           onChange={(e) => setExerciseDate(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="r-input"
         />
       </div>
 
       {/* Template selection */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-3">运动类型</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-3">运动类型</h3>
 
         <div className="space-y-2">
           {regularTemplates.length > 0 && (
@@ -180,8 +179,8 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
                   onClick={() => handleTemplateSelect(t.id)}
                   className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
                     selectedTemplateId === t.id
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                      ? 'r-btn-primary'
+                      : 'bg-rhythm-void/40 text-rhythm-text-secondary border border-rhythm-border hover:bg-rhythm-void/60'
                   }`}
                 >
                   {t.name}
@@ -193,7 +192,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
             <button
               type="button"
               onClick={() => { setSelectedTemplateId(null); setShowCreateTemplate(true) }}
-              className="text-xs text-blue-600 hover:text-blue-700"
+              className="text-xs text-rhythm-glow hover:opacity-80"
             >
               + 新运动类型
             </button>
@@ -201,29 +200,29 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
         </div>
 
         {showCreateTemplate && (
-          <div className="mt-3 pt-3 border-t space-y-3">
+          <div className="mt-3 pt-3 border-t border-rhythm-border space-y-3">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">运动名称</label>
+              <label className="r-label">运动名称</label>
               <input
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
                 placeholder="如：晨跑、游泳..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="r-input"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">分类</label>
+              <label className="r-label">分类</label>
               <div className="grid grid-cols-5 gap-1.5">
                 {categoryOptions.map((cat) => (
                   <button
                     key={cat.value}
                     type="button"
                     onClick={() => setCustomCategory(cat.value)}
-                    className={`flex flex-col items-center gap-0.5 p-2 rounded-lg text-xs transition-colors ${
+                    className={`flex flex-col items-center gap-0.5 p-2 rounded-xl text-xs transition-colors ${
                       customCategory === cat.value
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'bg-gray-50 text-gray-500 border border-gray-100'
+                        ? 'bg-rhythm-glow-soft text-rhythm-glow border border-rhythm-glow'
+                        : 'bg-rhythm-void/40 text-rhythm-text-secondary border border-rhythm-border'
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -237,14 +236,14 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
                 type="button"
                 onClick={handleCreateTemplate}
                 disabled={!customName.trim()}
-                className="flex-1 py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="r-btn-primary flex-1 py-2 text-xs font-medium disabled:opacity-50"
               >
                 创建
               </button>
               <button
                 type="button"
                 onClick={() => setShowCreateTemplate(false)}
-                className="px-3 py-2 text-xs text-gray-500 hover:text-gray-700"
+                className="r-btn-ghost px-3 py-2 text-xs"
               >
                 取消
               </button>
@@ -255,36 +254,36 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
 
       {/* Rehab sets */}
       {isRehabMode && (
-        <div className="bg-white rounded-xl border p-4">
+        <div className="r-card p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold text-gray-900 text-sm">
+            <h3 className="r-title text-sm">
               训练组 (康复)
             </h3>
-            <button type="button" onClick={handleAddSet} className="text-xs text-blue-600 hover:text-blue-700">
+            <button type="button" onClick={handleAddSet} className="text-xs text-rhythm-glow hover:opacity-80">
               + 添加一组
             </button>
           </div>
 
           <div className="space-y-2">
             {sets.map((set, index) => (
-              <div key={index} className="flex items-center gap-2 bg-gray-50 rounded-lg p-2.5">
-                <span className="text-xs text-gray-400 w-6">#{set.set_number}</span>
+              <div key={index} className="flex items-center gap-2 bg-rhythm-void/40 border border-rhythm-border rounded-xl p-2.5">
+                <span className="text-xs text-rhythm-text-muted w-6">#{set.set_number}</span>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-500">次数</label>
+                  <label className="block text-xs text-rhythm-text-secondary">次数</label>
                   <input
                     type="number"
                     value={set.reps}
                     onChange={(e) => handleUpdateSet(index, 'reps', e.target.value)}
                     placeholder="0"
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="r-input"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-xs text-gray-500">感受</label>
+                  <label className="block text-xs text-rhythm-text-secondary">感受</label>
                   <select
                     value={set.feeling}
                     onChange={(e) => handleUpdateSet(index, 'feeling', e.target.value)}
-                    className="w-full px-2 py-1 border border-gray-300 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="r-input"
                   >
                     <option value="">选感受</option>
                     {setFeelings.map((f) => (
@@ -296,7 +295,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
                   <button
                     type="button"
                     onClick={() => handleRemoveSet(index)}
-                    className="text-red-400 hover:text-red-600 text-xs"
+                    className="text-rhythm-danger hover:opacity-80 text-xs"
                   >
                     ✕
                   </button>
@@ -308,37 +307,37 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       )}
 
       {/* Duration & Distance */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-3">运动数据</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-3">运动数据</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs text-gray-500 mb-1">时长（分钟）</label>
+            <label className="r-label">时长（分钟）</label>
             <input
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
               placeholder="30"
               min={1}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-1">距离（公里）</label>
+            <label className="r-label">距离（公里）</label>
             <input
               type="number"
               step="0.1"
               value={distance}
               onChange={(e) => setDistance(e.target.value)}
               placeholder="5.0"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
         </div>
       </div>
 
       {/* Intensity */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-3">强度</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-3">强度</h3>
         <div className="flex gap-3">
           {([
             { value: 'light', label: '轻度', icon: '🚶' },
@@ -351,20 +350,20 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
               onClick={() => setIntensity(value)}
               className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-xl border transition-colors ${
                 intensity === value
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 bg-white hover:bg-gray-50'
+                  ? 'border-rhythm-glow bg-rhythm-glow-soft'
+                  : 'border-rhythm-border bg-rhythm-void/40 hover:bg-rhythm-void/60'
               }`}
             >
               <span>{icon}</span>
-              <span className="text-xs text-gray-700">{label}</span>
+              <span className="text-xs text-rhythm-text-secondary">{label}</span>
             </button>
           ))}
         </div>
       </div>
 
       {/* Feeling */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-2">体感评分</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-2">体感评分</h3>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((v) => (
             <button
@@ -373,8 +372,8 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
               onClick={() => setFeeling(v)}
               className={`w-10 h-10 rounded-full text-sm transition-colors ${
                 feeling === v
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'r-btn-primary'
+                  : 'bg-rhythm-void/40 text-rhythm-text-secondary border border-rhythm-border hover:bg-rhythm-void/60'
               }`}
             >
               {v}
@@ -384,23 +383,23 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       </div>
 
       {/* Note */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-2">备注（可选）</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-2">备注（可选）</h3>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="今天运动状态怎么样？"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="r-input"
         />
       </div>
 
-      {error && <p className="text-sm text-red-600 text-center">{error}</p>}
+      {error && <p className="text-sm text-rhythm-danger text-center">{error}</p>}
 
       <button
         type="submit"
         disabled={isSaving}
-        className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+        className="r-btn-primary w-full py-2.5 text-sm font-medium disabled:opacity-50"
       >
         {isSaving ? '保存中...' : '保存运动记录'}
       </button>

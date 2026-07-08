@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Habit = Database['public']['Tables']['habits']['Row'] & {
@@ -80,34 +80,24 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   loadHabits: async () => {
     set({ isLoading: true, errorMessage: null })
     const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
 
-    const { data: habits, error } = await supabase
-      .from('habits')
-      .select('*')
-      .order('sort_order')
+    let query = supabase.from('habits').select('*, habit_schedules(*)').order('sort_order')
+    if (user) query = query.eq('user_id', user.id)
+
+    const { data: habits, error } = await query
 
     if (error) {
       set({ errorMessage: error.message, isLoading: false })
       return
     }
 
-    // Load schedules for each habit
-    const habitsWithSchedules = await Promise.all(
-      habits.map(async (habit) => {
-        const { data: schedules } = await supabase
-          .from('habit_schedules')
-          .select('*')
-          .eq('habit_id', habit.id)
-        return { ...habit, schedules: schedules ?? [] }
-      })
-    )
-
-    set({ habits: habitsWithSchedules, isLoading: false })
+    set({ habits: habits ?? [], isLoading: false })
   },
 
   loadTodayOccurrences: async (localDate: string) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -154,7 +144,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
   createHabit: async () => {
     const { formData } = get()
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return false
 
     set({ isSaving: true, errorMessage: null })
@@ -276,7 +266,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   completeOccurrence: async (occurrenceId, actualValue, actualDuration, feeling, note) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const now = new Date().toISOString()
@@ -359,61 +349,59 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   generateOccurrences: async (localDate) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
-    // Get all enabled habits
+    // One query for all enabled habits + their schedules.
     const { data: habits } = await supabase
       .from('habits')
       .select('*, habit_schedules(*)')
       .eq('user_id', user.id)
       .eq('is_enabled', true)
 
-    if (!habits) return
+    if (!habits || habits.length === 0) {
+      return
+    }
+
+    // One query for any occurrences that already exist for this date, so we
+    // can skip them instead of firing one request per habit.
+    const { data: existing } = await supabase
+      .from('habit_occurrences')
+      .select('habit_id')
+      .eq('user_id', user.id)
+      .eq('local_date', localDate)
+
+    const existingHabitIds = new Set((existing ?? []).map((o) => o.habit_id))
 
     const date = new Date(localDate + 'T00:00:00')
     const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay() // Convert Sunday=0 to 7
 
-    for (const habit of habits) {
-      // Check if already has occurrence for this date
-      const { data: existing } = await supabase
-        .from('habit_occurrences')
-        .select('id')
-        .eq('habit_id', habit.id)
-        .eq('local_date', localDate)
+    const toInsert = habits
+      .filter((habit) => !existingHabitIds.has(habit.id))
+      .filter((habit) => {
+        const schedule = habit.habit_schedules?.[0]
+        if (!schedule) return false
 
-      if (existing && existing.length > 0) continue
+        // Check if date is within the schedule window
+        if (date < new Date(schedule.start_date + 'T00:00:00')) return false
+        if (schedule.end_date && date > new Date(schedule.end_date + 'T00:00:00')) return false
 
-      const schedule = habit.habit_schedules[0]
-      if (!schedule) continue
-
-      // Check if date should have occurrence
-      if (date < new Date(schedule.start_date + 'T00:00:00')) continue
-      if (schedule.end_date && date > new Date(schedule.end_date + 'T00:00:00')) continue
-
-      let shouldGenerate = false
-      switch (schedule.repeat_type) {
-        case 'daily':
-          shouldGenerate = true
-          break
-        case 'weekdays':
-          shouldGenerate = dayOfWeek >= 1 && dayOfWeek <= 5
-          break
-        case 'weekends':
-          shouldGenerate = dayOfWeek >= 6
-          break
-        case 'weekly':
-          shouldGenerate = schedule.repeat_days.includes(dayOfWeek)
-          break
-        case 'custom':
-          shouldGenerate = schedule.custom_dates?.includes(localDate) ?? false
-          break
-      }
-
-      if (!shouldGenerate) continue
-
-      // Create occurrence with snapshot
-      await supabase.from('habit_occurrences').insert({
+        switch (schedule.repeat_type) {
+          case 'daily':
+            return true
+          case 'weekdays':
+            return dayOfWeek >= 1 && dayOfWeek <= 5
+          case 'weekends':
+            return dayOfWeek >= 6
+          case 'weekly':
+            return schedule.repeat_days.includes(dayOfWeek)
+          case 'custom':
+            return schedule.custom_dates?.includes(localDate) ?? false
+          default:
+            return false
+        }
+      })
+      .map((habit) => ({
         user_id: user.id,
         habit_id: habit.id,
         local_date: localDate,
@@ -421,11 +409,19 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         target_type_snapshot: habit.target_type,
         target_value_snapshot: habit.target_value,
         target_unit_snapshot: habit.target_unit,
-        status: 'pending',
-      })
+        status: 'pending' as const,
+      }))
+
+    if (toInsert.length > 0) {
+      // upsert with ignoreDuplicates makes this idempotent: concurrent calls
+      // (e.g. React StrictMode double-invoke) that both try to seed the same
+      // (habit_id, local_date) no longer collide on the unique constraint.
+      await supabase
+        .from('habit_occurrences')
+        .upsert(toInsert, { onConflict: 'habit_id,local_date', ignoreDuplicates: true })
     }
 
-    // Reload occurrences
+    // Reload occurrences (single query)
     await get().loadTodayOccurrences(localDate)
   },
 }))

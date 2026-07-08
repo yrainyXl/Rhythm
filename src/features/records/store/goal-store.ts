@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Goal = Database['public']['Tables']['goals']['Row']
@@ -17,6 +17,7 @@ interface GoalState {
 
   loadGoals: () => Promise<void>
   loadGoalDetail: (goalId: string) => Promise<void>
+  setActiveGoal: (goal: Goal | null) => void
   createGoal: (data: { title: string; description?: string; category?: string; target_date?: string }) => Promise<Goal | null>
   updateGoalStatus: (goalId: string, status: 'active' | 'completed' | 'abandoned') => Promise<void>
   addKeyResult: (goalId: string, data: { title: string; target_value?: number; unit?: string }) => Promise<void>
@@ -34,7 +35,7 @@ export const useGoalStore = create<GoalState>((set) => ({
 
   loadGoals: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -46,37 +47,28 @@ export const useGoalStore = create<GoalState>((set) => ({
     set({ goals: data ?? [] })
   },
 
+  setActiveGoal: (goal) => set({ activeGoal: goal }),
+
   loadGoalDetail: async (goalId) => {
     const supabase = createBrowserClient()
 
-    const { data: goal } = await supabase
-      .from('goals')
-      .select('*')
-      .eq('id', goalId)
-      .single()
-
-    const { data: keyResults } = await supabase
-      .from('goal_key_results')
-      .select('*')
-      .eq('goal_id', goalId)
-      .order('created_at')
-
-    const { data: milestones } = await supabase
-      .from('goal_milestones')
-      .select('*')
-      .eq('goal_id', goalId)
-      .order('created_at')
+    // goal / key results / milestones are independent -> fetch in parallel
+    const [goalRes, keyResultsRes, milestonesRes] = await Promise.all([
+      supabase.from('goals').select('*').eq('id', goalId).single(),
+      supabase.from('goal_key_results').select('*').eq('goal_id', goalId).order('created_at'),
+      supabase.from('goal_milestones').select('*').eq('goal_id', goalId).order('created_at'),
+    ])
 
     set({
-      activeGoal: goal ?? null,
-      keyResults: keyResults ?? [],
-      milestones: milestones ?? [],
+      activeGoal: goalRes.data ?? null,
+      keyResults: keyResultsRes.data ?? [],
+      milestones: milestonesRes.data ?? [],
     })
   },
 
   createGoal: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return null
 
     set({ isSaving: true })
@@ -105,7 +97,7 @@ export const useGoalStore = create<GoalState>((set) => ({
 
   addKeyResult: async (goalId, data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     await supabase.from('goal_key_results').insert({
@@ -145,7 +137,7 @@ export const useGoalStore = create<GoalState>((set) => ({
 
   addMilestone: async (goalId, data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     await supabase.from('goal_milestones').insert({

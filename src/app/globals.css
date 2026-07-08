@@ -1,11 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
   --rhythm-void: #0B1019;
   --rhythm-depth: #111823;
   --rhythm-surface: #161D2B;
@@ -23,5 +22,82 @@ html, body {
   }
   body {
     @apply h-full;
+    /* App-wide dark atmosphere — a subtle vertical gradient echoing the entry layer */
+    background:
+      radial-gradient(120% 80% at 50% -10%, rgba(30, 44, 66, 0.5) 0%, transparent 55%),
+      linear-gradient(180deg, #0B1019 0%, #0D1420 50%, #090D14 100%);
+    background-attachment: fixed;
+    color: rgba(222, 228, 236, 0.92);
+  }
+
+  /* Dark form controls */
+  input, textarea, select {
+    color-scheme: dark;
+  }
+
+  /* Faint scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(150, 175, 205, 0.15);
+    border-radius: 3px;
+  }
+}
+
+@layer components {
+  /* ── Surface / card ── */
+  .r-card {
+    @apply rounded-2xl border border-rhythm-border bg-rhythm-card/80 backdrop-blur-sm;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset, 0 8px 24px -12px rgba(0, 0, 0, 0.5);
+  }
+  .r-card-hover {
+    @apply transition-colors duration-300 hover:border-rhythm-border-strong hover:bg-rhythm-card-hover/80;
+  }
+
+  /* ── Primary action ── */
+  .r-btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-medium tracking-[0.03em] transition-all duration-300;
+  }
+  .r-btn-primary {
+    @apply r-btn text-rhythm-text-primary;
+    background: linear-gradient(180deg, rgba(143, 180, 220, 0.22) 0%, rgba(143, 180, 220, 0.12) 100%);
+    border: 1px solid rgba(143, 180, 220, 0.28);
+  }
+  .r-btn-primary:hover {
+    background: linear-gradient(180deg, rgba(143, 180, 220, 0.32) 0%, rgba(143, 180, 220, 0.18) 100%);
+    border-color: rgba(143, 180, 220, 0.42);
+  }
+  .r-btn-ghost {
+    @apply r-btn text-rhythm-text-secondary hover:text-rhythm-text-primary;
+    border: 1px solid rgba(150, 175, 205, 0.12);
+  }
+  .r-btn-ghost:hover {
+    border-color: rgba(150, 175, 205, 0.22);
+    background: rgba(150, 175, 205, 0.06);
+  }
+
+  /* ── Inputs ── */
+  .r-input {
+    @apply w-full rounded-xl px-3.5 py-2.5 text-sm text-rhythm-text-primary transition-colors duration-200;
+    background: rgba(11, 16, 25, 0.6);
+    border: 1px solid rgba(150, 175, 205, 0.12);
+  }
+  .r-input::placeholder {
+    color: rgba(200, 210, 222, 0.28);
+  }
+  .r-input:focus {
+    outline: none;
+    border-color: rgba(143, 180, 220, 0.4);
+    box-shadow: 0 0 0 3px rgba(143, 180, 220, 0.08);
+  }
+  .r-label {
+    @apply block text-xs font-normal mb-1.5 tracking-[0.04em] text-rhythm-text-secondary;
+  }
+
+  /* ── Text helpers ── */
+  .r-title {
+    @apply font-serifsc font-medium tracking-[0.04em] text-rhythm-text-primary;
+  }
+  .r-eyebrow {
+    @apply text-[0.7rem] font-normal tracking-[0.14em] uppercase text-rhythm-text-muted;
   }
 }

@@ -27,9 +27,9 @@ export default function RecordsPageClient() {
 
   return (
     <AuthGuard>
-      <div className="p-4">
+      <div className="p-5">
         {/* Tab navigation */}
-        <div className="flex gap-1 mb-4 bg-gray-100 rounded-xl p-1 overflow-x-auto">
+        <div className="flex gap-1 mb-5 rounded-2xl p-1 overflow-x-auto border border-rhythm-border bg-rhythm-void/40">
           {tabs.map((tab) => (
             <button
               key={tab.id}
@@ -38,14 +38,13 @@ export default function RecordsPageClient() {
                 setActiveTab(tab.id)
                 setShowSleepForm(false)
               }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors whitespace-nowrap ${
+              className={`px-4 py-2 rounded-xl text-xs font-medium tracking-[0.04em] transition-all whitespace-nowrap ${
                 activeTab === tab.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-rhythm-text-primary bg-rhythm-glow-soft border border-rhythm-border-strong'
+                  : 'text-rhythm-text-muted hover:text-rhythm-text-secondary border border-transparent'
               }`}
             >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
+              {tab.label}
             </button>
           ))}
         </div>
@@ -58,7 +57,7 @@ export default function RecordsPageClient() {
                 <button
                   type="button"
                   onClick={() => setShowSleepForm(true)}
-                  className="w-full py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  className="r-btn-primary w-full"
                 >
                   + 记录睡眠
                 </button>
@@ -69,7 +68,7 @@ export default function RecordsPageClient() {
                 <button
                   type="button"
                   onClick={() => setShowSleepForm(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+                  className="text-sm text-rhythm-text-secondary hover:text-rhythm-text-primary mb-2 inline-block transition-colors"
                 >
                   ← 返回分析
                 </button>
@@ -87,7 +86,7 @@ export default function RecordsPageClient() {
                 <button
                   type="button"
                   onClick={() => setShowExerciseForm(true)}
-                  className="w-full py-3 bg-blue-600 text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors"
+                  className="r-btn-primary w-full"
                 >
                   + 记录运动
                 </button>
@@ -98,7 +97,7 @@ export default function RecordsPageClient() {
                 <button
                   type="button"
                   onClick={() => setShowExerciseForm(false)}
-                  className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+                  className="text-sm text-rhythm-text-secondary hover:text-rhythm-text-primary mb-2 inline-block transition-colors"
                 >
                   ← 返回分析
                 </button>
@@ -112,8 +111,8 @@ export default function RecordsPageClient() {
         {activeTab === 'reading' && (
           <div className="space-y-4">
             <ReadingView />
-            <div className="border-t pt-4">
-              <p className="text-xs text-gray-400 mb-3 font-medium">阅读分析</p>
+            <div className="border-t border-rhythm-border pt-4">
+              <p className="r-eyebrow mb-3">阅读分析</p>
               <ReadingAnalysis />
             </div>
           </div>

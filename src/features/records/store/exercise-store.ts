@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type ExerciseTemplate = Database['public']['Tables']['exercise_templates']['Row']
@@ -50,7 +50,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
 
   loadTemplates: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -64,7 +64,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
 
   loadRecentRecords: async (limit = 20) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -79,7 +79,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
 
   createTemplate: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return null
 
     const { data: template, error } = await supabase
@@ -104,7 +104,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
 
   saveRecord: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return { error: 'Not authenticated' }
 
     set({ isSaving: true })
@@ -150,7 +150,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
 
   runAnalysis: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     // Get records from last 30 days
@@ -158,25 +158,28 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
     startDate.setDate(startDate.getDate() - 30)
     const startStr = startDate.toISOString().split('T')[0]
 
-    const { data: recentRecords } = await supabase
-      .from('exercise_records')
-      .select('*')
-      .eq('user_id', user.id)
-      .gte('exercise_date', startStr)
-      .order('exercise_date')
+    // Fetch records and templates in parallel (independent queries)
+    const [recentRecordsRes, templatesRes] = await Promise.all([
+      supabase
+        .from('exercise_records')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('exercise_date', startStr)
+        .order('exercise_date'),
+      supabase
+        .from('exercise_templates')
+        .select('id, name, category, is_rehab')
+        .eq('user_id', user.id),
+    ])
 
-    const records = recentRecords ?? []
+    const records = recentRecordsRes.data ?? []
+    const templates = templatesRes.data ?? []
 
     const totalSessions = records.length
     const totalDuration = records.reduce((sum, r) => sum + (r.duration_minutes ?? 0), 0)
 
     // Category breakdown
-    const { data: templates } = await supabase
-      .from('exercise_templates')
-      .select('id, name, category, is_rehab')
-      .eq('user_id', user.id)
-
-    const templateMap = new Map(templates?.map((t) => [t.id, t]) ?? [])
+    const templateMap = new Map(templates.map((t) => [t.id, t]))
     const categoryBreakdown: Record<string, { count: number; duration: number }> = {}
 
     records.forEach((r) => {
@@ -204,7 +207,7 @@ export const useExerciseStore = create<ExerciseState>((set) => ({
       .map(([week, data]) => ({ week, ...data }))
 
     // Rehab progress
-    const rehabTemplates = templates?.filter((t) => t.is_rehab) ?? []
+    const rehabTemplates = templates.filter((t) => t.is_rehab)
     const rehabProgress = rehabTemplates.map((t) => {
       const templateRecords = records.filter((r) => r.template_id === t.id)
       const firstRecord = templateRecords[templateRecords.length - 1]

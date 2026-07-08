@@ -65,16 +65,16 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
   const currentTargetType = targetTypeOptions.find((t) => t.value === formData.target_type)
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center">
-      <div className="bg-white w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b px-4 py-3 flex items-center justify-between">
-          <h3 className="font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
+      <div className="r-card w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-rhythm-surface border-b border-rhythm-border px-4 py-3 flex items-center justify-between">
+          <h3 className="r-title">
             {editHabitId ? '编辑习惯' : '新建习惯'}
           </h3>
           <button
             type="button"
             onClick={() => { resetForm(); onClose() }}
-            className="text-gray-400 hover:text-gray-600 text-lg leading-none"
+            className="text-rhythm-text-muted hover:text-rhythm-text-secondary text-lg leading-none"
           >
             ✕
           </button>
@@ -83,7 +83,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-5">
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">名称</label>
+            <label className="r-label">名称</label>
             <input
               type="text"
               value={formData.name}
@@ -91,23 +91,23 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
               placeholder="如：冥想、晨跑、阅读..."
               maxLength={50}
               required
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">分类</label>
+            <label className="r-label">分类</label>
             <div className="grid grid-cols-4 gap-2">
               {categoryOptions.map((cat) => (
                 <button
                   key={cat.value}
                   type="button"
                   onClick={() => updateFormField('category', cat.value as typeof formData.category)}
-                  className={`flex flex-col items-center gap-1 p-2.5 rounded-lg border text-xs transition-colors ${
+                  className={`flex flex-col items-center gap-1 p-2.5 rounded-xl border text-xs transition-colors ${
                     formData.category === cat.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      ? 'border-rhythm-glow bg-rhythm-glow-soft text-rhythm-glow'
+                      : 'border-rhythm-border text-rhythm-text-secondary hover:border-rhythm-glow'
                   }`}
                 >
                   <span className="text-lg">{cat.icon}</span>
@@ -119,17 +119,17 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Target Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">目标类型</label>
+            <label className="r-label">目标类型</label>
             <div className="grid grid-cols-2 gap-2">
               {targetTypeOptions.map((tt) => (
                 <button
                   key={tt.value}
                   type="button"
                   onClick={() => updateFormField('target_type', tt.value as typeof formData.target_type)}
-                  className={`px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                  className={`px-3 py-2.5 rounded-xl border text-sm transition-colors ${
                     formData.target_type === tt.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      ? 'border-rhythm-glow bg-rhythm-glow-soft text-rhythm-glow'
+                      : 'border-rhythm-border text-rhythm-text-secondary hover:border-rhythm-glow'
                   }`}
                 >
                   {tt.label}
@@ -142,7 +142,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
           {formData.target_type !== 'boolean' && (
             <div className="flex gap-3 items-start">
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="r-label">
                   目标值
                 </label>
                 <input
@@ -153,17 +153,17 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
                     currentTargetType?.unit === '自定义单位' ? '' : currentTargetType?.unit ?? ''
                   }`}
                   min={1}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="r-input"
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-1">单位</label>
+                <label className="r-label">单位</label>
                 <input
                   type="text"
                   value={formData.target_unit}
                   onChange={(e) => updateFormField('target_unit', e.target.value)}
                   placeholder={'分钟、页、次...'}
-                  className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="r-input"
                 />
               </div>
             </div>
@@ -171,17 +171,17 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Repeat Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">重复</label>
+            <label className="r-label">重复</label>
             <div className="grid grid-cols-2 gap-2">
               {repeatTypeOptions.map((rt) => (
                 <button
                   key={rt.value}
                   type="button"
                   onClick={() => updateFormField('schedule_repeat_type', rt.value as typeof formData.schedule_repeat_type)}
-                  className={`px-3 py-2.5 rounded-lg border text-sm transition-colors ${
+                  className={`px-3 py-2.5 rounded-xl border text-sm transition-colors ${
                     formData.schedule_repeat_type === rt.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-200 text-gray-500 hover:border-gray-300'
+                      ? 'border-rhythm-glow bg-rhythm-glow-soft text-rhythm-glow'
+                      : 'border-rhythm-border text-rhythm-text-secondary hover:border-rhythm-glow'
                   }`}
                 >
                   {rt.label}
@@ -198,8 +198,8 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
                     onClick={() => handleDayToggle(i + 1)}
                     className={`w-9 h-9 rounded-full text-sm font-medium transition-colors ${
                       formData.schedule_repeat_days.includes(i + 1)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                        ? 'r-btn-primary'
+                        : 'bg-rhythm-void/40 text-rhythm-text-secondary border border-rhythm-border hover:bg-rhythm-void/60'
                     }`}
                   >
                     {label}
@@ -211,12 +211,12 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Reminder */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">提醒时间（可选）</label>
+            <label className="r-label">提醒时间（可选）</label>
             <input
               type="time"
               value={formData.schedule_reminder_time}
               onChange={(e) => updateFormField('schedule_reminder_time', e.target.value)}
-              className="w-full px-3 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
 
@@ -227,22 +227,22 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
                 type="checkbox"
                 checked={formData.is_important}
                 onChange={(e) => updateFormField('is_important', e.target.checked)}
-                className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                className="w-4 h-4 text-rhythm-glow rounded border-rhythm-border focus:ring-rhythm-glow"
               />
-              <span className="text-sm text-gray-700">标记为重要</span>
+              <span className="text-sm text-rhythm-text-secondary">标记为重要</span>
             </label>
           </div>
 
           {/* Error */}
           {errorMessage && (
-            <p className="text-sm text-red-600">{errorMessage}</p>
+            <p className="text-sm text-rhythm-danger">{errorMessage}</p>
           )}
 
           {/* Submit */}
           <button
             type="submit"
             disabled={isSaving || !formData.name.trim()}
-            className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="r-btn-primary w-full py-2.5 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSaving ? '保存中...' : editHabitId ? '保存修改' : '创建习惯'}
           </button>

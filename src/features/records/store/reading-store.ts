@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type ReadingBook = Database['public']['Tables']['reading_books']['Row']
@@ -56,7 +56,7 @@ export const useReadingStore = create<ReadingState>((set) => ({
 
   loadBooks: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -70,7 +70,7 @@ export const useReadingStore = create<ReadingState>((set) => ({
 
   loadRecentSessions: async (limit = 10) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -85,7 +85,7 @@ export const useReadingStore = create<ReadingState>((set) => ({
 
   addBook: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return null
 
     set({ isSaving: true })
@@ -124,7 +124,7 @@ export const useReadingStore = create<ReadingState>((set) => ({
 
   recordSession: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return { error: 'Not authenticated' }
 
     set({ isSaving: true })
@@ -155,33 +155,36 @@ export const useReadingStore = create<ReadingState>((set) => ({
     }
 
     set({ isSaving: false })
+    if (!error) await useReadingStore.getState().loadBooks()
     return { error: error?.message ?? null }
   },
 
   runAnalysis: async () => {
     set({ isLoadingAnalysis: true })
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - 30)
     const startStr = startDate.toISOString().split('T')[0]
 
-    const { data: sessions } = await supabase
-      .from('reading_sessions')
-      .select('*, reading_books!inner(title)')
-      .eq('user_id', user.id)
-      .gte('read_date', startStr)
-      .order('read_date', { ascending: false })
+    // Fetch sessions and books in parallel (independent queries)
+    const [sessionsRes, booksRes] = await Promise.all([
+      supabase
+        .from('reading_sessions')
+        .select('*, reading_books!inner(title)')
+        .eq('user_id', user.id)
+        .gte('read_date', startStr)
+        .order('read_date', { ascending: false }),
+      supabase
+        .from('reading_books')
+        .select('*')
+        .eq('user_id', user.id),
+    ])
 
-    const { data: books } = await supabase
-      .from('reading_books')
-      .select('*')
-      .eq('user_id', user.id)
-
-    const allBooks = books ?? []
-    const allSessions = (sessions ?? []) as (ReadingSession & { reading_books: { title: string } })[]
+    const allBooks = booksRes.data ?? []
+    const allSessions = (sessionsRes.data ?? []) as (ReadingSession & { reading_books: { title: string } })[]
 
     const readingBooks = allBooks.filter((b) => b.status === 'reading').length
     const finishedBooks = allBooks.filter((b) => b.status === 'finished').length

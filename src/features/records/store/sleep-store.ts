@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type SleepRecord = Database['public']['Tables']['sleep_records']['Row']
@@ -46,7 +46,7 @@ export const useSleepStore = create<SleepState>((set) => ({
 
   loadRecentSleep: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -61,7 +61,7 @@ export const useSleepStore = create<SleepState>((set) => ({
 
   loadSleepHistory: async (days: number) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const startDate = new Date()
@@ -94,7 +94,7 @@ export const useSleepStore = create<SleepState>((set) => ({
   runAnalysis: async (days = 30) => {
     set({ isLoadingAnalysis: true })
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const startDate = new Date()

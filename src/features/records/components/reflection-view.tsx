@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Reflection = Database['public']['Tables']['daily_reflections']['Row']
@@ -32,7 +32,7 @@ export const useReflectionStore = create<ReflectionState>((set) => ({
 
   loadToday: async (localDate) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -47,7 +47,7 @@ export const useReflectionStore = create<ReflectionState>((set) => ({
 
   saveReflection: async (data) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return { error: 'Not authenticated' }
 
     set({ isSaving: true })
@@ -118,32 +118,31 @@ export function ReflectionView() {
 
   return (
     <div className="space-y-4">
-      <div className="bg-white rounded-xl border p-4">
+      <div className="r-card p-4">
         <div className="flex items-center gap-2 mb-4">
-          <span className="text-lg">📝</span>
-          <h3 className="font-bold text-gray-900">今日复盘</h3>
+          <h3 className="r-title">今日复盘</h3>
         </div>
 
         <div className="space-y-4">
           {/* Mood */}
           <div>
-            <p className="text-xs text-gray-500 mb-2">今天整体状态</p>
+            <p className="r-label">今天整体状态</p>
             <div className="flex gap-3">
               {([
-                { value: 'great', label: '很好', icon: '😊', color: 'border-green-300 bg-green-50' },
-                { value: 'fair', label: '一般', icon: '😐', color: 'border-yellow-300 bg-yellow-50' },
-                { value: 'poor', label: '较差', icon: '😞', color: 'border-red-300 bg-red-50' },
+                { value: 'great', label: '很好', icon: '😊', color: 'border-rhythm-success bg-rhythm-success-soft' },
+                { value: 'fair', label: '一般', icon: '😐', color: 'border-rhythm-warn bg-rhythm-glow-soft' },
+                { value: 'poor', label: '较差', icon: '😞', color: 'border-rhythm-danger bg-rhythm-danger-soft' },
               ] as const).map(({ value, label, icon, color: colorClass }) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => setMood(value)}
                   className={`flex-1 flex flex-col items-center gap-1 p-3 rounded-xl border transition-colors ${
-                    mood === value ? colorClass + ' border-2' : 'border-gray-200 bg-white hover:bg-gray-50'
+                    mood === value ? colorClass + ' border-2' : 'border-rhythm-border hover:bg-rhythm-void/40'
                   }`}
                 >
                   <span className="text-xl">{icon}</span>
-                  <span className="text-xs text-gray-700">{label}</span>
+                  <span className="text-xs text-rhythm-text-secondary">{label}</span>
                 </button>
               ))}
             </div>
@@ -151,60 +150,60 @@ export function ReflectionView() {
 
           {/* Best thing */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">今天最满意的一件事</label>
+            <label className="r-label">今天最满意的一件事</label>
             <input
               type="text"
               value={bestThing}
               onChange={(e) => setBestThing(e.target.value)}
               placeholder="无论多小都行..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
 
           {/* Improve thing */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">今天最需要改进的</label>
+            <label className="r-label">今天最需要改进的</label>
             <input
               type="text"
               value={improveThing}
               onChange={(e) => setImproveThing(e.target.value)}
               placeholder="不用太苛责自己"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
 
           {/* Tomorrow focus */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">明天最重要的一件事</label>
+            <label className="r-label">明天最重要的一件事</label>
             <input
               type="text"
               value={tomorrowFocus}
               onChange={(e) => setTomorrowFocus(e.target.value)}
               placeholder="明天最想完成什么？"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="r-input"
             />
           </div>
 
           {/* Free note */}
           <div>
-            <label className="block text-xs text-gray-500 mb-1">自由备注</label>
+            <label className="r-label">自由备注</label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="随便说点什么..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="r-input resize-none"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {success && <p className="text-sm text-green-600">保存成功 ✓</p>}
+          {error && <p className="text-sm text-rhythm-danger">{error}</p>}
+          {success && <p className="text-sm text-rhythm-success">保存成功 ✓</p>}
 
           <button
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="r-btn-primary w-full py-2.5 text-sm disabled:opacity-50"
           >
             {isSaving ? '保存中...' : todayReflection ? '更新复盘' : '保存复盘'}
           </button>

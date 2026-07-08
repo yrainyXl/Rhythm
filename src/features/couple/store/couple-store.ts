@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Couple = Database['public']['Tables']['couples']['Row']
@@ -46,7 +46,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
 
   loadCouple: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     // Find my couple membership
@@ -92,7 +92,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
 
   createInvite: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return null
 
     set({ isSaving: true, errorMessage: null })
@@ -125,7 +125,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
 
   acceptInvite: async (code) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return { error: 'Not authenticated' }
 
     set({ isSaving: true, errorMessage: null })
@@ -209,7 +209,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
 
   loadPermissions: async () => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { data } = await supabase
@@ -222,7 +222,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
 
   updatePermission: async (dataType, shareLevel, isEnabled) => {
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     await supabase.from('shared_permissions').upsert({
@@ -240,7 +240,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
     if (!couple) return
 
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     set({ isSaving: true })
@@ -273,7 +273,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
     if (!couple) return
 
     const supabase = createBrowserClient()
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     set({ isSaving: true })
@@ -296,7 +296,7 @@ export const useCoupleStore = create<CoupleState>((set) => ({
       .eq('id', suggestionId)
 
     // Reload suggestions
-    const user = (await supabase.auth.getUser()).data.user
+    const user = await getCurrentUser(supabase)
     if (!user) return
 
     const { couple } = useCoupleStore.getState()

@@ -4,13 +4,14 @@ import { useAuthStore } from '@/features/auth/store/auth-store'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { NotificationPrompt } from '@/features/notifications/notification-prompt'
+import { CalendarCheck, Target, LineChart, Heart, User } from 'lucide-react'
 
 const navItems = [
-  { href: '/today', label: '今天', icon: '📋' },
-  { href: '/habits', label: '计划', icon: '🎯' },
-  { href: '/records', label: '记录', icon: '📊' },
-  { href: '/couple', label: '我们', icon: '💑' },
-  { href: '/me', label: '我的', icon: '👤' },
+  { href: '/today', label: '今天', Icon: CalendarCheck },
+  { href: '/habits', label: '计划', Icon: Target },
+  { href: '/records', label: '记录', Icon: LineChart },
+  { href: '/couple', label: '我们', Icon: Heart },
+  { href: '/me', label: '我的', Icon: User },
 ]
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -20,41 +21,44 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showNav = !['/login', '/onboarding', '/'].includes(pathname)
 
   return (
-    <div className="max-w-lg mx-auto min-h-screen bg-white shadow-sm relative">
+    <div className="max-w-lg mx-auto min-h-screen relative">
       {showNav && (
-        <header className="sticky top-0 z-10 bg-white border-b px-4 py-3">
+        <header className="sticky top-0 z-20 px-5 py-4 backdrop-blur-md bg-rhythm-void/70 border-b border-rhythm-border">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-bold text-gray-900">
-              {profile?.nickname ? `${profile.nickname} 的生活` : 'Rhythm'}
+            <h1 className="r-title text-base">
+              {profile?.nickname ? `${profile.nickname} 的节奏` : 'Rhythm'}
             </h1>
-            <Link href="/me" className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-sm text-gray-600">
-              {profile?.nickname?.[0] ?? '?'}
+            <Link
+              href="/me"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-xs text-rhythm-text-secondary border border-rhythm-border-strong bg-rhythm-glow-soft transition-colors hover:text-rhythm-text-primary"
+            >
+              {profile?.nickname?.[0] ?? '·'}
             </Link>
           </div>
         </header>
       )}
 
-      <main className={showNav ? 'pb-20' : ''}>
+      <main className={showNav ? 'pb-24' : ''}>
         {children}
       </main>
 
       {showNav && <NotificationPrompt />}
 
       {showNav && (
-        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg bg-white border-t z-10">
-          <div className="flex justify-around py-2">
-            {navItems.map((item) => {
-              const isActive = pathname.startsWith(item.href)
+        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-20 backdrop-blur-md bg-rhythm-void/80 border-t border-rhythm-border">
+          <div className="flex justify-around py-2.5 px-2">
+            {navItems.map(({ href, label, Icon }) => {
+              const isActive = pathname.startsWith(href)
               return (
                 <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex flex-col items-center gap-0.5 px-3 py-1 text-xs transition-colors ${
-                    isActive ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600'
+                  key={href}
+                  href={href}
+                  className={`flex flex-col items-center gap-1 px-3 py-1 text-[0.65rem] tracking-[0.05em] transition-colors duration-300 ${
+                    isActive ? 'text-rhythm-glow' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
                   }`}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.label}</span>
+                  <Icon size={19} strokeWidth={isActive ? 2 : 1.5} />
+                  <span>{label}</span>
                 </Link>
               )
             })}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 
 interface WeeklyData {
   habitCompletionRate: number
@@ -33,7 +33,7 @@ export function WeeklyReport() {
     const loadReport = async () => {
       setIsLoading(true)
       const supabase = createBrowserClient()
-      const user = (await supabase.auth.getUser()).data.user
+      const user = await getCurrentUser(supabase)
       if (!user) return
 
       // Calculate date ranges
@@ -47,59 +47,36 @@ export function WeeklyReport() {
       const prevWeekStartStr = prevWeekStart.toISOString().split('T')[0]
       const prevWeekEndStr = weekStart
 
-      // Load habit occurrences
-      const { data: occurrences } = await supabase
-        .from('habit_occurrences')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('local_date', weekStart)
-        .lt('local_date', weekEnd)
+      // All seven queries are independent -> fire them together instead of
+      // waiting for each one sequentially.
+      const base = (table: string) =>
+        supabase.from(table).select('*').eq('user_id', user.id)
 
-      const { data: prevOccurrences } = await supabase
-        .from('habit_occurrences')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('local_date', prevWeekStartStr)
-        .lt('local_date', prevWeekEndStr)
+      const [
+        occurrencesRes,
+        prevOccurrencesRes,
+        sleepRecordsRes,
+        exerciseRecordsRes,
+        prevExerciseRes,
+        readingSessionsRes,
+        reflectionsRes,
+      ] = await Promise.all([
+        base('habit_occurrences').gte('local_date', weekStart).lt('local_date', weekEnd),
+        base('habit_occurrences').gte('local_date', prevWeekStartStr).lt('local_date', prevWeekEndStr),
+        base('sleep_records').gte('sleep_date', weekStart).lt('sleep_date', weekEnd),
+        base('exercise_records').gte('exercise_date', weekStart).lt('exercise_date', weekEnd),
+        base('exercise_records').gte('exercise_date', prevWeekStartStr).lt('exercise_date', prevWeekEndStr),
+        base('reading_sessions').gte('read_date', weekStart).lt('read_date', weekEnd),
+        base('daily_reflections').gte('local_date', weekStart).lt('local_date', weekEnd),
+      ])
 
-      // Load sleep records
-      const { data: sleepRecords } = await supabase
-        .from('sleep_records')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('sleep_date', weekStart)
-        .lt('sleep_date', weekEnd)
-
-      // Load exercise records
-      const { data: exerciseRecords } = await supabase
-        .from('exercise_records')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('exercise_date', weekStart)
-        .lt('exercise_date', weekEnd)
-
-      const { data: prevExercise } = await supabase
-        .from('exercise_records')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('exercise_date', prevWeekStartStr)
-        .lt('exercise_date', prevWeekEndStr)
-
-      // Load reading sessions
-      const { data: readingSessions } = await supabase
-        .from('reading_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('read_date', weekStart)
-        .lt('read_date', weekEnd)
-
-      // Load reflections
-      const { data: reflections } = await supabase
-        .from('daily_reflections')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('local_date', weekStart)
-        .lt('local_date', weekEnd)
+      const occurrences = occurrencesRes.data ?? []
+      const prevOccurrences = prevOccurrencesRes.data ?? []
+      const sleepRecords = sleepRecordsRes.data ?? []
+      const exerciseRecords = exerciseRecordsRes.data ?? []
+      const prevExercise = prevExerciseRes.data ?? []
+      const readingSessions = readingSessionsRes.data ?? []
+      const reflections = reflectionsRes.data ?? []
 
       // Calculate metrics
       const occs = occurrences ?? []
@@ -206,14 +183,14 @@ export function WeeklyReport() {
   if (isLoading) {
     return (
       <div className="text-center py-12">
-        <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-gray-400 mt-2">生成周报...</p>
+        <div className="w-6 h-6 border-2 border-rhythm-glow border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-rhythm-text-muted mt-2">生成周报...</p>
       </div>
     )
   }
 
   if (!weeklyData) {
-    return <div className="text-center py-12 text-gray-400 text-sm">暂无数据</div>
+    return <div className="text-center py-12 text-rhythm-text-muted text-sm">暂无数据</div>
   }
 
   const weekEnd = new Date(weekStart + 'T00:00')
@@ -223,33 +200,33 @@ export function WeeklyReport() {
   return (
     <div className="space-y-4">
       {/* Week header */}
-      <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
-        <p className="text-sm text-white/80">{weekLabel} 周报</p>
-        <p className="text-sm mt-1 text-white/90">{weeklyData.weeklySummary}</p>
+      <div className="r-card p-4 bg-rhythm-glow-soft">
+        <p className="text-sm text-rhythm-text-secondary">{weekLabel} 周报</p>
+        <p className="text-sm mt-1 text-rhythm-text-primary">{weeklyData.weeklySummary}</p>
       </div>
 
       {/* Stats grid */}
       <div className="grid grid-cols-3 gap-2">
-        <div className="bg-white rounded-xl border p-3 text-center">
-          <p className="text-xs text-gray-400">完成率</p>
-          <p className="text-lg font-bold text-gray-900">{weeklyData.habitCompletionRate}%</p>
+        <div className="r-card p-3 text-center">
+          <p className="text-xs text-rhythm-text-muted">完成率</p>
+          <p className="text-lg r-title">{weeklyData.habitCompletionRate}%</p>
         </div>
-        <div className="bg-white rounded-xl border p-3 text-center">
-          <p className="text-xs text-gray-400">运动</p>
-          <p className="text-lg font-bold text-gray-900">{weeklyData.exerciseCount}次</p>
+        <div className="r-card p-3 text-center">
+          <p className="text-xs text-rhythm-text-muted">运动</p>
+          <p className="text-lg r-title">{weeklyData.exerciseCount}次</p>
         </div>
-        <div className="bg-white rounded-xl border p-3 text-center">
-          <p className="text-xs text-gray-400">心情</p>
-          <p className="text-lg font-bold text-gray-900">
+        <div className="r-card p-3 text-center">
+          <p className="text-xs text-rhythm-text-muted">心情</p>
+          <p className="text-lg r-title">
             {weeklyData.moodScore > 0 ? `${weeklyData.moodScore}/3` : '--'}
           </p>
         </div>
       </div>
 
       {/* Sleep */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-2">😴 睡眠</h3>
-        <p className="text-sm text-gray-500">
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-2">睡眠</h3>
+        <p className="text-sm text-rhythm-text-secondary">
           平均 {Math.floor(weeklyData.avgSleepDuration / 60)}h{weeklyData.avgSleepDuration % 60}m
           {weeklyData.avgSleepQuality > 0 && ` · 质量 ${weeklyData.avgSleepQuality}/3`}
         </p>
@@ -257,17 +234,17 @@ export function WeeklyReport() {
 
       {/* Exercise & Reading */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="bg-white rounded-xl border p-4">
-          <h3 className="font-bold text-gray-900 text-sm mb-1">🏃 运动</h3>
-          <p className="text-sm text-gray-500">{weeklyData.exerciseCount} 次</p>
-          <p className="text-xs text-gray-400">{weeklyData.exerciseDuration} 分钟</p>
-          <p className="text-xs text-gray-400 mt-1">
+        <div className="r-card p-4">
+          <h3 className="r-title text-sm mb-1">运动</h3>
+          <p className="text-sm text-rhythm-text-secondary">{weeklyData.exerciseCount} 次</p>
+          <p className="text-xs text-rhythm-text-muted">{weeklyData.exerciseDuration} 分钟</p>
+          <p className="text-xs text-rhythm-text-muted mt-1">
             上周 {weeklyData.lastWeekComparison.exerciseCount} 次
           </p>
         </div>
-        <div className="bg-white rounded-xl border p-4">
-          <h3 className="font-bold text-gray-900 text-sm mb-1">📚 阅读</h3>
-          <p className="text-sm text-gray-500">
+        <div className="r-card p-4">
+          <h3 className="r-title text-sm mb-1">阅读</h3>
+          <p className="text-sm text-rhythm-text-secondary">
             {weeklyData.readingDuration > 60
               ? `${Math.floor(weeklyData.readingDuration / 60)}h${weeklyData.readingDuration % 60}m`
               : `${weeklyData.readingDuration} 分钟`}
@@ -276,17 +253,17 @@ export function WeeklyReport() {
       </div>
 
       {/* Best & Skip habits */}
-      <div className="bg-white rounded-xl border p-4">
-        <h3 className="font-bold text-gray-900 text-sm mb-2">🎯 习惯</h3>
+      <div className="r-card p-4">
+        <h3 className="r-title text-sm mb-2">习惯</h3>
         <div className="space-y-1 text-sm">
           {weeklyData.bestHabit && (
-            <p className="text-green-600">✅ 完成最多：{weeklyData.bestHabit}</p>
+            <p className="text-rhythm-success">✅ 完成最多：{weeklyData.bestHabit}</p>
           )}
           {weeklyData.skipHabit && (
-            <p className="text-orange-600">⏭ 容易跳过：{weeklyData.skipHabit}</p>
+            <p className="text-rhythm-warn">⏭ 容易跳过：{weeklyData.skipHabit}</p>
           )}
           {weeklyData.lastWeekComparison.habitRate > 0 && (
-            <p className="text-gray-500 text-xs mt-1">
+            <p className="text-rhythm-text-secondary text-xs mt-1">
               上周完成率 {weeklyData.lastWeekComparison.habitRate}%
               {weeklyData.habitCompletionRate >= weeklyData.lastWeekComparison.habitRate
                 ? ' ↑ 有进步'

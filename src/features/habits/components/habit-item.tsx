@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { Check, Plus, SkipForward } from 'lucide-react'
 import type { Database } from '@/lib/supabase/database.types'
 
 type HabitOccurrence = Database['public']['Tables']['habit_occurrences']['Row']
@@ -20,16 +21,16 @@ export function HabitItem({ occurrence, onComplete, onCompleteWithDetail, onSkip
     : `${occurrence.target_value_snapshot ?? ''}${occurrence.target_unit_snapshot ? ' ' + occurrence.target_unit_snapshot : ''}`
 
   const statusConfig = {
-    pending: { bg: 'white', border: 'border-gray-200', text: 'text-gray-900', badge: null },
-    done: { bg: 'bg-green-50', border: 'border-green-200', text: 'text-gray-600 line-through', badge: '✅ 已完成' },
-    skipped: { bg: 'bg-gray-50', border: 'border-gray-200', text: 'text-gray-400 line-through', badge: '⏭ 已跳过' },
-    missed: { bg: 'bg-red-50', border: 'border-red-200', text: 'text-gray-600 line-through', badge: '⏰ 已过期' },
+    pending: { text: 'text-rhythm-text-primary', badge: null, dim: false },
+    done: { text: 'text-rhythm-text-secondary line-through', badge: '已完成', dim: true },
+    skipped: { text: 'text-rhythm-text-muted line-through', badge: '已跳过', dim: true },
+    missed: { text: 'text-rhythm-text-muted line-through', badge: '已过期', dim: true },
   }
 
   const config = statusConfig[occurrence.status]
 
   return (
-    <div className={`rounded-xl border ${config.bg} ${config.border} p-4 transition-all`}>
+    <div className={`r-card p-4 transition-all ${config.dim ? 'opacity-60' : ''}`}>
       <div className="flex items-center justify-between">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
@@ -37,50 +38,49 @@ export function HabitItem({ occurrence, onComplete, onCompleteWithDetail, onSkip
               {occurrence.title_snapshot}
             </p>
             {config.badge && (
-              <span className="text-xs text-gray-400 shrink-0">{config.badge}</span>
+              <span className="text-[0.68rem] text-rhythm-text-muted shrink-0">{config.badge}</span>
             )}
           </div>
           {targetLabel && occurrence.status === 'pending' && (
-            <p className="text-xs text-gray-400 mt-0.5">{targetLabel}</p>
+            <p className="text-xs text-rhythm-text-muted mt-1">{targetLabel}</p>
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 ml-3 shrink-0">
+        <div className="flex items-center gap-2 ml-3 shrink-0">
           {occurrence.status === 'pending' && (
             <>
               <button
                 type="button"
                 onClick={() => onComplete(occurrence.id)}
-                className="w-8 h-8 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors flex items-center justify-center"
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-rhythm-glow border border-rhythm-border-strong hover:border-rhythm-glow"
+                style={{ background: 'rgba(143, 180, 220, 0.12)' }}
                 title="完成"
               >
-                ✓
+                <Check size={16} strokeWidth={2.2} />
               </button>
               <button
                 type="button"
                 onClick={() => setShowDetail(!showDetail)}
-                className="w-8 h-8 bg-gray-100 text-gray-500 rounded-full text-sm hover:bg-gray-200 transition-colors flex items-center justify-center"
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-rhythm-text-muted border border-rhythm-border hover:text-rhythm-text-secondary hover:border-rhythm-border-strong"
                 title="记录详情"
               >
-                +
+                <Plus size={16} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => onSkip(occurrence.id)}
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-colors text-rhythm-text-faint border border-rhythm-border hover:text-rhythm-text-muted"
+                title="跳过"
+              >
+                <SkipForward size={15} strokeWidth={1.8} />
               </button>
             </>
-          )}
-          {occurrence.status === 'pending' && (
-            <button
-              type="button"
-              onClick={() => onSkip(occurrence.id)}
-              className="w-8 h-8 bg-gray-100 text-gray-400 rounded-full text-sm hover:bg-gray-200 transition-colors flex items-center justify-center"
-              title="跳过"
-            >
-              ⏭
-            </button>
           )}
           {(occurrence.status === 'done' || occurrence.status === 'skipped') && (
             <button
               type="button"
               onClick={() => onReset(occurrence.id)}
-              className="text-xs text-gray-400 hover:text-gray-600"
+              className="text-xs text-rhythm-text-muted hover:text-rhythm-text-secondary transition-colors"
               title="重置"
             >
               撤销
@@ -107,46 +107,47 @@ export function HabitDetailForm({
   const [note, setNote] = useState('')
 
   return (
-    <div className="mt-3 pt-3 border-t space-y-3">
+    <div className="mt-2.5 r-card p-4 space-y-3.5">
       {(occurrence.target_type_snapshot === 'value' || occurrence.target_type_snapshot === 'count') && (
         <div>
-          <label className="block text-xs text-gray-500 mb-1">
+          <label className="r-label">
             实际值 {occurrence.target_unit_snapshot ? `(${occurrence.target_unit_snapshot})` : ''}
           </label>
           <input
             type="number"
             value={actualValue ?? ''}
             onChange={(e) => setActualValue(e.target.value ? Number(e.target.value) : undefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="r-input"
           />
         </div>
       )}
 
       {occurrence.target_type_snapshot === 'duration' && (
         <div>
-          <label className="block text-xs text-gray-500 mb-1">实际时长（分钟）</label>
+          <label className="r-label">实际时长（分钟）</label>
           <input
             type="number"
             value={actualDuration ?? ''}
             onChange={(e) => setActualDuration(e.target.value ? Number(e.target.value) : undefined)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="r-input"
           />
         </div>
       )}
 
       <div>
-        <label className="block text-xs text-gray-500 mb-1">感受</label>
+        <label className="r-label">感受</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setFeeling(v)}
-              className={`w-8 h-8 rounded-full text-sm transition-colors ${
+              className={`w-9 h-9 rounded-full text-sm transition-all border ${
                 feeling === v
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  ? 'text-rhythm-glow border-rhythm-glow'
+                  : 'text-rhythm-text-muted border-rhythm-border hover:border-rhythm-border-strong'
               }`}
+              style={feeling === v ? { background: 'rgba(143, 180, 220, 0.12)' } : undefined}
             >
               {v}
             </button>
@@ -155,28 +156,28 @@ export function HabitDetailForm({
       </div>
 
       <div>
-        <label className="block text-xs text-gray-500 mb-1">备注</label>
+        <label className="r-label">备注</label>
         <input
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="记录一下感受或情况..."
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="记录一下感受或情况…"
+          className="r-input"
         />
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 pt-1">
         <button
           type="button"
           onClick={() => onSubmit(occurrence.id, actualValue, actualDuration, feeling, note)}
-          className="flex-1 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="r-btn-primary flex-1"
         >
           确认完成
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="r-btn-ghost"
         >
           取消
         </button>

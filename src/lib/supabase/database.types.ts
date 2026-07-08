@@ -16,6 +16,7 @@ export type ExerciseIntensity = 'light' | 'moderate' | 'intense'
 export type SetFeeling = 'easy' | 'slight' | 'challenging' | 'painful'
 export type BookStatus = 'reading' | 'finished' | 'paused' | 'dropped'
 export type BookSource = 'manual' | 'weixin_read' | 'kindle' | 'other'
+export type HighlightKind = 'highlight' | 'thought'
 export type Mood = 'great' | 'fair' | 'poor'
 export type GoalStatus = 'active' | 'completed' | 'abandoned'
 export type GoalKrStatus = 'not_started' | 'in_progress' | 'completed'
@@ -518,6 +519,53 @@ export interface Database {
           end_page?: number | null
           highlights?: string | null
           note?: string | null
+          created_at?: string
+        }
+      }
+      reading_highlights: {
+        Row: {
+          id: string
+          user_id: string
+          book_id: string
+          source: BookSource
+          source_bookmark_id: string | null
+          kind: HighlightKind
+          mark_text: string | null
+          thought: string | null
+          chapter_title: string | null
+          chapter_uid: number | null
+          color_style: number | null
+          highlighted_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          book_id: string
+          source?: BookSource
+          source_bookmark_id?: string | null
+          kind?: HighlightKind
+          mark_text?: string | null
+          thought?: string | null
+          chapter_title?: string | null
+          chapter_uid?: number | null
+          color_style?: number | null
+          highlighted_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          book_id?: string
+          source?: BookSource
+          source_bookmark_id?: string | null
+          kind?: HighlightKind
+          mark_text?: string | null
+          thought?: string | null
+          chapter_title?: string | null
+          chapter_uid?: number | null
+          color_style?: number | null
+          highlighted_at?: string | null
           created_at?: string
         }
       }

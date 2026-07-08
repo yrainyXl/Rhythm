@@ -25,6 +25,12 @@ yarn-error.log*
 .env*.local
 .env
 
+# 微信读书 凭据（本地验证用，绝不提交）
+.weread-cookie
+.weread-cookie.txt
+.weread-key
+.weread-key.txt
+
 # Vercel
 .vercel
 

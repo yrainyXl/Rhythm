@@ -7,6 +7,7 @@ import { SleepAnalysis } from '@/features/records/components/sleep-analysis'
 import { ExerciseForm } from '@/features/records/components/exercise-form'
 import { ExerciseAnalysis } from '@/features/records/components/exercise-analysis'
 import { ReadingView, ReadingAnalysis } from '@/features/records/components/reading-view'
+import { ReadingHighlights } from '@/features/records/components/reading-highlights'
 import { ReflectionView } from '@/features/records/components/reflection-view'
 import { WeeklyReport } from '@/features/records/components/weekly-report'
 
@@ -24,6 +25,7 @@ export default function RecordsPageClient() {
   const [activeTab, setActiveTab] = useState<RecordTab>('sleep')
   const [showSleepForm, setShowSleepForm] = useState(false)
   const [showExerciseForm, setShowExerciseForm] = useState(false)
+  const [readingSubTab, setReadingSubTab] = useState<'record' | 'highlights'>('record')
 
   return (
     <AuthGuard>
@@ -110,11 +112,38 @@ export default function RecordsPageClient() {
         {/* Reading tab */}
         {activeTab === 'reading' && (
           <div className="space-y-4">
-            <ReadingView />
-            <div className="border-t border-rhythm-border pt-4">
-              <p className="r-eyebrow mb-3">阅读分析</p>
-              <ReadingAnalysis />
+            {/* Sub-tab: 记录 / 词条 */}
+            <div className="flex gap-1 rounded-xl p-1 border border-rhythm-border bg-rhythm-void/40">
+              {([
+                { id: 'record' as const, label: '记录' },
+                { id: 'highlights' as const, label: '词条' },
+              ]).map((sub) => (
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() => setReadingSubTab(sub.id)}
+                  className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    readingSubTab === sub.id
+                      ? 'text-rhythm-text-primary bg-rhythm-glow-soft border border-rhythm-border-strong'
+                      : 'text-rhythm-text-muted hover:text-rhythm-text-secondary border border-transparent'
+                  }`}
+                >
+                  {sub.label}
+                </button>
+              ))}
             </div>
+
+            {readingSubTab === 'record' ? (
+              <>
+                <ReadingView />
+                <div className="border-t border-rhythm-border pt-4">
+                  <p className="r-eyebrow mb-3">阅读分析</p>
+                  <ReadingAnalysis />
+                </div>
+              </>
+            ) : (
+              <ReadingHighlights />
+            )}
           </div>
         )}
 

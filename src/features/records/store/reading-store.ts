@@ -6,8 +6,15 @@ import type { Database } from '@/lib/supabase/database.types'
 
 type ReadingBook = Database['public']['Tables']['reading_books']['Row']
 type ReadingSession = Database['public']['Tables']['reading_sessions']['Row']
+type ReadingHighlight = Database['public']['Tables']['reading_highlights']['Row']
 type BookStatus = 'reading' | 'finished' | 'paused' | 'dropped'
 type BookSource = 'manual' | 'weixin_read' | 'kindle' | 'other'
+
+export type HighlightWithBook = ReadingHighlight & {
+  reading_books: { title: string; author: string | null; cover_url: string | null } | null
+}
+
+export type SyncResult = { books: number; highlights: number; thoughts: number }
 
 interface ReadingAnalysis {
   totalBooks: number
@@ -27,9 +34,16 @@ interface ReadingState {
   isSaving: boolean
   analysis: ReadingAnalysis | null
   isLoadingAnalysis: boolean
+  highlights: HighlightWithBook[]
+  isLoadingHighlights: boolean
+  isSyncing: boolean
+  syncError: string | null
+  lastSyncResult: SyncResult | null
 
   loadBooks: () => Promise<void>
   loadRecentSessions: (limit?: number) => Promise<void>
+  loadHighlights: () => Promise<void>
+  syncWeread: () => Promise<void>
   addBook: (data: {
     title: string
     author?: string
@@ -53,6 +67,11 @@ export const useReadingStore = create<ReadingState>((set) => ({
   isSaving: false,
   analysis: null,
   isLoadingAnalysis: false,
+  highlights: [],
+  isLoadingHighlights: false,
+  isSyncing: false,
+  syncError: null,
+  lastSyncResult: null,
 
   loadBooks: async () => {
     const supabase = createBrowserClient()
@@ -81,6 +100,46 @@ export const useReadingStore = create<ReadingState>((set) => ({
       .limit(limit)
 
     set({ recentSessions: data ?? [] })
+  },
+
+  loadHighlights: async () => {
+    set({ isLoadingHighlights: true })
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) {
+      set({ isLoadingHighlights: false })
+      return
+    }
+
+    const { data } = await supabase
+      .from('reading_highlights')
+      .select('*, reading_books!inner(title, author, cover_url)')
+      .eq('user_id', user.id)
+      .order('book_id', { ascending: true })
+      .order('chapter_uid', { ascending: true, nullsFirst: true })
+      .order('highlighted_at', { ascending: true, nullsFirst: true })
+
+    set({ highlights: (data ?? []) as HighlightWithBook[], isLoadingHighlights: false })
+  },
+
+  syncWeread: async () => {
+    set({ isSyncing: true, syncError: null })
+    try {
+      const res = await fetch('/api/weread/sync', { method: 'POST' })
+      const body = await res.json().catch(() => null)
+      if (!res.ok) {
+        set({ isSyncing: false, syncError: body?.error ?? `同步失败 (HTTP ${res.status})` })
+        return
+      }
+      set({
+        isSyncing: false,
+        lastSyncResult: { books: body.books, highlights: body.highlights, thoughts: body.thoughts },
+      })
+      await useReadingStore.getState().loadBooks()
+      await useReadingStore.getState().loadHighlights()
+    } catch (e) {
+      set({ isSyncing: false, syncError: e instanceof Error ? e.message : '同步失败' })
+    }
   },
 
   addBook: async (data) => {

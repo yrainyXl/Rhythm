@@ -30,7 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="max-w-lg mx-auto min-h-screen relative">
       {showNav && (
-        <header className="sticky top-0 z-20 px-5 py-4 backdrop-blur-md bg-rhythm-void/70 border-b border-rhythm-border">
+        <header className="sticky top-0 z-20 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-md bg-rhythm-void/70 border-b border-rhythm-border">
           <div className="flex items-center justify-between">
             <h1 className="r-title text-base">
               {profile?.nickname ? `${profile.nickname} 的节奏` : 'Rhythm'}
@@ -45,7 +45,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={showNav ? 'pb-24' : ''}>
+      <main className={showNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}>
         {children}
       </main>
 
@@ -53,7 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {showNav && (
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-20 backdrop-blur-md bg-rhythm-void/80 border-t border-rhythm-border">
-          <div className="flex justify-around py-2.5 px-2">
+          <div className="flex justify-around px-2 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
             {navItems.map(({ href, label, Icon }) => {
               const isActive = pathname.startsWith(href)
               return (

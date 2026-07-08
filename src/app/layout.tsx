@@ -16,7 +16,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-CN">
+    <html lang="zh-CN" className="dark" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('rhythm-theme')==='light'?'light':'dark';var r=document.documentElement;r.classList.remove('dark','light');r.classList.add(t);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${inter.className} min-h-screen`}>
         <AuthProviderClient>{children}</AuthProviderClient>
       </body>

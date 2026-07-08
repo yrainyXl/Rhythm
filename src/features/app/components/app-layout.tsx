@@ -1,8 +1,10 @@
 'use client'
 
 import { useAuthStore } from '@/features/auth/store/auth-store'
+import { useThemeStore } from '@/features/app/store/theme-store'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect } from 'react'
 import { NotificationPrompt } from '@/features/notifications/notification-prompt'
 import { CalendarCheck, Target, LineChart, BookOpen, User } from 'lucide-react'
 
@@ -17,6 +19,11 @@ const navItems = [
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { profile } = useAuthStore()
+  const initTheme = useThemeStore((s) => s.initTheme)
+
+  useEffect(() => {
+    initTheme()
+  }, [initTheme])
 
   const showNav = !['/login', '/onboarding', '/'].includes(pathname)
 

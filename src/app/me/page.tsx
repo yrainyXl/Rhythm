@@ -6,10 +6,13 @@ import { useAuthStore } from '@/features/auth/store/auth-store'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase/client'
 import { GoalView } from '@/features/records/components/goal-view'
+import { useThemeStore } from '@/features/app/store/theme-store'
+import { Sun, Moon } from 'lucide-react'
 
 export default function MePage() {
   const router = useRouter()
   const { user, profile, signOut, refreshProfile } = useAuthStore()
+  const { theme, toggle } = useThemeStore()
   const [isEditing, setIsEditing] = useState(false)
   const [nickname, setNickname] = useState(profile?.nickname ?? '')
   const [timezone, setTimezone] = useState(profile?.timezone ?? 'Asia/Shanghai')
@@ -165,6 +168,17 @@ export default function MePage() {
             <span>目标和里程碑</span>
             <span className="text-rhythm-text-faint">→</span>
           </button>
+          <div className="px-4 py-3.5 flex items-center justify-between">
+            <span className="text-sm text-rhythm-text-primary">外观</span>
+            <button
+              type="button"
+              onClick={toggle}
+              className="flex items-center gap-1.5 text-xs text-rhythm-glow border border-rhythm-border-strong bg-rhythm-glow-soft rounded-full px-3 py-1.5 transition-colors hover:border-rhythm-glow"
+            >
+              {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              {theme === 'dark' ? '黑夜' : '白天'}
+            </button>
+          </div>
           <div className="px-4 py-3.5 text-sm text-rhythm-text-primary flex items-center justify-between">
             <span>提醒设置</span>
             <span className="text-rhythm-text-muted text-xs">即将支持</span>

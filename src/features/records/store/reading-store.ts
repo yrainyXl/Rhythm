@@ -222,7 +222,10 @@ export const useReadingStore = create<ReadingState>((set) => ({
     set({ isLoadingAnalysis: true })
     const supabase = createBrowserClient()
     const user = await getCurrentUser(supabase)
-    if (!user) return
+    if (!user) {
+      set({ isLoadingAnalysis: false })
+      return
+    }
 
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - 30)

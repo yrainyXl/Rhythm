@@ -69,6 +69,8 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  /* 禁止移动端橡皮筋过度滚动，避免拉到顶/底露出空白 */
+  overscroll-behavior: none;
 }
 
 @layer base {

@@ -118,7 +118,7 @@ export function ReadingHighlights() {
                 </div>
               )}
               <div className="min-w-0 flex-1">
-                <p className="r-title text-sm truncate">{g.title}</p>
+                <p className="r-title text-sm truncate">《{g.title}》</p>
                 {g.author && <p className="text-xs text-rhythm-text-muted truncate">{g.author}</p>}
                 <p className="text-xs text-rhythm-text-muted mt-0.5">{g.items.length} 条词条</p>
               </div>
@@ -135,9 +135,6 @@ export function ReadingHighlights() {
               <div className="space-y-3 mt-3">
                 {g.items.map((h) => (
                   <div key={h.id} className="border-l-2 border-rhythm-glow/60 pl-3 py-0.5">
-                    {h.chapter_title && (
-                      <p className="text-[11px] text-rhythm-text-muted mb-1">{h.chapter_title}</p>
-                    )}
                     {h.mark_text && (
                       <p className="text-sm text-rhythm-text-primary leading-relaxed">
                         {h.mark_text}

@@ -415,10 +415,11 @@ export const useHabitStore = create<HabitState>((set, get) => ({
     if (toInsert.length > 0) {
       // upsert with ignoreDuplicates makes this idempotent: concurrent calls
       // (e.g. React StrictMode double-invoke) that both try to seed the same
-      // (habit_id, local_date) no longer collide on the unique constraint.
+      // occurrence no longer collide. onConflict must match the table's actual
+      // unique constraint: unique(user_id, habit_id, local_date).
       await supabase
         .from('habit_occurrences')
-        .upsert(toInsert, { onConflict: 'habit_id,local_date', ignoreDuplicates: true })
+        .upsert(toInsert, { onConflict: 'user_id,habit_id,local_date', ignoreDuplicates: true })
     }
 
     // Reload occurrences (single query)

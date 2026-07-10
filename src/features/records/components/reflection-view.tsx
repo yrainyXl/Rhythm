@@ -40,7 +40,7 @@ export const useReflectionStore = create<ReflectionState>((set) => ({
       .select('*')
       .eq('user_id', user.id)
       .eq('local_date', localDate)
-      .single()
+      .maybeSingle()
 
     set({ todayReflection: data ?? null })
   },
@@ -61,7 +61,7 @@ export const useReflectionStore = create<ReflectionState>((set) => ({
       tomorrow_focus: data.tomorrow_focus,
       note: data.note,
       is_shared: data.is_shared,
-    })
+    }, { onConflict: 'user_id,local_date' })
 
     set({ isSaving: false })
     if (!error) {

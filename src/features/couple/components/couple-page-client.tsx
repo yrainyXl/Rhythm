@@ -46,7 +46,7 @@ export default function CouplePageClient() {
               </p>
             )}
             <p className="text-xs text-rhythm-text-muted mt-6">
-              —— {pick.reading_books?.title ?? '未知书籍'}
+              —— 《{pick.reading_books?.title ?? '未知书籍'}》
               {pick.reading_books?.author ? ` · ${pick.reading_books.author}` : ''}
             </p>
           </div>

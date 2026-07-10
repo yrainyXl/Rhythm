@@ -97,7 +97,7 @@ export function WeeklyReport() {
 
       const bestHabit = Object.entries(habitCounts)
         .sort(([, a], [, b]) => b.done - a.done)
-        .filter(([, v]) => v.total > 1)[0]?.[0] ?? null
+        .filter(([, v]) => v.total > 1 && v.done > 0)[0]?.[0] ?? null
 
       const skipHabit = Object.entries(habitCounts)
         .sort(([, a], [, b]) => (a.total - a.done) - (b.total - b.done))

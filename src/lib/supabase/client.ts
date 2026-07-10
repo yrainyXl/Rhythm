@@ -18,7 +18,16 @@ const fetchWithTimeout: typeof fetch = (input, init) => {
 
 export const createBrowserClient = () => {
   return createClientComponentClient<Database>({
-    options: { global: { fetch: fetchWithTimeout } },
+    options: {
+      global: { fetch: fetchWithTimeout },
+      auth: {
+        // iOS Safari 独立 PWA 模式下 navigator.locks 会永久挂起，导致
+        // getSession() 在拿锁阶段就卡死（此时还没发出 fetch，上面的超时
+        // 救不了），应用永久停在加载态。用直接执行的 no-op lock 绕过
+        // Web Locks，session 仍从 localStorage 正常读取。
+        lock: async (_name, _acquireTimeout, fn) => fn(),
+      },
+    },
   })
 }
 

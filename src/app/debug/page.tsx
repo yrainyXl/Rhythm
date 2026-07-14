@@ -122,6 +122,30 @@ export default function DebugPage() {
         }
       }
 
+      // 3e. Server-side latency: how fast can our Vercel deployment reach Supabase?
+      // If this is fast while 3c (browser direct) is slow, a proxy fixes it.
+      {
+        const t0 = performance.now()
+        const r = await withTimeout(
+          fetch(`${window.location.origin}/api/sb-ping`, { cache: 'no-store' }).then((res) => res.json()),
+          8000
+        )
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '3e. 服务端→Supabase', status: 'fail', detail: '连服务端ping也超时', ms })
+        } else {
+          const v = r.value as { ok?: boolean; status?: number; ms?: number; region?: string }
+          push({
+            name: '3e. 服务端→Supabase(关键)',
+            status: v?.ok ? 'ok' : 'fail',
+            detail: v?.ok
+              ? `Vercel(${v.region})→Supabase 仅 ${v.ms}ms,HTTP ${v.status} — 代理可行!`
+              : `服务端也连不上: ${JSON.stringify(v)}`,
+            ms,
+          })
+        }
+      }
+
       const supabase = createBrowserClient()
 
       // 4. getSession() — reads/refreshes from local storage

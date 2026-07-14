@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   // Public routes
-  const publicPaths = ['/login', '/auth/callback']
+  const publicPaths = ['/login', '/auth/callback', '/debug']
 
   if (!session && !publicPaths.some((p) => pathname.startsWith(p))) {
     const redirectUrl = new URL('/login', req.url)

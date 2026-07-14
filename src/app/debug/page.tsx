@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { createBrowserClient } from '@/lib/supabase/client'
+import type { Database } from '@/lib/supabase/database.types'
 
 type StepStatus = 'pending' | 'ok' | 'warn' | 'fail'
 interface Step {
@@ -57,7 +59,6 @@ export default function DebugPage() {
       const authKeys = Object.keys(localStorage).filter((k) => k.startsWith('sb-') || k.includes('auth-token'))
       let sessionDetail = '没有找到 sb-*-auth-token'
       let sessionStatus: StepStatus = 'warn'
-      let storedExpiry: number | null = null
       for (const k of authKeys) {
         try {
           const raw = localStorage.getItem(k)
@@ -66,7 +67,6 @@ export default function DebugPage() {
           const expiresAt = parsed?.expires_at ?? parsed?.currentSession?.expires_at
           const hasToken = !!(parsed?.access_token ?? parsed?.currentSession?.access_token)
           if (hasToken) {
-            storedExpiry = expiresAt ?? null
             const now = Math.floor(Date.now() / 1000)
             const expired = expiresAt ? expiresAt < now : false
             sessionStatus = expired ? 'warn' : 'ok'
@@ -92,18 +92,18 @@ export default function DebugPage() {
         })
       }
 
-      // 3c. RAW connectivity to Supabase (bypasses SDK) — is the host even reachable?
+      // 3c. RAW connectivity to Supabase (bypasses SDK) - is the host even reachable?
       {
         const t0 = performance.now()
         const r = await withTimeout(
           fetch(`${url}/auth/v1/health`, { headers: anon ? { apikey: anon } : undefined }).then((res) => res.status),
-          8000
+          20000
         )
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '3c. 直连 Supabase(健康检查)', status: 'fail', detail: `超时(>8s) — 设备根本连不到 ${url}`, ms })
+          push({ name: '3c. 直连 Supabase(健康检查)', status: 'fail', detail: `>20s 超时 - 设备根本连不到 ${url}`, ms })
         } else {
-          push({ name: '3c. 直连 Supabase(健康检查)', status: 'ok', detail: `HTTP ${r.value} — 可达`, ms })
+          push({ name: '3c. 直连 Supabase(健康检查)', status: 'ok', detail: `HTTP ${r.value} - 可达`, ms })
         }
       }
 
@@ -116,14 +116,13 @@ export default function DebugPage() {
         )
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '3d. 对照:直连本站', status: 'fail', detail: '连自己的站点也超时 — 是整体网络问题', ms })
+          push({ name: '3d. 对照:直连本站', status: 'fail', detail: '连自己的站点也超时 - 是整体网络问题', ms })
         } else {
-          push({ name: '3d. 对照:直连本站', status: 'ok', detail: `HTTP ${r.value} — 本站正常,问题特定于 Supabase`, ms })
+          push({ name: '3d. 对照:直连本站', status: 'ok', detail: `HTTP ${r.value} - 本站正常,问题特定于 Supabase`, ms })
         }
       }
 
       // 3e. Server-side latency: how fast can our Vercel deployment reach Supabase?
-      // If this is fast while 3c (browser direct) is slow, a proxy fixes it.
       {
         const t0 = performance.now()
         const r = await withTimeout(
@@ -132,14 +131,14 @@ export default function DebugPage() {
         )
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '3e. 服务端→Supabase', status: 'fail', detail: '连服务端ping也超时', ms })
+          push({ name: '3e. 服务端->Supabase', status: 'fail', detail: '连服务端ping也超时', ms })
         } else {
           const v = r.value as { ok?: boolean; status?: number; ms?: number; region?: string }
           push({
-            name: '3e. 服务端→Supabase(关键)',
+            name: '3e. 服务端->Supabase(关键)',
             status: v?.ok ? 'ok' : 'fail',
             detail: v?.ok
-              ? `Vercel(${v.region})→Supabase 仅 ${v.ms}ms,HTTP ${v.status} — 代理可行!`
+              ? `Vercel(${v.region})->Supabase 仅 ${v.ms}ms,HTTP ${v.status} - 代理可行!`
               : `服务端也连不上: ${JSON.stringify(v)}`,
             ms,
           })
@@ -148,31 +147,79 @@ export default function DebugPage() {
 
       const supabase = createBrowserClient()
 
-      // 4. getSession() — reads/refreshes from local storage
+      // === 对比实验:切开「no-op lock 适配代码」与「网络/刷新」===
+      // 三组对照,都关掉自动刷新(autoRefreshToken:false)以隔离"读本地
+      // session"与"发网络请求刷新"两个动作。超时放到 20s(之前 8s 截断
+      // 可能误杀 fetchWithTimeout 的 15s 中断)。
+
+      // 7a. 当前生产客户端(带 no-op lock + fetchWithTimeout),不刷新
       {
         const t0 = performance.now()
-        const r = await withTimeout(supabase.auth.getSession(), 8000)
+        const r = await withTimeout(supabase.auth.getSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '4. getSession()', status: 'fail', detail: '超时(>8s)未返回 — 卡在会话恢复/刷新', ms })
+          push({ name: '7a. 当前客户端(带no-op锁)', status: 'fail', detail: '>20s 超时 - 卡在拿锁或刷新', ms })
         } else {
-          const session = r.value?.data.session
+          const s = r.value?.data.session
           push({
-            name: '4. getSession()',
-            status: session?.user ? 'ok' : 'warn',
-            detail: session?.user ? `user=${session.user.id.slice(0, 8)}… email=${session.user.email ?? '?'}` : '返回了,但 session 为 null',
+            name: '7a. 当前客户端(带no-op锁)',
+            status: s?.user ? 'ok' : 'warn',
+            detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回但 session=null`,
             ms,
           })
         }
       }
 
-      // 5. getUser() — validates token against the server (network)
+      // 7b. 全新客户端:浏览器原生锁(无 no-op lock),不刷新。
+      //     如果 7b 秒回而 7a 卡住 -> no-op lock 就是元凶。
       {
+        const fresh = createClientComponentClient<Database>({
+          options: { auth: { autoRefreshToken: false, persistSession: true } },
+        })
         const t0 = performance.now()
-        const r = await withTimeout(supabase.auth.getUser(), 8000)
+        const r = await withTimeout(fresh.auth.getSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '5. getUser() 网络校验', status: 'fail', detail: '超时(>8s) — 到 Supabase 的网络请求挂起', ms })
+          push({ name: '7b. 原生锁(无适配)', status: 'fail', detail: '>20s 超时 - 原生锁也卡(那是网络/刷新)', ms })
+        } else {
+          const s = r.value?.data.session
+          push({
+            name: '7b. 原生锁(无适配)',
+            status: s?.user ? 'ok' : 'warn',
+            detail: s?.user ? `✓ ${ms}ms 读到 user - 对比 7a` : `${ms}ms 返回但 session=null`,
+            ms,
+          })
+        }
+      }
+
+      // 7c. 开自动刷新的客户端,超时 20s - 验证刷新请求是否真的挂起(网络)
+      {
+        const refreshClient = createClientComponentClient<Database>({
+          options: { auth: { autoRefreshToken: true, persistSession: true } },
+        })
+        const t0 = performance.now()
+        const r = await withTimeout(refreshClient.auth.getSession(), 20000)
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '7c. 开自动刷新', status: 'fail', detail: '>20s 超时 - 刷新请求挂起(网络)', ms })
+        } else {
+          const s = r.value?.data.session
+          push({
+            name: '7c. 开自动刷新',
+            status: s?.user ? 'ok' : 'warn',
+            detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回但 session=null`,
+            ms,
+          })
+        }
+      }
+
+      // 5. getUser() - validates token against the server (network)
+      {
+        const t0 = performance.now()
+        const r = await withTimeout(supabase.auth.getUser(), 20000)
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '5. getUser() 网络校验', status: 'fail', detail: '>20s 超时 - 到 Supabase 的网络请求挂起', ms })
         } else {
           const u = r.value?.data.user
           const err = r.value?.error
@@ -185,17 +232,17 @@ export default function DebugPage() {
         }
       }
 
-      // 6. Real data query (habit_occurrences today) — the actual failing path
+      // 6. Real data query - the actual failing path
       {
         const today = new Date().toISOString().split('T')[0]
         const t0 = performance.now()
         const r = await withTimeout(
           supabase.from('daily_reflections').select('local_date').order('local_date', { ascending: false }).limit(5),
-          8000
+          20000
         )
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '6. 真实数据查询', status: 'fail', detail: `超时(>8s) — 查询挂起 (today=${today})`, ms })
+          push({ name: '6. 真实数据查询', status: 'fail', detail: `>20s 超时 - 查询挂起 (today=${today})`, ms })
         } else {
           const err = r.value?.error
           const rows = r.value?.data
@@ -227,7 +274,7 @@ export default function DebugPage() {
     <div style={{ minHeight: '100vh', background: '#0B1019', color: '#e2e8f0', padding: 16, fontFamily: 'monospace', fontSize: 13 }}>
       <h1 style={{ fontSize: 16, marginBottom: 4 }}>🔬 Rhythm 诊断</h1>
       <p style={{ color: '#94a3b8', marginBottom: 16 }}>
-        {done ? '检测完成 — 请截图或点下方复制发给开发者' : '检测中…'}
+        {done ? '检测完成 - 请截图或点下方复制发给开发者' : '检测中…'}
       </p>
 
       {steps.map((s, i) => (

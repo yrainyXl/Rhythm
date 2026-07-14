@@ -79,6 +79,49 @@ export default function DebugPage() {
       }
       push({ name: '3. localStorage 会话', status: sessionStatus, detail: sessionDetail })
 
+      // 3b. Cookie session (auth-helpers stores the session in cookies, not localStorage)
+      {
+        const sbCookies = document.cookie
+          .split(';')
+          .map((c) => c.trim().split('=')[0])
+          .filter((n) => n.startsWith('sb-'))
+        push({
+          name: '3b. Cookie 会话',
+          status: sbCookies.length ? 'ok' : 'warn',
+          detail: sbCookies.length ? `找到 ${sbCookies.length} 个 sb-* cookie: ${sbCookies.join(', ')}` : '没有 sb-* cookie',
+        })
+      }
+
+      // 3c. RAW connectivity to Supabase (bypasses SDK) — is the host even reachable?
+      {
+        const t0 = performance.now()
+        const r = await withTimeout(
+          fetch(`${url}/auth/v1/health`, { headers: anon ? { apikey: anon } : undefined }).then((res) => res.status),
+          8000
+        )
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '3c. 直连 Supabase(健康检查)', status: 'fail', detail: `超时(>8s) — 设备根本连不到 ${url}`, ms })
+        } else {
+          push({ name: '3c. 直连 Supabase(健康检查)', status: 'ok', detail: `HTTP ${r.value} — 可达`, ms })
+        }
+      }
+
+      // 3d. Control group: reach our own deployment origin
+      {
+        const t0 = performance.now()
+        const r = await withTimeout(
+          fetch(`${window.location.origin}/manifest.webmanifest`, { cache: 'no-store' }).then((res) => res.status),
+          8000
+        )
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '3d. 对照:直连本站', status: 'fail', detail: '连自己的站点也超时 — 是整体网络问题', ms })
+        } else {
+          push({ name: '3d. 对照:直连本站', status: 'ok', detail: `HTTP ${r.value} — 本站正常,问题特定于 Supabase`, ms })
+        }
+      }
+
       const supabase = createBrowserClient()
 
       // 4. getSession() — reads/refreshes from local storage

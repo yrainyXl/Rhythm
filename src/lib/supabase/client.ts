@@ -3,15 +3,30 @@ import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
-// iOS Safari 独立 PWA(添加到主屏)从后台恢复时，fetch 请求可能永久挂起
-// 不返回。supabase 初始化时的 token 刷新一旦卡在这样的请求上，
-// initializePromise 永不 resolve，getSession() 及所有依赖它的数据查询
-// 就会永久转圈。给每个请求套一个 AbortController 超时，挂起的请求会在
-// 15s 后被中断并抛错（刷新失败可恢复），而不是无限等待。
-const fetchWithTimeout: typeof fetch = (input, init) => {
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+// 浏览器直连 *.supabase.co 在国内链路波动大(3-6s,偶发超时),冷加载时
+// SDK token 刷新一旦撞上波动会永久卡死 initializePromise,getSession 及所有
+// 依赖它的数据查询永久转圈。这里把浏览器发往 Supabase 的请求 URL 重写为
+// 同源 /sb-proxy/*,由 Vercel rewrites 转发(机房->Supabase 稳定 ~0.6s),
+// 绕开慢链路。supabaseUrl 保持不变,故 cookie 名两端一致、session 共享不受
+// 影响;服务器端(middleware/API)不经此 fetch,继续直连。
+const fetchWithProxy: typeof fetch = (input, init) => {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 15000)
-  return fetch(input, { ...init, signal: init?.signal ?? controller.signal }).finally(() =>
+  let finalInput: RequestInfo | URL = input
+  if (typeof window !== 'undefined' && SUPABASE_URL) {
+    const origin = window.location.origin
+    const rewrite = (u: string) =>
+      u.startsWith(SUPABASE_URL) ? `${origin}/sb-proxy${u.slice(SUPABASE_URL.length)}` : u
+    if (typeof input === 'string') {
+      finalInput = rewrite(input)
+    } else if (input instanceof Request) {
+      const newUrl = rewrite(input.url)
+      if (newUrl !== input.url) finalInput = new Request(newUrl, input)
+    }
+  }
+  return fetch(finalInput, { ...init, signal: init?.signal ?? controller.signal }).finally(() =>
     clearTimeout(timer)
   )
 }
@@ -19,7 +34,7 @@ const fetchWithTimeout: typeof fetch = (input, init) => {
 export const createBrowserClient = () => {
   return createClientComponentClient<Database>({
     options: {
-      global: { fetch: fetchWithTimeout },
+      global: { fetch: fetchWithProxy },
       auth: {
         // iOS Safari 独立 PWA 模式下 navigator.locks 会永久挂起，导致
         // getSession() 在拿锁阶段就卡死（此时还没发出 fetch，上面的超时

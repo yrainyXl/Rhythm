@@ -29,5 +29,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  // sb-proxy 走 rewrites 转发 Supabase,必须排除,否则会被当作受保护路由重定向到登录
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|sb-proxy).*)'],
 }

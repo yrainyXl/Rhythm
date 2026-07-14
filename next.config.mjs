@@ -21,6 +21,15 @@ const nextConfig = {
       },
     ],
   },
+  // 浏览器直连 *.supabase.co 在国内链路波动大(3-6s,偶发超时),冷加载时
+  // SDK token 刷新撞上波动会永久卡死。把 Supabase 流量走同源 /sb-proxy/*,
+  // 由 Vercel 边缘转发(机房->Supabase 稳定 ~0.6s)。supabaseUrl 保持不变,
+  // 故 cookie 名两端一致;仅浏览器端 fetch 重写 URL(middleware/API 直连不变)。
+  async rewrites() {
+    const dest = process.env.NEXT_PUBLIC_SUPABASE_URL
+    if (!dest) return []
+    return [{ source: '/sb-proxy/:path*', destination: `${dest}/:path*` }]
+  },
 }
 
 export default nextConfig

@@ -79,16 +79,32 @@ export default function DebugPage() {
       }
       push({ name: '3. localStorage 会话', status: sessionStatus, detail: sessionDetail })
 
-      // 3b. Cookie session (auth-helpers stores the session in cookies, not localStorage)
+      // 3b. Cookie session - names + value lengths + whether it contains an access_token
       {
-        const sbCookies = document.cookie
+        const sbCookiesRaw = document.cookie
           .split(';')
-          .map((c) => c.trim().split('=')[0])
-          .filter((n) => n.startsWith('sb-'))
+          .map((c) => c.trim())
+          .filter((c) => c.startsWith('sb-'))
+        const sbCookies = sbCookiesRaw.map((c) => {
+          const [name, ...rest] = c.split('=')
+          const val = rest.join('=')
+          let info = `${val.length}字符`
+          try {
+            const parsed = JSON.parse(decodeURIComponent(val))
+            if (parsed?.access_token) info += ' · 含access_token(完整session)'
+            else if (parsed?.refresh_token) info += ' · 含refresh_token'
+          } catch {
+            // 可能是 chunked 单片或 code-verifier,按原文判断
+            if (name.includes('code-verifier')) info += ' · code-verifier'
+            else if (val.includes('access_token')) info += ' · 原文含access_token'
+          }
+          return `${name}(${info})`
+        })
+        const hasAuthToken = sbCookiesRaw.some((c) => c.split('=')[0].endsWith('-auth-token') && !c.startsWith('sb-')?.includes('verifier'))
         push({
           name: '3b. Cookie 会话',
           status: sbCookies.length ? 'ok' : 'warn',
-          detail: sbCookies.length ? `找到 ${sbCookies.length} 个 sb-* cookie: ${sbCookies.join(', ')}` : '没有 sb-* cookie',
+          detail: sbCookies.length ? `找到 ${sbCookies.length} 个: ${sbCookies.join(' | ')}` : '没有 sb-* cookie',
         })
       }
 
@@ -213,24 +229,26 @@ export default function DebugPage() {
         }
       }
 
-      // 5. getUser() - validates token against the server (network)
+      // 7d. 经代理 getUser - 验证代理路径下 cookie 是否正常带上、token 是否被服务端接受
       {
         const t0 = performance.now()
         const r = await withTimeout(supabase.auth.getUser(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '5. getUser() 网络校验', status: 'fail', detail: '>20s 超时 - 到 Supabase 的网络请求挂起', ms })
+          push({ name: '7d. 代理路径 getUser', status: 'fail', detail: '>20s 超时 - 代理请求挂起', ms })
         } else {
           const u = r.value?.data.user
           const err = r.value?.error
           push({
-            name: '5. getUser() 网络校验',
-            status: u ? 'ok' : 'fail',
-            detail: u ? `服务端确认 user=${u.id.slice(0, 8)}…` : `无 user · error=${err?.message ?? '未知'}`,
+            name: '7d. 代理路径 getUser',
+            status: u ? 'ok' : 'warn',
+            detail: u ? `✓ ${ms}ms 代理读到 user=${u.id.slice(0, 8)}` : `${ms}ms · ${err?.message ?? '无user'}`,
             ms,
           })
         }
       }
+
+      // 5. getUser() 已合并到 7d,此处删除避免重复
 
       // 6. Real data query - the actual failing path
       {

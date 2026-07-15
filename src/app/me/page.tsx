@@ -216,6 +216,14 @@ export default function MePage() {
         >
           退出登录
         </button>
+
+        {/* 诊断入口(排查时用) */}
+        <a
+          href="/debug"
+          className="block text-center text-xs text-rhythm-text-muted hover:text-rhythm-text-secondary pt-2 transition-colors"
+        >
+          诊断
+        </a>
       </div>
     </AuthGuard>
   )

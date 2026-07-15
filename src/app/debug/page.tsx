@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { BrowserCookieAuthStorageAdapter } from '@supabase/auth-helpers-shared'
+import { createClient } from '@supabase/supabase-js'
 import { createBrowserClient } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
@@ -253,6 +255,69 @@ export default function DebugPage() {
             name: '7d. 代理路径 getUser',
             status: u ? 'ok' : 'warn',
             detail: u ? `✓ ${ms}ms 代理读到 user=${u.id.slice(0, 8)}` : `${ms}ms · ${err?.message ?? '无user'}`,
+            ms,
+          })
+        }
+      }
+
+      // 7e. 解码 access_token JWT 看 exp 是否过期(过期的 token 会触发刷新,刷新挂起=init 卡死)
+      {
+        try {
+          const cookies = document.cookie.split(';').map((c) => c.trim())
+          const sessionChunk = cookies
+            .filter((c) => c.startsWith('sb-') && c.split('=')[0].endsWith('-auth-token') && !c.includes('verifier'))
+            .map((c) => c.split('=').slice(1).join('='))
+            .join('')
+          if (!sessionChunk) {
+            push({ name: '7e. Token 过期检查', status: 'warn', detail: '无 auth-token cookie,无法检查' })
+          } else {
+            const parsed = JSON.parse(decodeURIComponent(sessionChunk))
+            const token = parsed?.access_token
+            if (!token) {
+              push({ name: '7e. Token 过期检查', status: 'warn', detail: 'cookie 无 access_token 字段' })
+            } else {
+              const payload = JSON.parse(atob(token.split('.')[1]))
+              const exp = payload.exp
+              const now = Math.floor(Date.now() / 1000)
+              const remainMin = Math.round((exp - now) / 60)
+              push({
+                name: '7e. Token 过期检查',
+                status: remainMin > 0 ? 'ok' : 'warn',
+                detail: `exp=${new Date(exp * 1000).toLocaleString()} · ${remainMin > 0 ? `还剩${remainMin}分钟` : `已过期${-remainMin}分钟(会触发刷新!)`}`,
+              })
+            }
+          }
+        } catch (e) {
+          push({ name: '7e. Token 过期检查', status: 'warn', detail: `解析失败: ${String(e).slice(0, 80)}` })
+        }
+      }
+
+      // 7f. 关键判决:绕过 auth-helpers,用原生 supabase-js + cookie 适配器,
+      //     autoRefreshToken:false(原生客户端不会强制覆盖)。
+      //     如果 7f 秒回而 7a/7b/7c 全卡 -> 卡点是「auth-helpers 强制开启的
+      //     autoRefreshToken 在 init 阶段触发的刷新请求挂起」。
+      {
+        const storageKey = `sb-${url.replace('https://', '').split('.')[0]}-auth-token`
+        const directClient = createClient<Database>(url, anon, {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: true,
+            detectSessionInUrl: false,
+            storage: new BrowserCookieAuthStorageAdapter(),
+            storageKey,
+          },
+        })
+        const t0 = performance.now()
+        const r = await withTimeout(directClient.auth.getSession(), 20000)
+        const ms = Math.round(performance.now() - t0)
+        if (r.timedOut) {
+          push({ name: '7f. 原生客户端·关刷新(关键)', status: 'fail', detail: `>20s 超时 - 不刷新也卡,说明卡点在刷新之外(storage/锁)。key=${storageKey}`, ms })
+        } else {
+          const s = r.value?.data.session
+          push({
+            name: '7f. 原生客户端·关刷新(关键)',
+            status: s?.user ? 'ok' : 'warn',
+            detail: s?.user ? `✓ ${ms}ms 读到 user - 关刷新后正常!卡点=刷新` : `${ms}ms 返回 null · ${r.value?.error?.message ?? ''}`,
             ms,
           })
         }

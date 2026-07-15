@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { BrowserCookieAuthStorageAdapter } from '@supabase/auth-helpers-shared'
-import { createClient } from '@supabase/supabase-js'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createBrowserClient as createSsrBrowserClient } from '@supabase/ssr'
+import { createBrowserClient, recoverBrowserSession } from '@/lib/supabase/client'
+import { createBrowserClientOptions, createProxyFetch } from '@/lib/supabase/browser-config'
+import { getSupabaseStorageKey, normalizeLegacyAuthCookies } from '@/lib/supabase/legacy-auth-cookie'
 import type { Database } from '@/lib/supabase/database.types'
 
 type StepStatus = 'pending' | 'ok' | 'warn' | 'fail'
@@ -173,24 +173,21 @@ export default function DebugPage() {
         }
       }
 
-      const supabase = createBrowserClient()
+      let supabase = createBrowserClient()
 
-      // === 对比实验:切开「no-op lock 适配代码」与「网络/刷新」===
-      // 三组对照,都关掉自动刷新(autoRefreshToken:false)以隔离"读本地
-      // session"与"发网络请求刷新"两个动作。超时放到 20s(之前 8s 截断
-      // 可能误杀 fetchWithTimeout 的 15s 中断)。
+      // === 修复后的认证链路验证 ===
 
-      // 7a. 当前生产客户端(带 no-op lock + fetchWithTimeout),不刷新
+      // 7a. 当前生产客户端关闭浏览器自动刷新，session 应直接从 Cookie 读取。
       {
         const t0 = performance.now()
         const r = await withTimeout(supabase.auth.getSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '7a. 当前客户端(带no-op锁)', status: 'fail', detail: '>20s 超时 - 卡在拿锁或刷新', ms })
+          push({ name: '7a. 当前生产客户端', status: 'fail', detail: '>20s 超时 - 当前客户端状态异常', ms })
         } else {
           const s = r.value?.data.session
           push({
-            name: '7a. 当前客户端(带no-op锁)',
+            name: '7a. 当前生产客户端',
             status: s?.user ? 'ok' : 'warn',
             detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回但 session=null`,
             ms,
@@ -198,44 +195,43 @@ export default function DebugPage() {
         }
       }
 
-      // 7b. 全新客户端:浏览器原生锁(无 no-op lock),不刷新。
-      //     如果 7b 秒回而 7a 卡住 -> no-op lock 就是元凶。
+      // 7b. 真正独立的 SSR 客户端，不使用包内单例。
       {
-        const fresh = createClientComponentClient<Database>({
-          options: { auth: { autoRefreshToken: false, persistSession: true } },
-        })
+        const fresh = createSsrBrowserClient<Database>(
+          url,
+          anon,
+          createBrowserClientOptions(createProxyFetch({ supabaseUrl: url }))
+        )
         const t0 = performance.now()
         const r = await withTimeout(fresh.auth.getSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '7b. 原生锁(无适配)', status: 'fail', detail: '>20s 超时 - 原生锁也卡(那是网络/刷新)', ms })
+          push({ name: '7b. 独立无刷新客户端', status: 'fail', detail: '>20s 超时 - Cookie 读取异常', ms })
         } else {
           const s = r.value?.data.session
           push({
-            name: '7b. 原生锁(无适配)',
+            name: '7b. 独立无刷新客户端',
             status: s?.user ? 'ok' : 'warn',
-            detail: s?.user ? `✓ ${ms}ms 读到 user - 对比 7a` : `${ms}ms 返回但 session=null`,
+            detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回但 session=null`,
             ms,
           })
         }
       }
 
-      // 7c. 开自动刷新的客户端,超时 20s - 验证刷新请求是否真的挂起(网络)
+      // 7c. 服务端代刷新：浏览器只请求本站，由 Vercel 刷新 Supabase Cookie。
       {
-        const refreshClient = createClientComponentClient<Database>({
-          options: { auth: { autoRefreshToken: true, persistSession: true } },
-        })
         const t0 = performance.now()
-        const r = await withTimeout(refreshClient.auth.getSession(), 20000)
+        const r = await withTimeout(recoverBrowserSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '7c. 开自动刷新', status: 'fail', detail: '>20s 超时 - 刷新请求挂起(网络)', ms })
+          push({ name: '7c. 服务端代刷新', status: 'fail', detail: '>20s 超时 - 本站刷新 API 挂起', ms })
         } else {
-          const s = r.value?.data.session
+          const user = r.value?.user
+          if (r.value?.supabase) supabase = r.value.supabase
           push({
-            name: '7c. 开自动刷新',
-            status: s?.user ? 'ok' : 'warn',
-            detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回但 session=null`,
+            name: '7c. 服务端代刷新',
+            status: user ? 'ok' : 'warn',
+            detail: user ? `✓ ${ms}ms 刷新并读到 user=${user.id.slice(0, 8)}` : `${ms}ms 返回但 user=null`,
             ms,
           })
         }
@@ -260,18 +256,20 @@ export default function DebugPage() {
         }
       }
 
-      // 7e. 解码 access_token JWT 看 exp 是否过期(过期的 token 会触发刷新,刷新挂起=init 卡死)
+      // 7e. 正确兼容旧 Auth Helper 数组 Cookie 与新 SSR 对象 Cookie。
       {
         try {
-          const cookies = document.cookie.split(';').map((c) => c.trim())
-          const sessionChunk = cookies
-            .filter((c) => c.startsWith('sb-') && c.split('=')[0].endsWith('-auth-token') && !c.includes('verifier'))
-            .map((c) => c.split('=').slice(1).join('='))
-            .join('')
-          if (!sessionChunk) {
+          const storageKey = getSupabaseStorageKey(url)
+          const cookieRows = document.cookie.split(';').map((item) => {
+            const [name, ...value] = item.trim().split('=')
+            return { name, value: value.join('=') }
+          })
+          const normalized = normalizeLegacyAuthCookies(cookieRows, storageKey)
+          const sessionCookie = normalized.find((cookie) => cookie.name === storageKey)?.value
+          if (!sessionCookie) {
             push({ name: '7e. Token 过期检查', status: 'warn', detail: '无 auth-token cookie,无法检查' })
           } else {
-            const parsed = JSON.parse(decodeURIComponent(sessionChunk))
+            const parsed = JSON.parse(decodeURIComponent(sessionCookie))
             const token = parsed?.access_token
             if (!token) {
               push({ name: '7e. Token 过期检查', status: 'warn', detail: 'cookie 无 access_token 字段' })
@@ -292,32 +290,20 @@ export default function DebugPage() {
         }
       }
 
-      // 7f. 关键判决:绕过 auth-helpers,用原生 supabase-js + cookie 适配器,
-      //     autoRefreshToken:false(原生客户端不会强制覆盖)。
-      //     如果 7f 秒回而 7a/7b/7c 全卡 -> 卡点是「auth-helpers 强制开启的
-      //     autoRefreshToken 在 init 阶段触发的刷新请求挂起」。
+      // 7f. 服务端刷新后重建的生产客户端应立即读到新 Cookie。
       {
-        const storageKey = `sb-${url.replace('https://', '').split('.')[0]}-auth-token`
-        const directClient = createClient<Database>(url, anon, {
-          auth: {
-            autoRefreshToken: false,
-            persistSession: true,
-            detectSessionInUrl: false,
-            storage: new BrowserCookieAuthStorageAdapter(),
-            storageKey,
-          },
-        })
+        const rebuilt = createBrowserClient()
         const t0 = performance.now()
-        const r = await withTimeout(directClient.auth.getSession(), 20000)
+        const r = await withTimeout(rebuilt.auth.getSession(), 20000)
         const ms = Math.round(performance.now() - t0)
         if (r.timedOut) {
-          push({ name: '7f. 原生客户端·关刷新(关键)', status: 'fail', detail: `>20s 超时 - 不刷新也卡,说明卡点在刷新之外(storage/锁)。key=${storageKey}`, ms })
+          push({ name: '7f. 重建客户端读取', status: 'fail', detail: '>20s 超时 - 新客户端仍无法读取刷新后的 Cookie', ms })
         } else {
           const s = r.value?.data.session
           push({
-            name: '7f. 原生客户端·关刷新(关键)',
+            name: '7f. 重建客户端读取',
             status: s?.user ? 'ok' : 'warn',
-            detail: s?.user ? `✓ ${ms}ms 读到 user - 关刷新后正常!卡点=刷新` : `${ms}ms 返回 null · ${r.value?.error?.message ?? ''}`,
+            detail: s?.user ? `✓ ${ms}ms 读到 user` : `${ms}ms 返回 null · ${r.value?.error?.message ?? ''}`,
             ms,
           })
         }
@@ -330,7 +316,7 @@ export default function DebugPage() {
         const today = new Date().toISOString().split('T')[0]
         const t0 = performance.now()
         const r = await withTimeout(
-          supabase.from('daily_reflections').select('local_date').order('local_date', { ascending: false }).limit(5),
+          Promise.resolve(supabase.from('daily_reflections').select('local_date').order('local_date', { ascending: false }).limit(5)),
           20000
         )
         const ms = Math.round(performance.now() - t0)

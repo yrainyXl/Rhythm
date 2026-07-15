@@ -1,5 +1,4 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase/route-handler'
 import { NextResponse } from 'next/server'
 
 const GATEWAY = 'https://i.weread.qq.com/api/agent/gateway'
@@ -29,7 +28,7 @@ const toIso = (unixSec: number | undefined | null) =>
   unixSec ? new Date(unixSec * 1000).toISOString() : null
 
 export async function POST() {
-  const supabase = createRouteHandlerClient({ cookies })
+  const supabase = createRouteHandlerSupabaseClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

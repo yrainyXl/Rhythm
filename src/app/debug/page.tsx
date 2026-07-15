@@ -34,6 +34,9 @@ export default function DebugPage() {
     }
 
     const run = async () => {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+
       // 1. Environment
       const isStandalone =
         typeof window !== 'undefined' &&
@@ -46,9 +49,7 @@ export default function DebugPage() {
         detail: `standalone(主屏PWA)=${isStandalone} · online=${navigator.onLine} · UA=${navigator.userAgent.slice(0, 60)}`,
       })
 
-      // 2. Env vars injected into the bundle
-      const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-      const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+      // 2. Env vars
       push({
         name: '2. 环境变量',
         status: url && anon ? 'ok' : 'fail',
@@ -81,30 +82,39 @@ export default function DebugPage() {
 
       // 3b. Cookie session - names + value lengths + whether it contains an access_token
       {
-        const sbCookiesRaw = document.cookie
-          .split(';')
-          .map((c) => c.trim())
-          .filter((c) => c.startsWith('sb-'))
-        const sbCookies = sbCookiesRaw.map((c) => {
-          const [name, ...rest] = c.split('=')
-          const val = rest.join('=')
-          let info = `${val.length}字符`
-          try {
-            const parsed = JSON.parse(decodeURIComponent(val))
-            if (parsed?.access_token) info += ' · 含access_token(完整session)'
-            else if (parsed?.refresh_token) info += ' · 含refresh_token'
-          } catch {
-            // 可能是 chunked 单片或 code-verifier,按原文判断
-            if (name.includes('code-verifier')) info += ' · code-verifier'
-            else if (val.includes('access_token')) info += ' · 原文含access_token'
+        let cookieNames: string[] = []
+        let cookieDetail = '没有 sb-* cookie'
+        try {
+          const sbCookiesRaw = document.cookie
+            .split(';')
+            .map((c) => c.trim())
+            .filter((c) => c.startsWith('sb-'))
+          cookieNames = sbCookiesRaw.map((c) => c.split('=')[0])
+          const sbCookies = sbCookiesRaw.map((c) => {
+            const [name, ...rest] = c.split('=')
+            const val = rest.join('=')
+            let info = `${val.length}字符`
+            if (name.includes('code-verifier')) {
+              info += ' · code-verifier'
+            } else if (val.includes('access_token')) {
+              info += ' · 含access_token'
+            }
+            return `${name}(${info})`
+          })
+          if (sbCookies.length) {
+            const hasSession = sbCookiesRaw.some((c) => {
+              const [name] = c.split('=')
+              return name.endsWith('-auth-token') && !name.includes('verifier')
+            })
+            cookieDetail = `找到 ${sbCookies.length} 个: ${sbCookies.join(' | ')} · ${hasSession ? '有完整session' : '无完整session'}`
           }
-          return `${name}(${info})`
-        })
-        const hasAuthToken = sbCookiesRaw.some((c) => c.split('=')[0].endsWith('-auth-token') && !c.startsWith('sb-')?.includes('verifier'))
+        } catch (e) {
+          cookieDetail = `读 cookie 出错: ${String(e)}`
+        }
         push({
           name: '3b. Cookie 会话',
-          status: sbCookies.length ? 'ok' : 'warn',
-          detail: sbCookies.length ? `找到 ${sbCookies.length} 个: ${sbCookies.join(' | ')}` : '没有 sb-* cookie',
+          status: cookieNames.length ? 'ok' : 'warn',
+          detail: cookieDetail,
         })
       }
 

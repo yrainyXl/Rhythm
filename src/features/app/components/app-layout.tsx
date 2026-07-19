@@ -12,7 +12,7 @@ const navItems = [
   { href: '/today', label: '今天', Icon: CalendarCheck },
   { href: '/habits', label: '计划', Icon: Target },
   { href: '/records', label: '记录', Icon: LineChart },
-  { href: '/couple', label: '词条', Icon: BookOpen },
+  { href: '/reading', label: '阅读', Icon: BookOpen },
   { href: '/me', label: '我的', Icon: User },
 ]
 

@@ -610,6 +610,169 @@ export interface Database {
           updated_at?: string
         }
       }
+      topics: {
+        Row: {
+          id: string
+          user_id: string
+          question: string
+          status: 'active' | 'archived'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          question: string
+          status?: 'active' | 'archived'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          question?: string
+          status?: 'active' | 'archived'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      practices: {
+        Row: {
+          id: string
+          user_id: string
+          topic_id: string | null
+          title: string
+          assumption: string | null
+          status: 'active' | 'ended'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          topic_id?: string | null
+          title: string
+          assumption?: string | null
+          status?: 'active' | 'ended'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          topic_id?: string | null
+          title?: string
+          assumption?: string | null
+          status?: 'active' | 'ended'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      practice_rounds: {
+        Row: {
+          id: string
+          user_id: string
+          practice_id: string
+          round_number: number
+          start_date: string
+          end_date: string
+          assumption: string | null
+          conclusion: string | null
+          status: 'active' | 'ended'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          practice_id: string
+          round_number: number
+          start_date: string
+          end_date: string
+          assumption?: string | null
+          conclusion?: string | null
+          status?: 'active' | 'ended'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          practice_id?: string
+          round_number?: number
+          start_date?: string
+          end_date?: string
+          assumption?: string | null
+          conclusion?: string | null
+          status?: 'active' | 'ended'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      practice_logs: {
+        Row: {
+          id: string
+          user_id: string
+          round_id: string
+          local_date: string
+          status: 'done' | 'partial' | 'skipped'
+          note: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          round_id: string
+          local_date: string
+          status: 'done' | 'partial' | 'skipped'
+          note?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          round_id?: string
+          local_date?: string
+          status?: 'done' | 'partial' | 'skipped'
+          note?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      methods: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          condition: string | null
+          source_round_id: string | null
+          status: 'confirmed' | 'validating' | 'archived'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          condition?: string | null
+          source_round_id?: string | null
+          status?: 'confirmed' | 'validating' | 'archived'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          condition?: string | null
+          source_round_id?: string | null
+          status?: 'confirmed' | 'validating' | 'archived'
+          created_at?: string
+          updated_at?: string
+        }
+      }
       goals: {
         Row: {
           id: string

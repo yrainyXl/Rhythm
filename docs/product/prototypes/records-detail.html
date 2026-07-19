@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 实践详情</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --warn:rgba(220,180,130,.9); --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14; --card-alpha:.8;
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --warn:rgba(190,140,70,.95); --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA; --card-alpha:.9;
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --warn:rgba(200,150,80,.95); --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3; --card-alpha:.92;
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --warn:rgba(200,140,60,.95); --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE; --card-alpha:.92;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%,var(--bg-radial) 0%,transparent 55%),linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+    background-attachment:fixed;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  .r-eyebrow{font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.5rem;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void)/.7);border-bottom:1px solid var(--border)}
+  .topbar .back{background:none;border:0;color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:.2rem;font-size:.78rem;font-family:inherit;letter-spacing:.04em;text-decoration:none}
+  .topbar .back svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none}
+  .topbar .brand{flex:1;font-family:'Noto Serif SC',serif;font-weight:500;font-size:.9rem;letter-spacing:.04em;text-align:center}
+
+  main{padding:0 1.15rem calc(6.5rem + env(safe-area-inset-bottom))}
+
+  .summary{padding:1rem 0 .85rem;border-bottom:1px solid var(--border);margin-bottom:.85rem}
+  .summary .top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.35rem}
+  .summary .top .lbl{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:.3rem}
+  .summary .top .lbl .pill{padding:.15rem .5rem;border-radius:100px;background:rgba(var(--glow)/.14);color:rgb(var(--glow));font-size:.55rem}
+  .summary .top .date{font-size:.62rem;color:var(--text-3);letter-spacing:.04em}
+  .summary h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.05rem;margin:0 0 .35rem;letter-spacing:.03em;line-height:1.45}
+  .summary .hyp{font-size:.74rem;color:var(--text-2);line-height:1.6;margin:0 0 .6rem;letter-spacing:.02em}
+  .summary .bar{display:flex;align-items:center;gap:.55rem}
+  .summary .bar .track{flex:1;height:5px;border-radius:3px;background:var(--text-4)}
+  .summary .bar .track i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,rgba(var(--glow)/.5),rgb(var(--glow)));width:57%}
+  .summary .bar .pct{font-size:.72rem;color:var(--text-2);font-family:'Noto Serif SC',serif}
+  .summary .bar .pct small{font-family:'Inter',sans-serif;font-size:.58rem;color:var(--text-3);margin-left:.15rem}
+
+  .conclusion{padding:1rem;border-radius:14px;border:1px solid rgba(120,190,160,.22);background:linear-gradient(180deg,rgba(120,190,160,.08),transparent);margin-bottom:1rem}
+  .conclusion .hd{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--success);margin-bottom:.3rem}
+  .conclusion p{font-size:.78rem;color:var(--text-1);line-height:1.65;margin:0;letter-spacing:.02em}
+
+  /* 时间线 */
+  .timeline{position:relative;padding-left:2.8rem}
+  .timeline::before{content:"";position:absolute;left:1rem;top:0;bottom:0;width:1px;background:var(--border-strong)}
+
+  .tl-item{position:relative;padding-bottom:1.1rem}
+  .tl-item .dot{position:absolute;left:-2.35rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:rgb(var(--glow));border:2px solid rgb(var(--void));z-index:2}
+  .tl-item .dot.off{background:var(--text-4)}
+  .tl-item .dot.warn{background:var(--warn)}
+  .tl-item .dot.done{background:var(--success)}
+  .tl-item .date{display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem}
+  .tl-item .date .d{font-size:.62rem;color:var(--text-3);letter-spacing:.04em}
+  .tl-item .date .status{font-size:.6rem;letter-spacing:.08em;padding:.15rem .4rem;border-radius:100px;background:rgba(var(--glow)/.12);color:rgb(var(--glow))}
+  .tl-item .date .status.done{background:rgba(120,190,160,.12);color:var(--success)}
+  .tl-item .date .status.warn{background:rgba(220,180,130,.12);color:var(--warn)}
+
+  .tl-item .body{font-size:.75rem;color:var(--text-2);line-height:1.65;letter-spacing:.02em;margin:0}
+  .tl-item .body .note{display:block;margin-top:.3rem;padding:.45rem .6rem;border-radius:8px;background:rgba(var(--card-inset)/.4);border:1px solid var(--border);font-size:.72rem;color:var(--text-1);line-height:1.6}
+
+  .checkpoint{position:relative;padding:1rem 0 1.1rem;padding-left:2.8rem}
+  .checkpoint .dot{position:absolute;left:-2.35rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--warn);border:2px solid rgb(var(--void));z-index:2;box-shadow:0 0 0 3px rgba(220,180,130,.2)}
+  .checkpoint .card{padding:.85rem .95rem;border-radius:12px;border:1px solid rgba(220,180,130,.22);background:linear-gradient(180deg,rgba(220,180,130,.06),transparent)}
+  .checkpoint .card .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.3rem}
+  .checkpoint .card .hd .l{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warn)}
+  .checkpoint .card .hd .d{font-size:.6rem;color:var(--text-3);letter-spacing:.04em}
+  .checkpoint .card .stats{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.4rem}
+  .checkpoint .card .stats span{font-size:.6rem;color:var(--text-2);letter-spacing:.04em;padding:.15rem .45rem;border-radius:5px;background:rgba(var(--card-inset)/.5);border:1px solid var(--border)}
+  .checkpoint .card .q{font-size:.72rem;color:var(--text-2);line-height:1.6;letter-spacing:.02em}
+  .checkpoint .card .q b{color:var(--text-1);font-family:'Noto Serif SC',serif;font-weight:500}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;backdrop-filter:blur(12px);background:rgb(var(--void)/.82);border-top:1px solid var(--border)}
+  .tabbar .row-t{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="back" href="records.html"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>记录</a>
+    <div class="brand">实践详情</div>
+    <div style="width:40px"></div>
+  </header>
+
+  <main>
+
+    <!-- 摘要区 -->
+    <div class="summary">
+      <div class="top">
+        <span class="lbl"><span class="pill">进行中 · 第 2 轮</span></span>
+        <span class="date">7月10日–7月16日</span>
+      </div>
+      <h2>找回工作日晚上的主动权</h2>
+      <p class="hyp">本轮假设:确定一件事 + 约定娱乐结束时间,能否提高开始率。</p>
+      <div class="bar">
+        <div class="track"><i style="width:57%"></i></div>
+        <span class="pct">57<small>%</small></span>
+      </div>
+    </div>
+
+    <!-- 时间线 -->
+    <div class="timeline">
+
+      <div class="tl-item">
+        <span class="dot done"></span>
+        <div class="date"><span class="d">7月10日 · 周四</span><span class="status done">完成</span></div>
+        <div class="body">晚饭后 20 分钟直接打开了 IDE。</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot done"></span>
+        <div class="date"><span class="d">7月11日 · 周五</span><span class="status done">完成</span></div>
+        <div class="body">今天完成了 15 分钟的项目,感觉很轻松。关键是不要给自己"必须做很多"的压力。</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot off"></span>
+        <div class="date"><span class="d">7月12日 · 周六</span><span class="status warn">没开始</span></div>
+        <div class="body">周末,完全忘记这件事了。也许周末需要单独的策略。</div>
+      </div>
+
+      <!-- 检查点 -->
+      <div class="checkpoint">
+        <span class="dot"></span>
+        <div class="card">
+          <div class="hd"><span class="l">检查点 · 第 3 天</span><span class="d">7月13日</span></div>
+          <div class="stats">
+            <span>2 次完成</span>
+            <span>1 次没开始</span>
+          </div>
+          <div class="q"><b>最影响开始的是什么?</b> 周末没有明确安排,需要单独为周末制定计划。</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot done"></span>
+        <div class="date"><span class="d">7月13日 · 周日</span><span class="status done">完成</span></div>
+        <div class="body">周末特意定了晚上 9 点的闹钟,提醒自己该开始了。有效。</div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot off"></span>
+        <div class="date"><span class="d">7月14日 · 周一</span><span class="status warn">没开始</span></div>
+        <div class="body">太累了,晚上只想躺着。今天工作压力大,回到家已经精疲力竭。
+          <span class="note">"今天其实可以尝试 5 分钟版,但当时完全忘了这个选项。"</span>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot warn"></span>
+        <div class="date"><span class="d">7月15日 · 周二</span><span class="status warn">做了一点</span></div>
+        <div class="body">打开 IDE 做了 5 分钟,然后还是去刷手机了。但至少打开了。</div>
+      </div>
+
+      <!-- 检查点 -->
+      <div class="checkpoint">
+        <span class="dot"></span>
+        <div class="card">
+          <div class="hd"><span class="l">检查点 · 第 5 天</span><span class="d">7月15日</span></div>
+          <div class="stats">
+            <span>3 次完成</span>
+            <span>1 次做了一点</span>
+            <span>1 次没开始</span>
+          </div>
+          <div class="q"><b>最影响开始的是什么?</b> 工作疲惫后,连"15 分钟"都显得太正式。需要"5 分钟"的备选方案。</div>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <span class="dot done"></span>
+        <div class="date"><span class="d">7月16日 · 周三</span><span class="status done">完成</span></div>
+        <div class="body">今天终于准时开始动手了。先坐下,再打开 IDE,然后发现自己做了 25 分钟。</div>
+      </div>
+
+    </div>
+
+    <!-- 结论卡(当前轮次,最后一天可用) -->
+    <div class="conclusion">
+      <div class="hd">本轮趋势 · 第 4 天</div>
+      <p>前 3 天完成率 66%,后 3 天因工作疲惫下降了。周末需要单独策略,疲惫日需要"5 分钟"备选。继续 7 天观察。</p>
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="row-t">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="plan-i2-donext.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a class="on" href="records.html"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+</div>
+</body>
+</html>

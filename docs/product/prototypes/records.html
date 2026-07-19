@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 记录</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --success-soft:rgba(120,190,160,.14);
+    --warn:rgba(220,180,130,.9); --warn-soft:rgba(220,180,130,.14); --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14; --card-alpha:.8;
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --success-soft:rgba(60,150,110,.14);
+    --warn:rgba(190,140,70,.95); --warn-soft:rgba(190,140,70,.14); --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA; --card-alpha:.9;
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --success-soft:rgba(60,155,115,.14);
+    --warn:rgba(200,150,80,.95); --warn-soft:rgba(200,150,80,.14); --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3; --card-alpha:.92;
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --success-soft:rgba(90,150,95,.13);
+    --warn:rgba(200,140,60,.95); --warn-soft:rgba(200,140,60,.13); --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE; --card-alpha:.92;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%,var(--bg-radial) 0%,transparent 55%),linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+    background-attachment:fixed;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  .r-eyebrow{font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void)/.7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+
+  /* 主 tab 导航 */
+  .tabs{position:sticky;top:calc(3.2rem + env(safe-area-inset-top));z-index:19;padding:.65rem 1.15rem .55rem;
+    background:rgb(var(--void)/.62);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .tabs .row{display:flex;gap:.3rem}
+  .tabs .row button{flex:1;padding:.5rem .2rem;border-radius:9px;font-family:inherit;font-size:.72rem;letter-spacing:.06em;cursor:pointer;background:transparent;border:1px solid transparent;color:var(--text-3);transition:color .2s,background .2s,border-color .2s}
+  .tabs .row button.on{background:rgba(var(--glow)/.14);border-color:rgba(var(--glow)/.28);color:rgb(var(--glow))}
+  .tabs .row button:hover{color:var(--text-1)}
+
+  /* 子 tab 导航(仅记录 tab 内有) */
+  .sub{display:none;padding:.5rem 1.15rem .3rem;gap:.4rem;border-bottom:1px solid var(--border);background:rgb(var(--void)/.4)}
+  .sub.show{display:flex}
+  .sub button{flex:1;padding:.35rem .2rem;font-family:inherit;font-size:.68rem;letter-spacing:.06em;cursor:pointer;background:transparent;border:0;color:var(--text-3);border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+  .sub button.on{color:rgb(var(--glow));border-bottom-color:rgb(var(--glow))}
+
+  main{padding:0 1.15rem calc(6.5rem + env(safe-area-inset-bottom))}
+  .tab-pane{display:none;padding-top:.85rem;flex-direction:column;gap:.85rem}
+  .tab-pane.show{display:flex}
+  .sub-pane{display:none;flex-direction:column;gap:1.15rem}
+
+  /* 实践列表项 */
+  .practice-item{display:block;padding:.9rem .95rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px);text-decoration:none;color:inherit;cursor:pointer;transition:border-color .2s}
+  .practice-item:hover{border-color:var(--border-strong)}
+  .practice-item .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem}
+  .practice-item .top .lbl{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);display:flex;align-items:center;gap:.3rem}
+  .practice-item .top .lbl .pill{padding:.15rem .5rem;border-radius:100px;background:rgba(var(--glow)/.14);color:rgb(var(--glow));font-size:.55rem}
+  .practice-item .top .lbl .pill.done{background:rgba(120,190,160,.14);color:var(--success)}
+  .practice-item .top .date{font-size:.62rem;color:var(--text-3);letter-spacing:.04em}
+  .practice-item h3{font-family:'Noto Serif SC',serif;font-weight:500;font-size:.9rem;margin:0 0 .2rem;letter-spacing:.03em;line-height:1.4}
+  .practice-item .sub{font-size:.7rem;color:var(--text-2);line-height:1.55;margin-bottom:.55rem}
+  .practice-item .bar{display:flex;align-items:center;gap:.55rem}
+  .practice-item .bar .round{font-size:.68rem;color:var(--text-2);letter-spacing:.04em}
+  .practice-item .bar .round em{font-family:'Noto Serif SC',serif;font-style:normal;color:var(--text-1);margin:0 .15rem}
+  .practice-item .bar .round small{font-family:'Inter',sans-serif;font-size:.6rem;color:var(--text-3);margin-left:.15rem}
+
+  /* 趋势图表 */
+  .trend-section{display:flex;flex-direction:column;gap:.5rem}
+  .trend-eyebrow{display:flex;justify-content:space-between;align-items:baseline;padding:0 .3rem}
+  .trend-eyebrow .r-eyebrow{font-size:.62rem;letter-spacing:.16em;color:var(--text-2)}
+  .trend-eyebrow .trend-sub{font-size:.6rem;color:var(--text-3);letter-spacing:.04em}
+  .chart-card{padding:1rem .9rem 1rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px)}
+  .chart-svg{width:100%;height:auto;display:block}
+  .chart-foot{margin-top:.55rem;padding-top:.6rem;border-top:1px solid var(--border);font-size:.68rem;color:var(--text-2);letter-spacing:.02em;line-height:1.55}
+  .chart-card .empty{text-align:center;padding:1.5rem 0;color:var(--text-3);font-size:.72rem;line-height:1.7;letter-spacing:.03em}
+  .chart-card .empty svg{width:28px;height:28px;stroke:var(--text-4);stroke-width:1;fill:none;margin-bottom:.5rem;display:block;margin-left:auto;margin-right:auto}
+  .heatmap{display:flex;flex-direction:column;gap:5px;padding:.35rem 0}
+  .hm-row{display:flex;align-items:center;gap:5px}
+  .hm-w{width:1.2rem;font-size:.6rem;color:var(--text-3);letter-spacing:.04em;text-align:center}
+  .hm-c{flex:1;height:14px;border-radius:3px;background:rgba(var(--card-inset)/.7);border:1px solid var(--border)}
+  .hm-c.on{background:rgba(var(--glow)/.55);border-color:rgba(var(--glow)/.5)}
+
+  /* 睡眠 tab 空状态 */
+  .sleep-empty{padding:1.5rem 1rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px);text-align:center}
+  .sleep-empty .icon{width:40px;height:40px;margin:0 auto .6rem;border-radius:50%;display:grid;place-items:center;background:var(--glow-soft);color:rgb(var(--glow))}
+  .sleep-empty .icon svg{width:20px;height:20px;stroke:currentColor;stroke-width:1.5;fill:none}
+  .sleep-empty p{font-size:.78rem;color:var(--text-2);line-height:1.65;margin:0 0 .3rem;letter-spacing:.02em}
+  .sleep-empty small{display:block;font-size:.66rem;color:var(--text-3);letter-spacing:.04em}
+  .sleep-empty .placeholder-chart{display:flex;gap:3px;align-items:flex-end;height:60px;margin-top:1rem;opacity:.22}
+  .sleep-empty .placeholder-chart div{flex:1;border-radius:2px 2px 0 0;background:var(--text-3);height:calc(10px + 50px * var(--h, .5))}
+
+  /* 复盘 tab */
+  .rf-cal{padding:.9rem 1rem 1rem;border-radius:16px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px);box-shadow:0 1px 0 rgba(255,255,255,.02) inset,0 8px 24px -12px rgba(0,0,0,.5)}
+  .rf-cal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+  .rf-cal-title{font-family:'Noto Serif SC',serif;font-weight:500;font-size:.85rem;color:var(--text-1);letter-spacing:.04em}
+  .rf-nav{width:30px;height:30px;border-radius:8px;background:none;border:0;color:var(--text-3);cursor:pointer;font-size:1rem;transition:color .2s,background .2s}
+  .rf-nav:hover{color:var(--text-1);background:rgb(var(--void)/.4)}
+  .rf-cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.35rem}
+  .rf-cal-w{text-align:center;font-size:.62rem;color:var(--text-3);padding:.25rem 0;letter-spacing:.04em}
+  .rf-cal-d{aspect-ratio:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.1rem;font-size:.75rem;background:transparent;border:1px solid transparent;border-radius:8px;color:var(--text-3);cursor:default;font-family:inherit;padding:0}
+  .rf-cal-d.has{color:var(--text-1);cursor:pointer}
+  .rf-cal-d.has:hover{background:var(--glow-soft)}
+  .rf-cal-d.today{border-color:var(--border-strong);color:var(--text-1)}
+  .rf-cal-d i{width:3px;height:3px;border-radius:50%;background:var(--text-2);display:block}
+  .rf-cal-d.today i{background:rgb(var(--glow));width:4px;height:4px}
+
+  .rf-cta{display:flex;align-items:center;justify-content:center;gap:.35rem;padding:.75rem;border-radius:12px;font-family:'Noto Serif SC',serif;font-size:.85rem;letter-spacing:.05em;text-decoration:none;color:#fff;background:linear-gradient(180deg,rgba(var(--glow)/.85),rgba(var(--glow)/.65));border:1px solid rgba(var(--glow)/.4);box-shadow:0 8px 24px -12px rgba(var(--glow)/.6);transition:background .2s}
+  .rf-cta:hover{background:linear-gradient(180deg,rgba(var(--glow)/1),rgba(var(--glow)/.75))}
+  .rf-cta svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;fill:none}
+
+  .rf-card{padding:.95rem 1rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px);box-shadow:0 1px 0 rgba(255,255,255,.02) inset,0 8px 24px -12px rgba(0,0,0,.5)}
+  .rf-card-head{margin-bottom:.65rem}
+  .rf-date{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+  .rf-date > span:first-child{font-size:.8rem;color:var(--text-2);letter-spacing:.03em}
+  .rf-mood{font-size:.68rem;color:var(--text-3);letter-spacing:.04em}
+  .rf-rows{display:flex;flex-direction:column;gap:.4rem}
+  .rf-row{display:flex;gap:.7rem;font-size:.78rem;line-height:1.55;letter-spacing:.02em}
+  .rf-lbl{width:2.4rem;flex-shrink:0;font-size:.66rem;color:var(--text-3);padding-top:.15rem;letter-spacing:.03em}
+  .rf-val{color:var(--text-1);word-break:break-word;flex:1}
+  .rf-empty{font-size:.68rem;color:var(--text-3);letter-spacing:.04em}
+
+  /* 回顾 tab */
+  .review{padding:1rem;border-radius:14px;border:1px solid var(--border-strong);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px)}
+  .review .head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:1rem}
+  .review .head h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1rem;margin:0;letter-spacing:.04em}
+  .review .head small{font-size:.6rem;color:var(--text-3);letter-spacing:.06em}
+  .review .sec{margin-bottom:1rem}
+  .review .sec .st{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:.4rem}
+  .review .sec .data{display:flex;gap:.6rem}
+  .review .sec .data .d{flex:1;text-align:center;padding:.5rem;border-radius:8px;background:rgba(var(--card-inset)/.5);border:1px solid var(--border)}
+  .review .sec .data .d .n{font-family:'Noto Serif SC',serif;font-size:1.05rem;color:var(--text-1);letter-spacing:.02em}
+  .review .sec .data .d .l{font-size:.6rem;color:var(--text-3);margin-top:.15rem;letter-spacing:.04em}
+
+  .observe-card{padding:.85rem .95rem;border-radius:10px;border:1px solid rgba(220,180,130,.18);background:linear-gradient(180deg,rgba(220,180,130,.06),transparent);margin-bottom:.55rem}
+  .observe-card .p{font-size:.75rem;color:var(--text-1);line-height:1.65;margin:0 0 .35rem;letter-spacing:.02em}
+  .observe-card .evid{font-size:.62rem;color:var(--text-3);letter-spacing:.03em;margin-bottom:.5rem;line-height:1.6}
+  .observe-card .acts{display:flex;gap:.35rem}
+  .observe-card .acts button{padding:.3rem .55rem;border-radius:6px;border:1px solid rgba(220,180,130,.28);background:transparent;color:var(--warn);font-size:.62rem;letter-spacing:.04em;cursor:pointer;font-family:inherit}
+  .observe-card .acts button.confirm{background:rgba(220,180,130,.14)}
+  .observe-card .acts button.ignore{border-color:var(--border);color:var(--text-3)}
+
+  .review-list{display:flex;flex-direction:column;gap:.4rem;margin-top:1rem}
+  .review-list .r-item{display:flex;justify-content:space-between;align-items:center;padding:.6rem .7rem;border-radius:10px;border:1px solid var(--border);background:rgb(var(--card)/calc(var(--card-alpha)*.6));cursor:pointer}
+  .review-list .r-item .l{font-size:.74rem;color:var(--text-2);letter-spacing:.03em}
+  .review-list .r-item .l .n{color:var(--text-1);font-family:'Noto Serif SC',serif}
+  .review-list .r-item .r{font-size:.6rem;color:var(--text-3);letter-spacing:.04em}
+  .review-list .r-item .r.on{color:rgb(var(--glow))}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;backdrop-filter:blur(12px);background:rgb(var(--void)/.82);border-top:1px solid var(--border)}
+  .tabbar .row-t{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">记录<small>PRACTICES · SLEEP · REFLECTION · REVIEW</small></div>
+    <div></div>
+  </header>
+
+  <div class="tabs">
+    <div class="row">
+      <button class="on" data-tab="records">记录</button>
+      <button data-tab="sleep">睡眠</button>
+      <button data-tab="reflection">复盘</button>
+      <button data-tab="review">回顾</button>
+    </div>
+  </div>
+
+  <!-- 记录 tab 的子 tab -->
+  <div class="sub show" id="subRecords" data-parent="records">
+    <button class="on" data-sub="list">记录</button>
+    <button data-sub="trends">趋势</button>
+  </div>
+
+  <main>
+
+    <!-- ========== 记录 tab ========== -->
+    <div class="tab-pane show" id="paneRecords">
+
+      <!-- 子 tab: 列表 -->
+      <div class="sub-pane" id="subList" style="display:flex;gap:.7rem">
+        <a class="practice-item" href="records-detail.html">
+          <div class="top">
+            <span class="lbl"><span class="pill">进行中</span></span>
+            <span class="date">7月10日–7月16日</span>
+          </div>
+          <h3>找回工作日晚上的主动权</h3>
+          <div class="sub">假设:确定一件事 + 约定娱乐结束时间</div>
+          <div class="bar">
+            <span class="round">第 <em>2</em> 轮 · 第 <em>4</em> / <em>7</em> 天</span>
+          </div>
+        </a>
+
+        <a class="practice-item" href="records-detail.html">
+          <div class="top">
+            <span class="lbl"><span class="pill done">已完成</span></span>
+            <span class="date">7月3日–7月9日</span>
+          </div>
+          <h3>找回工作日晚上的主动权</h3>
+          <div class="sub">结论:只确定目标还不够,需要休息结束点</div>
+          <div class="bar">
+            <span class="round">第 <em>1</em> 轮 · 完成</span>
+          </div>
+        </a>
+
+        <a class="practice-item" href="records-detail.html">
+          <div class="top">
+            <span class="lbl"><span class="pill done">已完成</span></span>
+            <span class="date">6月20日–6月26日</span>
+          </div>
+          <h3>阅读 20 分钟的习惯养成</h3>
+          <div class="sub">结论:固定时间效果最好,睡前最可行</div>
+          <div class="bar">
+            <span class="round">第 <em>1</em> 轮 · 完成</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- 子 tab: 趋势 -->
+      <div class="sub-pane" id="subTrends" style="display:none">
+
+        <div class="trend-section">
+          <div class="trend-eyebrow">
+            <span class="r-eyebrow">实践 · 完成率</span>
+            <span class="trend-sub">近 4 轮对比</span>
+          </div>
+          <div class="chart-card">
+            <svg class="chart-svg" viewBox="0 0 320 160" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgb(var(--glow))" stop-opacity=".95"/>
+                  <stop offset="100%" stop-color="rgb(var(--glow))" stop-opacity=".35"/>
+                </linearGradient>
+              </defs>
+              <line x1="0" y1="130" x2="320" y2="130" stroke="var(--border-strong)" stroke-width=".5"/>
+              <line x1="0" y1="80" x2="320" y2="80" stroke="var(--border)" stroke-width=".5" stroke-dasharray="2 2"/>
+              <line x1="0" y1="40" x2="320" y2="40" stroke="var(--border)" stroke-width=".5" stroke-dasharray="2 2"/>
+              <text x="4" y="43" font-size="8" fill="var(--text-3)" font-family="Inter">100</text>
+              <text x="4" y="83" font-size="8" fill="var(--text-3)" font-family="Inter">50</text>
+              <text x="4" y="133" font-size="8" fill="var(--text-3)" font-family="Inter">0</text>
+              <rect x="52" y="80" width="42" height="50" rx="4" fill="url(#barGrad)"/>
+              <rect x="112" y="94" width="42" height="36" rx="4" fill="url(#barGrad)"/>
+              <rect x="172" y="60" width="42" height="70" rx="4" fill="url(#barGrad)"/>
+              <rect x="232" y="70" width="42" height="60" rx="4" fill="url(#barGrad)"/>
+              <text x="73" y="146" font-size="8" text-anchor="middle" fill="var(--text-2)" font-family="Inter">第 1 轮</text>
+              <text x="133" y="146" font-size="8" text-anchor="middle" fill="var(--text-2)" font-family="Inter">第 2 轮</text>
+              <text x="193" y="146" font-size="8" text-anchor="middle" fill="var(--text-2)" font-family="Inter">阅读 · 1</text>
+              <text x="253" y="146" font-size="8" text-anchor="middle" fill="rgb(var(--glow))" font-family="Inter">当前</text>
+              <text x="73" y="76" font-size="9" text-anchor="middle" fill="var(--text-1)" font-family="Noto Serif SC">50%</text>
+              <text x="133" y="90" font-size="9" text-anchor="middle" fill="var(--text-1)" font-family="Noto Serif SC">36%</text>
+              <text x="193" y="56" font-size="9" text-anchor="middle" fill="var(--text-1)" font-family="Noto Serif SC">70%</text>
+              <text x="253" y="66" font-size="9" text-anchor="middle" fill="var(--text-1)" font-family="Noto Serif SC">60%</text>
+            </svg>
+            <div class="chart-foot">当前轮次完成率高于上一轮 24 个百分点。</div>
+          </div>
+        </div>
+
+        <div class="trend-section">
+          <div class="trend-eyebrow">
+            <span class="r-eyebrow">方法沉淀</span>
+            <span class="trend-sub">累计条数</span>
+          </div>
+          <div class="chart-card">
+            <svg class="chart-svg" viewBox="0 0 320 160" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="rgb(var(--glow))" stop-opacity=".35"/>
+                  <stop offset="100%" stop-color="rgb(var(--glow))" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <line x1="20" y1="130" x2="315" y2="130" stroke="var(--border-strong)" stroke-width=".5"/>
+              <line x1="20" y1="30" x2="315" y2="30" stroke="var(--border)" stroke-width=".5" stroke-dasharray="2 2"/>
+              <path d="M 20,130 L 20,120 L 70,110 L 120,110 L 170,80 L 220,50 L 270,45 L 315,30 L 315,130 Z" fill="url(#lineGrad)"/>
+              <polyline points="20,120 70,110 120,110 170,80 220,50 270,45 315,30" fill="none" stroke="rgb(var(--glow))" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="20" cy="120" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="70" cy="110" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="120" cy="110" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="170" cy="80" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="220" cy="50" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="270" cy="45" r="2.5" fill="rgb(var(--glow))"/>
+              <circle cx="315" cy="30" r="3.5" fill="rgb(var(--glow))" stroke="rgb(var(--void))" stroke-width="1.5"/>
+              <text x="20" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W22</text>
+              <text x="70" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W23</text>
+              <text x="120" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W24</text>
+              <text x="170" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W25</text>
+              <text x="220" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W26</text>
+              <text x="270" y="146" font-size="8" text-anchor="middle" fill="var(--text-3)" font-family="Inter">W27</text>
+              <text x="315" y="146" font-size="8" text-anchor="middle" fill="rgb(var(--glow))" font-family="Inter">W28</text>
+              <text x="315" y="22" font-size="9" text-anchor="end" fill="var(--text-1)" font-family="Noto Serif SC">8 条</text>
+            </svg>
+            <div class="chart-foot">最近 4 周多沉淀了 4 条方法。</div>
+          </div>
+        </div>
+
+        <div class="trend-section">
+          <div class="trend-eyebrow">
+            <span class="r-eyebrow">睡眠 · 时长趋势</span>
+            <span class="trend-sub">近 30 天</span>
+          </div>
+          <div class="chart-card">
+            <div class="empty">
+              <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-4 0-7-3-7-7 0-1.5.5-3 1.5-4z"/></svg>
+              接入小米手环后显示
+            </div>
+          </div>
+        </div>
+
+        <div class="trend-section">
+          <div class="trend-eyebrow">
+            <span class="r-eyebrow">复盘 · 节奏</span>
+            <span class="trend-sub">近 30 天</span>
+          </div>
+          <div class="chart-card">
+            <div class="heatmap">
+              <div class="hm-row"><span class="hm-w">一</span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c"></span><span class="hm-c on"></span></div>
+              <div class="hm-row"><span class="hm-w">二</span><span class="hm-c on"></span><span class="hm-c"></span><span class="hm-c on"></span><span class="hm-c on"></span></div>
+              <div class="hm-row"><span class="hm-w">三</span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c on"></span></div>
+              <div class="hm-row"><span class="hm-w">四</span><span class="hm-c"></span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c on"></span></div>
+              <div class="hm-row"><span class="hm-w">五</span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c on"></span><span class="hm-c"></span></div>
+              <div class="hm-row"><span class="hm-w">六</span><span class="hm-c"></span><span class="hm-c"></span><span class="hm-c on"></span><span class="hm-c"></span></div>
+              <div class="hm-row"><span class="hm-w">日</span><span class="hm-c"></span><span class="hm-c on"></span><span class="hm-c"></span><span class="hm-c on"></span></div>
+            </div>
+            <div class="chart-foot">30 天内写了 22 条复盘,周末最容易漏。</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========== 睡眠 tab ========== -->
+    <div class="tab-pane" id="paneSleep">
+      <div class="sleep-empty">
+        <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9c-4 0-7-3-7-7 0-1.5.5-3 1.5-4z"/></svg></div>
+        <p>接入小米手环后,这里会显示你的睡眠分析</p>
+        <small>包括时长趋势、入睡时间、规律性评分</small>
+        <div class="placeholder-chart">
+          <div style="--h:.6"></div><div style="--h:.8"></div><div style="--h:.5"></div><div style="--h:.7"></div><div style="--h:.9"></div><div style="--h:.4"></div><div style="--h:.6"></div><div style="--h:.3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== 复盘 tab ========== -->
+    <div class="tab-pane" id="paneReflection">
+
+      <!-- 日历 -->
+      <div class="rf-cal">
+        <div class="rf-cal-head">
+          <button class="rf-nav" aria-label="上个月">‹</button>
+          <span class="rf-cal-title">2026年7月</span>
+          <button class="rf-nav" aria-label="下个月">›</button>
+        </div>
+        <div class="rf-cal-grid">
+          <span class="rf-cal-w">一</span><span class="rf-cal-w">二</span><span class="rf-cal-w">三</span><span class="rf-cal-w">四</span><span class="rf-cal-w">五</span><span class="rf-cal-w">六</span><span class="rf-cal-w">日</span>
+          <span></span><span></span><span></span>
+          <button class="rf-cal-d">1</button>
+          <button class="rf-cal-d">2</button>
+          <button class="rf-cal-d">3</button>
+          <button class="rf-cal-d">4</button>
+          <button class="rf-cal-d">5</button>
+          <button class="rf-cal-d">6</button>
+          <button class="rf-cal-d has">7<i></i></button>
+          <button class="rf-cal-d has">8<i></i></button>
+          <button class="rf-cal-d">9</button>
+          <button class="rf-cal-d has">10<i></i></button>
+          <button class="rf-cal-d">11</button>
+          <button class="rf-cal-d has">12<i></i></button>
+          <button class="rf-cal-d has">13<i></i></button>
+          <button class="rf-cal-d has">14<i></i></button>
+          <button class="rf-cal-d has">15<i></i></button>
+          <button class="rf-cal-d has">16<i></i></button>
+          <button class="rf-cal-d has">17<i></i></button>
+          <button class="rf-cal-d today has">18<i></i></button>
+          <button class="rf-cal-d">19</button>
+          <button class="rf-cal-d">20</button>
+          <button class="rf-cal-d">21</button>
+          <button class="rf-cal-d">22</button>
+          <button class="rf-cal-d">23</button>
+          <button class="rf-cal-d">24</button>
+          <button class="rf-cal-d">25</button>
+          <button class="rf-cal-d">26</button>
+          <button class="rf-cal-d">27</button>
+          <button class="rf-cal-d">28</button>
+          <button class="rf-cal-d">29</button>
+          <button class="rf-cal-d">30</button>
+          <button class="rf-cal-d">31</button>
+        </div>
+      </div>
+
+      <!-- 今日写复盘入口(独立页面) -->
+      <a class="rf-cta" href="records-reflection-detail.html">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+        写今日复盘
+      </a>
+
+      <!-- 历史复盘 -->
+      <p class="r-eyebrow" style="padding:0 .2rem;margin-top:.4rem">历史复盘</p>
+
+      <div class="rf-card">
+        <div class="rf-card-head">
+          <div class="rf-date"><span>7月17日 周五</span><span class="rf-mood">😊 很好</span></div>
+        </div>
+        <div class="rf-rows">
+          <div class="rf-row"><span class="rf-lbl">最满意</span><span class="rf-val">今天终于准时开始动手了</span></div>
+          <div class="rf-row"><span class="rf-lbl">改进</span><span class="rf-val">晚饭后还是先刷了会儿手机才打开 IDE</span></div>
+          <div class="rf-row"><span class="rf-lbl">明日</span><span class="rf-val">继续完成个人项目的一小节</span></div>
+          <div class="rf-row"><span class="rf-lbl">备注</span><span class="rf-val">感觉"先坐下"比"先做 15 分钟"更关键</span></div>
+        </div>
+      </div>
+
+      <div class="rf-card">
+        <div class="rf-card-head">
+          <div class="rf-date"><span>7月16日 周四</span><span class="rf-mood">😐 一般</span></div>
+        </div>
+        <div class="rf-rows">
+          <div class="rf-row"><span class="rf-lbl">最满意</span><span class="rf-val">做了 15 分钟的项目</span></div>
+          <div class="rf-row"><span class="rf-lbl">改进</span><span class="rf-val">不要给自己"必须做很多"的压力</span></div>
+        </div>
+      </div>
+
+      <div class="rf-card">
+        <div class="rf-card-head">
+          <div class="rf-date"><span>7月15日 周三</span><span class="rf-mood">😞 较差</span></div>
+        </div>
+        <div class="rf-rows">
+          <div class="rf-row"><span class="rf-lbl">备注</span><span class="rf-val">今天没有执行计划,打了两个小时游戏之后才意识到已经晚了</span></div>
+        </div>
+      </div>
+
+      <div class="rf-card">
+        <div class="rf-card-head">
+          <div class="rf-date"><span>7月13日 周一</span></div>
+        </div>
+        <div class="rf-empty">当天只记录了心情</div>
+      </div>
+
+    </div>
+
+    <!-- ========== 回顾 tab ========== -->
+    <div class="tab-pane" id="paneReview">
+
+      <div class="review">
+        <div class="head">
+          <h2>第 29 周回顾</h2>
+          <small>7月13日–19日 · 未读</small>
+        </div>
+
+        <div class="sec">
+          <div class="st">数据摘要</div>
+          <div class="data">
+            <div class="d"><div class="n">57%</div><div class="l">实践完成率</div></div>
+            <div class="d"><div class="n">5</div><div class="l">复盘条数</div></div>
+            <div class="d"><div class="n">—</div><div class="l">平均睡眠</div></div>
+          </div>
+        </div>
+
+        <div class="sec">
+          <div class="st">观察</div>
+          <div class="observe-card">
+            <p class="p">最近 4 次"没开始",有 3 次提到工作疲惫。</p>
+            <div class="evid">依据:第 2 轮实践 5 条记录 · 样本较小 · 只是相关,并非原因</div>
+            <div class="acts">
+              <button class="confirm">确认,值得看</button>
+              <button>需要更多数据</button>
+              <button class="ignore">忽略</button>
+            </div>
+          </div>
+          <div class="observe-card">
+            <p class="p">本周"做了一点"的次数比上一轮减少,但"完成"次数增加。</p>
+            <div class="evid">依据:第 1 轮 vs 第 2 轮对比 · 7 天数据</div>
+            <div class="acts">
+              <button class="confirm">确认,值得看</button>
+              <button>需要更多数据</button>
+              <button class="ignore">忽略</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="review-list">
+        <div class="r-item">
+          <span class="l"><span class="n">第 28 周</span> · 7月6日–12日</span>
+          <span class="r on">已确认</span>
+        </div>
+        <div class="r-item">
+          <span class="l"><span class="n">第 27 周</span> · 6月29日–7月5日</span>
+          <span class="r">2 条观察</span>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="row-t">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="plan-i2-donext.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+</div>
+
+<script>
+  // 主 tab 切换
+  document.querySelectorAll('.tabs .row button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs .row button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('show'));
+      const pane = document.getElementById('pane' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
+      if (pane) pane.classList.add('show');
+      // 子 tab 栏:只有记录 tab 显示
+      document.querySelectorAll('.sub').forEach(s => s.classList.remove('show'));
+      const sub = document.getElementById('sub' + btn.dataset.tab.charAt(0).toUpperCase() + btn.dataset.tab.slice(1));
+      if (sub) sub.classList.add('show');
+    });
+  });
+
+  // 子 tab 切换(记录 tab 内)
+  document.querySelectorAll('.sub button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const subEl = btn.closest('.sub');
+      subEl.querySelectorAll('button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      const parent = subEl.dataset.parent;
+      const paneId = 'pane' + parent.charAt(0).toUpperCase() + parent.slice(1);
+      document.querySelectorAll(`#${paneId} .sub-pane`).forEach(p => p.style.display = 'none');
+      const subName = btn.dataset.sub;
+      const subPane = document.getElementById('sub' + subName.charAt(0).toUpperCase() + subName.slice(1));
+      if (subPane) subPane.style.display = 'flex';
+    });
+  });
+</script>
+</body>
+</html>

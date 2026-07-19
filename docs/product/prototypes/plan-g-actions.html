@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 计划(G · 操作列表)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --success-soft:rgba(120,190,160,.12);
+    --warn:rgba(220,180,130,.9); --warn-soft:rgba(220,180,130,.12); --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14; --card-alpha:.8;
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --success-soft:rgba(60,150,110,.12);
+    --warn:rgba(190,140,70,.95); --warn-soft:rgba(190,140,70,.12); --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA; --card-alpha:.9;
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --success-soft:rgba(60,155,115,.13);
+    --warn:rgba(200,150,80,.95); --warn-soft:rgba(200,150,80,.13); --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3; --card-alpha:.92;
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --success-soft:rgba(90,150,95,.13);
+    --warn:rgba(200,140,60,.95); --warn-soft:rgba(200,140,60,.13); --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE; --card-alpha:.92;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%,var(--bg-radial) 0%,transparent 55%),linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+    background-attachment:fixed;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC',serif;font-weight:500;letter-spacing:.04em;color:var(--text-1)}
+  .r-eyebrow{font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void)/.7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+  .topbar .search{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);color:var(--text-2);cursor:pointer}
+  .topbar .search svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.6;fill:none}
+
+  main{padding:1rem 1rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.4rem}
+
+  /* 顶部 hero:进行中实践的一小行简报,操作按钮显式 */
+  .hero{padding:1rem 1.1rem;border-radius:18px;border:1px solid var(--border-strong);
+    background:linear-gradient(180deg,rgba(var(--glow)/.10),rgba(var(--glow)/.04));position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;inset:auto -30% -30% auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(var(--glow)/.16),transparent 70%);pointer-events:none}
+  .hero .eb{display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem}
+  .hero .eb .lbl{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:rgb(var(--glow));opacity:.85}
+  .hero .eb .r{font-size:.62rem;color:var(--text-3);letter-spacing:.06em}
+  .hero h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.06rem;margin:0 0 .3rem;line-height:1.5;letter-spacing:.03em}
+  .hero .why{font-size:.74rem;color:var(--text-2);line-height:1.6;margin:0 0 .8rem}
+  .hero .track{display:flex;align-items:center;gap:.35rem;margin-bottom:.85rem}
+  .hero .track i{width:22px;height:2px;background:var(--text-4);border-radius:2px}
+  .hero .track i.on{background:rgb(var(--glow))}
+  .hero .track i.now{background:rgb(var(--glow));box-shadow:0 0 0 3px rgba(var(--glow)/.18)}
+  .hero .actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.4rem}
+  .hero .actions button{padding:.55rem;border-radius:10px;border:1px solid var(--border-strong);background:transparent;color:var(--text-1);font-size:.72rem;letter-spacing:.05em;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.3rem}
+  .hero .actions button.primary{background:rgba(var(--glow)/.18);border-color:rgba(var(--glow)/.4);color:rgb(var(--glow))}
+  .hero .actions button svg{width:13px;height:13px;stroke:currentColor;stroke-width:1.7;fill:none}
+
+  /* 分区 */
+  .sec{display:flex;flex-direction:column}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;padding:0 .3rem .55rem}
+  .sec-head .l{display:flex;align-items:baseline;gap:.5rem}
+  .sec-head .l .count{font-family:'Noto Serif SC',serif;font-size:.72rem;color:var(--text-3);letter-spacing:.04em}
+  .sec-head .l .r-eyebrow{font-size:.62rem}
+  .sec-head .add{display:flex;align-items:center;gap:.25rem;background:none;border:0;padding:.3rem .1rem;color:rgb(var(--glow));font-size:.72rem;letter-spacing:.05em;cursor:pointer;font-family:inherit}
+  .sec-head .add svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
+
+  /* iOS 分组列表 */
+  .list{border-radius:14px;overflow:hidden;background:rgb(var(--card)/var(--card-alpha));border:1px solid var(--border);backdrop-filter:blur(6px)}
+  .row{display:flex;align-items:center;gap:.7rem;padding:.85rem .95rem;cursor:pointer;position:relative}
+  .row + .row{border-top:1px solid var(--border)}
+  .row:hover{background:rgba(var(--glow)/.04)}
+  .row .icon{width:32px;height:32px;flex-shrink:0;border-radius:9px;display:grid;place-items:center;background:var(--glow-soft);color:rgb(var(--glow))}
+  .row .icon svg{width:15px;height:15px;stroke:currentColor;stroke-width:1.7;fill:none}
+  .row .body{flex:1;min-width:0}
+  .row .body b{display:block;font-weight:500;font-size:.86rem;color:var(--text-1);letter-spacing:.02em;line-height:1.35}
+  .row .body small{display:block;font-size:.68rem;color:var(--text-3);margin-top:.15rem;letter-spacing:.03em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .row .meta{font-size:.68rem;color:var(--text-3);letter-spacing:.04em;text-align:right;line-height:1.4;white-space:nowrap}
+  .row .meta .k{color:rgb(var(--glow));font-family:'Noto Serif SC',serif;font-size:.82rem;display:block}
+  .row .chev{color:var(--text-3)}
+  .row .chev svg{width:12px;height:12px;stroke:currentColor;stroke-width:2;fill:none}
+
+  /* 议题引文样式的一行 */
+  .quote-row{padding:.9rem .95rem;position:relative}
+  .quote-row + .quote-row{border-top:1px solid var(--border)}
+  .quote-row .q{font-family:'Noto Serif SC',serif;font-size:.86rem;color:var(--text-1);letter-spacing:.02em;line-height:1.55;position:relative;padding-left:.85rem}
+  .quote-row .q::before{content:"";position:absolute;left:0;top:.3em;bottom:.3em;width:2px;background:rgba(var(--glow)/.5);border-radius:1px}
+  .quote-row .foot{display:flex;justify-content:space-between;align-items:center;margin-top:.5rem;padding-left:.85rem}
+  .quote-row .foot .m{font-size:.66rem;color:var(--text-3);letter-spacing:.04em}
+  .quote-row .foot .acts{display:flex;gap:.3rem}
+  .quote-row .foot .acts button{border:1px solid var(--border-strong);background:transparent;color:var(--text-2);font-size:.66rem;letter-spacing:.05em;padding:.28rem .55rem;border-radius:7px;cursor:pointer;font-family:inherit}
+  .quote-row .foot .acts button.primary{background:rgba(var(--glow)/.14);border-color:rgba(var(--glow)/.32);color:rgb(var(--glow))}
+
+  /* 习惯行:左复选 + 名字 + 频率 tag + toggle 按钮 */
+  .habit-row{display:flex;align-items:center;gap:.7rem;padding:.72rem .95rem}
+  .habit-row + .habit-row{border-top:1px solid var(--border)}
+  .habit-row .dot{width:8px;height:8px;border-radius:50%;background:rgb(var(--glow))}
+  .habit-row .dot.off{background:var(--text-4)}
+  .habit-row .body{flex:1}
+  .habit-row .body b{display:block;font-size:.82rem;font-weight:500;letter-spacing:.02em}
+  .habit-row .body small{display:block;font-size:.66rem;color:var(--text-3);margin-top:.1rem;letter-spacing:.04em}
+  .habit-row .freq{font-size:.62rem;color:var(--text-3);letter-spacing:.06em;padding:.2rem .5rem;border-radius:7px;border:1px solid var(--border);background:rgba(var(--card-inset)/.5)}
+  .toggle{width:34px;height:20px;border-radius:20px;background:var(--text-4);position:relative;cursor:pointer;transition:background .25s}
+  .toggle::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .25s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .toggle.on{background:rgb(var(--glow))}
+  .toggle.on::after{transform:translateX(14px)}
+
+  /* 悬浮主 CTA */
+  .fab{position:fixed;bottom:calc(5.4rem + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:15;
+    display:flex;align-items:center;gap:.4rem;padding:.7rem 1.1rem;border-radius:100px;font-family:'Noto Serif SC',serif;
+    background:rgba(var(--glow)/.9);color:#fff;font-size:.82rem;letter-spacing:.05em;border:0;cursor:pointer;
+    box-shadow:0 8px 24px -6px rgba(var(--glow)/.55),0 2px 4px rgba(0,0,0,.2)}
+  .fab svg{width:14px;height:14px;stroke:currentColor;stroke-width:2.2;fill:none}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;backdrop-filter:blur(12px);background:rgb(var(--void)/.82);border-top:1px solid var(--border)}
+  .tabbar .row-t{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">计划<small>DIRECTION · TOPIC · PRACTICE · HABIT</small></div>
+    <button class="search" aria-label="搜索"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+  </header>
+
+  <main>
+
+    <!-- 进行中的实践 hero,操作按钮显式 -->
+    <div class="hero">
+      <div class="eb"><span class="lbl">进行中 · 当前实践</span><span class="r">第 2 轮 · 第 4 / 7 天</span></div>
+      <h2>找回工作日晚上的主动权</h2>
+      <p class="why">本轮假设:确定一件事 + 约定娱乐结束时间,能否提高开始率。</p>
+      <div class="track">
+        <i class="on"></i><i class="on"></i><i class="on"></i><i class="now"></i><i></i><i></i><i></i>
+      </div>
+      <div class="actions">
+        <button class="primary"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>记一笔</button>
+        <button><svg viewBox="0 0 24 24"><path d="M12 20v-6M12 8V4M6 12H2M22 12h-4"/></svg>调整</button>
+        <button><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M12 3a9 9 0 100 18 9 9 0 000-18z"/></svg>结束</button>
+      </div>
+    </div>
+
+    <!-- 当前议题 -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="l"><span class="r-eyebrow">当前议题</span><span class="count">2</span></div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建议题</button>
+      </div>
+      <div class="list">
+        <div class="quote-row">
+          <div class="q">为什么下班回家后总会陷入游戏和手机?</div>
+          <div class="foot">
+            <span class="m">已展开 2 轮实践 · 上一轮 6 天</span>
+            <div class="acts"><button>观察</button><button class="primary">发起实践</button></div>
+          </div>
+        </div>
+        <div class="quote-row">
+          <div class="q">为什么周末反而更累?</div>
+          <div class="foot">
+            <span class="m">2 条相关记录 · 无实践</span>
+            <div class="acts"><button>看记录</button><button class="primary">发起实践</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 我的方法 -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="l"><span class="r-eyebrow">我的方法</span><span class="count">3</span></div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>写下方法</button>
+      </div>
+      <div class="list">
+        <div class="row">
+          <div class="icon" style="background:rgba(120,190,160,.14);color:var(--success)"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="body">
+            <b>晚上把行动缩到 15 分钟</b>
+            <small>适用:工作日 · 疲惫状态 · 来源第 3 轮实践</small>
+          </div>
+          <span class="chev"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+        </div>
+        <div class="row">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 8v8M8 12h8"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="body">
+            <b>早上定"最重要一件"</b>
+            <small>适用:工作日晚上前置 · 需搭配休息终点</small>
+          </div>
+          <span class="chev"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+        </div>
+        <div class="row">
+          <div class="icon" style="background:rgba(220,180,130,.14);color:var(--warn)"><svg viewBox="0 0 24 24"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></div>
+          <div class="body">
+            <b>约定娱乐结束时间</b>
+            <small>验证中 · 部分日子仍失效</small>
+          </div>
+          <span class="chev"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 长期方向 -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="l"><span class="r-eyebrow">长期方向</span><span class="count">2</span></div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>新建方向</button>
+      </div>
+      <div class="list">
+        <div class="row">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg></div>
+          <div class="body">
+            <b>成为可以持续做事的人</b>
+            <small>关联 3 议题 · 6 条记录</small>
+          </div>
+          <span class="chev"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+        </div>
+        <div class="row">
+          <div class="icon"><svg viewBox="0 0 24 24"><path d="M3 12h18M12 3v18"/></svg></div>
+          <div class="body">
+            <b>阅读能真正影响生活</b>
+            <small>关联 1 议题 · 4 本书</small>
+          </div>
+          <span class="chev"><svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日常习惯 -->
+    <section class="sec">
+      <div class="sec-head">
+        <div class="l"><span class="r-eyebrow">日常习惯</span><span class="count">4</span></div>
+        <button class="add"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>添加习惯</button>
+      </div>
+      <div class="list">
+        <div class="habit-row">
+          <span class="dot"></span>
+          <div class="body"><b>阅读 20 分钟</b><small>已连续 12 天</small></div>
+          <span class="freq">每天</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="habit-row">
+          <span class="dot"></span>
+          <div class="body"><b>按时服药</b><small>已连续 46 天</small></div>
+          <span class="freq">每天 · 8:30</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="habit-row">
+          <span class="dot off"></span>
+          <div class="body"><b>睡前拉伸</b><small>本周 3 / 4</small></div>
+          <span class="freq">周一/三/五</span>
+          <div class="toggle on"></div>
+        </div>
+        <div class="habit-row">
+          <span class="dot off"></span>
+          <div class="body"><b>周日周计划</b><small>暂停中</small></div>
+          <span class="freq">每周日</span>
+          <div class="toggle"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <button class="fab" aria-label="快速创建"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>发起一轮实践</button>
+
+  <nav class="tabbar">
+    <div class="row-t">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+</div>
+</body>
+</html>

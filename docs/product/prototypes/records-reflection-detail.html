@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 今日复盘</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{--void:11 16 25;--card:20 27 39;--card-inset:11 16 25;--glow:143 180 220;--glow-soft:rgba(143,180,220,.15);--border:rgba(150,175,205,.10);--border-strong:rgba(150,175,205,.18);--text-1:rgba(222,228,236,.92);--text-2:rgba(210,218,228,.55);--text-3:rgba(200,210,222,.32);--text-4:rgba(200,210,222,.18);--success:rgba(120,190,160,.9);--success-soft:rgba(120,190,160,.12);--warn:rgba(220,180,130,.9);--warn-soft:rgba(220,180,130,.12);--danger:rgba(220,140,140,.9);--danger-soft:rgba(220,140,140,.12);--bg-radial:rgba(30,44,66,.5);--bg-1:#0B1019;--bg-2:#0D1420;--bg-3:#090D14;--card-alpha:.8}
+  [data-theme="day"]{--void:246 244 239;--card:255 255 255;--card-inset:240 237 231;--glow:74 118 168;--glow-soft:rgba(74,118,168,.12);--border:rgba(60,70,90,.12);--border-strong:rgba(60,70,90,.22);--text-1:rgba(38,44,54,.94);--text-2:rgba(60,70,84,.66);--text-3:rgba(70,80,96,.48);--text-4:rgba(70,80,96,.28);--success:rgba(60,150,110,.95);--success-soft:rgba(60,150,110,.12);--warn:rgba(190,140,70,.95);--warn-soft:rgba(190,140,70,.12);--danger:rgba(200,90,90,.95);--danger-soft:rgba(200,90,90,.12);--bg-radial:rgba(120,150,190,.18);--bg-1:#F6F4EF;--bg-2:#EFEDE6;--bg-3:#F2F0EA;--card-alpha:.9}
+  [data-theme="celadon"]{--void:239 244 242;--card:255 255 255;--card-inset:233 240 237;--glow:70 150 130;--glow-soft:rgba(70,150,130,.12);--border:rgba(50,80,72,.12);--border-strong:rgba(50,80,72,.22);--text-1:rgba(32,46,42,.94);--text-2:rgba(52,72,66,.64);--text-3:rgba(60,84,76,.46);--text-4:rgba(60,84,76,.26);--success:rgba(60,155,115,.95);--success-soft:rgba(60,155,115,.13);--warn:rgba(200,150,80,.95);--warn-soft:rgba(200,150,80,.13);--danger:rgba(205,110,100,.95);--danger-soft:rgba(205,110,100,.12);--bg-radial:rgba(120,180,165,.22);--bg-1:#EFF4F2;--bg-2:#E8F0EC;--bg-3:#F1F5F3;--card-alpha:.92}
+  [data-theme="apricot"]{--void:249 243 235;--card:255 253 250;--card-inset:243 235 225;--glow:198 132 84;--glow-soft:rgba(198,132,84,.13);--border:rgba(90,66,44,.12);--border-strong:rgba(90,66,44,.22);--text-1:rgba(52,40,30,.94);--text-2:rgba(80,62,46,.64);--text-3:rgba(96,74,56,.46);--text-4:rgba(96,74,56,.26);--success:rgba(90,150,95,.95);--success-soft:rgba(90,150,95,.13);--warn:rgba(200,140,60,.95);--warn-soft:rgba(200,140,60,.13);--danger:rgba(205,105,90,.95);--danger-soft:rgba(205,105,90,.12);--bg-radial:rgba(230,175,120,.26);--bg-1:#F9F3EB;--bg-2:#F4EADD;--bg-3:#FBF5EE;--card-alpha:.92}
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%,var(--bg-radial) 0%,transparent 55%),linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+    background-attachment:fixed;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC',serif;font-weight:500;letter-spacing:.04em;color:var(--text-1)}
+  .r-eyebrow{font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:.5rem;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void)/.7);border-bottom:1px solid var(--border)}
+  .topbar .back{background:none;border:0;color:var(--text-2);cursor:pointer;display:flex;align-items:center;gap:.2rem;font-size:.78rem;font-family:inherit;letter-spacing:.04em;text-decoration:none;padding:.35rem .1rem}
+  .topbar .back:hover{color:var(--text-1)}
+  .topbar .back svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none}
+  .topbar .brand{flex:1;font-family:'Noto Serif SC',serif;font-weight:500;font-size:.9rem;letter-spacing:.04em;text-align:center;color:var(--text-1)}
+  .topbar .status{font-size:.62rem;color:var(--text-3);letter-spacing:.06em;padding:.35rem .1rem}
+  .topbar .status.saving{color:rgb(var(--glow))}
+
+  main{padding:1.15rem 1.25rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.2rem}
+
+  /* 日期头 */
+  .date-hero{display:flex;flex-direction:column;align-items:center;padding:.5rem 0 .3rem;text-align:center}
+  .date-hero .kicker{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-3);margin-bottom:.3rem}
+  .date-hero h1{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.35rem;letter-spacing:.05em;margin:0;color:var(--text-1)}
+  .date-hero .sub{font-size:.72rem;color:var(--text-3);letter-spacing:.06em;margin-top:.3rem}
+
+  /* 心情:居中大按钮 */
+  .mood{padding:1rem;border-radius:16px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px);box-shadow:0 1px 0 rgba(255,255,255,.02) inset,0 8px 24px -12px rgba(0,0,0,.5)}
+  .mood .lbl{font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);text-align:center;margin-bottom:.75rem}
+  .mood-row{display:flex;gap:.6rem}
+  .mood-row button{flex:1;display:flex;flex-direction:column;align-items:center;gap:.4rem;padding:.9rem .3rem;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--text-2);font-family:inherit;font-size:.7rem;letter-spacing:.04em;cursor:pointer;transition:all .2s}
+  .mood-row button .emoji{font-size:1.5rem;line-height:1;filter:grayscale(.5);transition:filter .2s,transform .2s}
+  .mood-row button:hover{border-color:var(--border-strong)}
+  .mood-row button:hover .emoji{transform:scale(1.08)}
+  .mood-row button.on{color:var(--text-1);border-color:transparent;background:var(--glow-soft)}
+  .mood-row button.on .emoji{filter:none}
+  .mood-row button.on.great{background:var(--success-soft);border:1px solid var(--success)}
+  .mood-row button.on.fair{background:var(--glow-soft);border:1px solid var(--warn)}
+  .mood-row button.on.poor{background:var(--danger-soft);border:1px solid var(--danger)}
+
+  /* 字段 */
+  .field{padding:1rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px)}
+  .field label{display:block;font-size:.65rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3);margin-bottom:.5rem}
+  .field input,.field textarea{width:100%;background:transparent;border:0;color:var(--text-1);padding:0;font-family:inherit;font-size:.9rem;line-height:1.65;letter-spacing:.02em;outline:0;resize:none;font-weight:400}
+  .field input::placeholder,.field textarea::placeholder{color:var(--text-3);font-size:.85rem}
+  .field textarea{min-height:70px}
+
+  /* 底部保存栏 */
+  .save-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;padding:.85rem 1.25rem calc(.85rem + env(safe-area-inset-bottom));background:rgb(var(--void)/.85);backdrop-filter:blur(14px);border-top:1px solid var(--border);display:flex;gap:.6rem;align-items:center}
+  .save-bar .hint{flex:1;font-size:.66rem;color:var(--text-3);letter-spacing:.04em}
+  .save-bar .hint b{color:rgb(var(--glow));font-family:'Noto Serif SC',serif;font-weight:500;font-size:.78rem;margin-right:.2rem}
+  .save-bar button{padding:.65rem 1.4rem;border-radius:100px;border:0;font-family:'Noto Serif SC',serif;font-size:.82rem;letter-spacing:.06em;cursor:pointer;background:linear-gradient(180deg,rgba(var(--glow)/.9),rgba(var(--glow)/.7));color:#fff;box-shadow:0 8px 20px -8px rgba(var(--glow)/.55);transition:all .2s}
+  .save-bar button:hover{transform:translateY(-1px);box-shadow:0 10px 26px -10px rgba(var(--glow)/.7)}
+  .save-bar button:disabled{opacity:.55;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <a class="back" href="records.html"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>返回</a>
+    <div class="brand">今日复盘</div>
+    <div class="status">自动保存</div>
+  </header>
+
+  <main>
+
+    <div class="date-hero">
+      <div class="kicker">Today</div>
+      <h1>7月18日 · 周六</h1>
+      <div class="sub">此刻 · 记下今天的收获与念头</div>
+    </div>
+
+    <div class="mood">
+      <div class="lbl">今天整体状态</div>
+      <div class="mood-row">
+        <button class="great on"><span class="emoji">😊</span>很好</button>
+        <button class="fair"><span class="emoji">😐</span>一般</button>
+        <button class="poor"><span class="emoji">😞</span>较差</button>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>今天最满意的一件事</label>
+      <input type="text" placeholder="无论多小都行..." value="今天终于准时开始动手了" />
+    </div>
+
+    <div class="field">
+      <label>今天最需要改进的</label>
+      <input type="text" placeholder="不用太苛责自己" value="晚饭后还是先刷了会儿手机才打开 IDE" />
+    </div>
+
+    <div class="field">
+      <label>明天最重要的一件事</label>
+      <input type="text" placeholder="明天最想完成什么?" value="继续完成个人项目的一小节" />
+    </div>
+
+    <div class="field">
+      <label>自由备注</label>
+      <textarea placeholder="随便说点什么...">感觉"15 分钟"这个承诺有效,但"先坐下"比"先做 15 分钟"更关键。明天试试从"先坐下"开始。</textarea>
+    </div>
+
+  </main>
+
+  <div class="save-bar">
+    <div class="hint"><b>4</b> 项已填 · 未保存</div>
+    <button>保存</button>
+  </div>
+</div>
+</body>
+</html>

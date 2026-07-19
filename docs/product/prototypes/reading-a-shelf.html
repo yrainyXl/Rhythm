@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 阅读(A · 书架)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{--void:11 16 25;--card:20 27 39;--card-inset:11 16 25;--glow:143 180 220;--glow-soft:rgba(143,180,220,.15);--border:rgba(150,175,205,.10);--border-strong:rgba(150,175,205,.18);--text-1:rgba(222,228,236,.92);--text-2:rgba(210,218,228,.55);--text-3:rgba(200,210,222,.32);--text-4:rgba(200,210,222,.18);--success:rgba(120,190,160,.9);--warn:rgba(220,180,130,.9);--danger:rgba(220,140,140,.9);--bg-radial:rgba(30,44,66,.5);--bg-1:#0B1019;--bg-2:#0D1420;--bg-3:#090D14;--card-alpha:.8}
+  [data-theme="day"]{--void:246 244 239;--card:255 255 255;--card-inset:240 237 231;--glow:74 118 168;--glow-soft:rgba(74,118,168,.12);--border:rgba(60,70,90,.12);--border-strong:rgba(60,70,90,.22);--text-1:rgba(38,44,54,.94);--text-2:rgba(60,70,84,.66);--text-3:rgba(70,80,96,.48);--text-4:rgba(70,80,96,.28);--success:rgba(60,150,110,.95);--warn:rgba(190,140,70,.95);--danger:rgba(200,90,90,.95);--bg-radial:rgba(120,150,190,.18);--bg-1:#F6F4EF;--bg-2:#EFEDE6;--bg-3:#F2F0EA;--card-alpha:.9}
+  [data-theme="celadon"]{--void:239 244 242;--card:255 255 255;--card-inset:233 240 237;--glow:70 150 130;--glow-soft:rgba(70,150,130,.12);--border:rgba(50,80,72,.12);--border-strong:rgba(50,80,72,.22);--text-1:rgba(32,46,42,.94);--text-2:rgba(52,72,66,.64);--text-3:rgba(60,84,76,.46);--text-4:rgba(60,84,76,.26);--success:rgba(60,155,115,.95);--warn:rgba(200,150,80,.95);--danger:rgba(205,110,100,.95);--bg-radial:rgba(120,180,165,.22);--bg-1:#EFF4F2;--bg-2:#E8F0EC;--bg-3:#F1F5F3;--card-alpha:.92}
+  [data-theme="apricot"]{--void:249 243 235;--card:255 253 250;--card-inset:243 235 225;--glow:198 132 84;--glow-soft:rgba(198,132,84,.13);--border:rgba(90,66,44,.12);--border-strong:rgba(90,66,44,.22);--text-1:rgba(52,40,30,.94);--text-2:rgba(80,62,46,.64);--text-3:rgba(96,74,56,.46);--text-4:rgba(96,74,56,.26);--success:rgba(90,150,95,.95);--warn:rgba(200,140,60,.95);--danger:rgba(205,105,90,.95);--bg-radial:rgba(230,175,120,.26);--bg-1:#F9F3EB;--bg-2:#F4EADD;--bg-3:#FBF5EE;--card-alpha:.92}
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%,var(--bg-radial) 0%,transparent 55%),linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));
+    background-attachment:fixed;min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+  .r-eyebrow{font-size:.62rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void)/.7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+  .topbar .sync{padding:.35rem .7rem;border-radius:100px;border:1px solid var(--border-strong);background:transparent;color:var(--text-2);font-size:.66rem;letter-spacing:.05em;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:.3rem}
+  .topbar .sync svg{width:12px;height:12px;stroke:currentColor;stroke-width:1.8;fill:none}
+
+  main{padding:0 1.15rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.25rem}
+
+  /* 随机词条卡 —— 顶部 */
+  .quote{position:relative;padding:1.2rem 1.1rem 1rem;border-radius:16px;background:linear-gradient(180deg,rgba(var(--glow)/.08),transparent);border:1px solid var(--border);margin-top:1rem;overflow:hidden;cursor:pointer;transition:transform .2s}
+  .quote:hover{transform:translateY(-1px);border-color:var(--border-strong)}
+  .quote::before{content:"❝";position:absolute;top:.5rem;left:.85rem;font-size:2.5rem;color:rgba(var(--glow)/.35);font-family:'Noto Serif SC',serif;line-height:1}
+  .quote .qt{font-family:'Noto Serif SC',serif;font-weight:400;font-size:.95rem;line-height:1.7;color:var(--text-1);letter-spacing:.04em;padding:1rem .5rem 0}
+  .quote .meta{margin-top:.7rem;font-size:.66rem;color:var(--text-3);letter-spacing:.05em;padding:0 .5rem}
+  .quote .refresh{position:absolute;top:.7rem;right:.8rem;width:24px;height:24px;background:none;border:0;color:var(--text-3);cursor:pointer;display:grid;place-items:center;border-radius:50%;transition:color .2s,background .2s}
+  .quote .refresh:hover{color:var(--text-1);background:rgba(var(--glow)/.1)}
+  .quote .refresh svg{width:12px;height:12px;stroke:currentColor;stroke-width:1.8;fill:none}
+
+  /* 阅读汇总条 */
+  .summary{display:flex;justify-content:space-around;padding:.85rem 0;border-radius:12px;border:1px solid var(--border);background:rgb(var(--card)/calc(var(--card-alpha)*.5))}
+  .summary .s-item{text-align:center}
+  .summary .s-item .n{font-family:'Noto Serif SC',serif;font-size:1.15rem;color:var(--text-1);letter-spacing:.02em;line-height:1.2}
+  .summary .s-item .n small{font-family:'Inter',sans-serif;font-size:.6rem;color:var(--text-3);margin-left:.15rem}
+  .summary .s-item .l{font-size:.6rem;letter-spacing:.1em;color:var(--text-3);margin-top:.2rem}
+
+  /* 分区标题 */
+  .sec-title{display:flex;justify-content:space-between;align-items:baseline;padding:0 .2rem}
+  .sec-title .more{font-size:.66rem;color:var(--text-3);letter-spacing:.05em;text-decoration:none;display:flex;align-items:center;gap:.2rem}
+
+  /* 3D 书架横滑 */
+  .shelf{display:flex;gap:.85rem;overflow-x:auto;padding:.5rem .2rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .shelf::-webkit-scrollbar{display:none}
+  .book{flex:0 0 auto;width:102px;scroll-snap-align:start;cursor:pointer;text-decoration:none;color:inherit}
+  .book .cover{width:100%;height:145px;border-radius:4px 8px 8px 4px;background:linear-gradient(135deg,rgba(var(--glow)/.35),rgba(var(--glow)/.15));position:relative;display:flex;flex-direction:column;justify-content:flex-end;padding:.6rem .55rem;overflow:hidden;box-shadow:1px 3px 12px -3px rgba(0,0,0,.4),inset 5px 0 8px -6px rgba(0,0,0,.4)}
+  .book .cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:linear-gradient(90deg,rgba(0,0,0,.3),transparent)}
+  .book .cover .t{font-family:'Noto Serif SC',serif;font-weight:500;font-size:.75rem;color:rgba(255,255,255,.95);line-height:1.35;letter-spacing:.03em;position:relative;z-index:1}
+  .book .cover .a{font-size:.58rem;color:rgba(255,255,255,.7);margin-top:.2rem;position:relative;z-index:1}
+  .book.b2 .cover{background:linear-gradient(135deg,#8fa8b8,#4a5c74)}
+  .book.b3 .cover{background:linear-gradient(135deg,#c5a68d,#7f6952)}
+  .book.b4 .cover{background:linear-gradient(135deg,#98a888,#5c6b52)}
+  .book .prog{margin-top:.4rem;font-size:.62rem;color:var(--text-3);letter-spacing:.04em}
+  .book .prog b{color:var(--text-2);font-family:'Noto Serif SC',serif;font-weight:500}
+  .book.add .cover{background:rgba(var(--card-inset)/.5);border:1.5px dashed var(--border-strong);display:grid;place-items:center;box-shadow:none}
+  .book.add .cover span{font-size:1.5rem;color:var(--text-3)}
+
+  /* 词条流(按书分组) */
+  .h-group{padding:.9rem 1rem;border-radius:14px;border:1px solid var(--border);background:rgb(var(--card)/var(--card-alpha));backdrop-filter:blur(4px)}
+  .h-head{display:flex;align-items:center;gap:.7rem;cursor:pointer}
+  .h-head .mini{width:32px;height:44px;border-radius:3px;background:linear-gradient(135deg,rgba(var(--glow)/.4),rgba(var(--glow)/.2));flex-shrink:0}
+  .h-head .info{flex:1;min-width:0}
+  .h-head .info b{display:block;font-family:'Noto Serif SC',serif;font-weight:500;font-size:.85rem;letter-spacing:.03em}
+  .h-head .info small{display:block;font-size:.65rem;color:var(--text-3);margin-top:.15rem}
+  .h-head .chev{font-size:.6rem;color:var(--text-3);transition:transform .2s}
+  .h-head .chev.open{transform:rotate(90deg)}
+  .h-items{margin-top:.85rem;padding-top:.7rem;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:.7rem}
+  .h-line{padding-left:.85rem;border-left:2px solid rgba(var(--glow)/.5)}
+  .h-line p{margin:0;font-size:.78rem;color:var(--text-1);line-height:1.65;letter-spacing:.02em}
+  .h-line small{display:block;font-size:.68rem;color:var(--text-2);margin-top:.35rem;padding-left:.6rem;border-left:1px solid var(--border)}
+  .h-line .try{display:inline-flex;align-items:center;gap:.2rem;margin-top:.5rem;padding:.25rem .55rem;border-radius:6px;background:rgba(var(--glow)/.14);color:rgb(var(--glow));font-size:.6rem;letter-spacing:.05em;text-decoration:none;cursor:pointer}
+  .h-line .try svg{width:9px;height:9px;stroke:currentColor;stroke-width:2.5;fill:none}
+
+  /* AI 认知主题横滑 */
+  .themes{display:flex;gap:.65rem;overflow-x:auto;padding:.35rem .2rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+  .themes::-webkit-scrollbar{display:none}
+  .theme{flex:0 0 240px;padding:.95rem 1rem;border-radius:14px;border:1px solid rgba(var(--glow)/.24);background:linear-gradient(180deg,rgba(var(--glow)/.09),rgba(var(--card)/var(--card-alpha)));scroll-snap-align:start;cursor:pointer;text-decoration:none;color:inherit}
+  .theme .kicker{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:rgb(var(--glow));opacity:.9;margin-bottom:.35rem}
+  .theme h3{font-family:'Noto Serif SC',serif;font-weight:500;font-size:.95rem;margin:0 0 .55rem;letter-spacing:.04em;line-height:1.4}
+  .theme .desc{font-size:.7rem;color:var(--text-2);line-height:1.6;margin-bottom:.75rem}
+  .theme .refs{display:flex;gap:.3rem;font-size:.6rem;color:var(--text-3);letter-spacing:.03em;flex-wrap:wrap}
+  .theme .refs span{padding:.15rem .4rem;border-radius:5px;background:rgba(var(--card-inset)/.5);border:1px solid var(--border)}
+
+  /* AI 推荐尝试 */
+  .try-card{padding:1rem 1.05rem;border-radius:14px;border:1px solid rgba(220,180,130,.22);background:linear-gradient(180deg,rgba(220,180,130,.07),transparent)}
+  .try-card .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem}
+  .try-card .hd .l{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--warn)}
+  .try-card .q{font-size:.75rem;color:var(--text-2);line-height:1.65;letter-spacing:.02em;margin:0 0 .55rem}
+  .try-card .q b{color:var(--text-1);font-family:'Noto Serif SC',serif;font-weight:500}
+  .try-card .meta{font-size:.62rem;color:var(--text-3);letter-spacing:.04em;margin-bottom:.65rem;padding-bottom:.5rem;border-bottom:1px dashed var(--border)}
+  .try-card .acts{display:flex;gap:.35rem}
+  .try-card .acts button{padding:.4rem .7rem;border-radius:8px;border:1px solid rgba(220,180,130,.28);background:transparent;color:var(--warn);font-size:.68rem;letter-spacing:.04em;cursor:pointer;font-family:inherit}
+  .try-card .acts button.primary{background:rgba(220,180,130,.16)}
+  .try-card .acts button.ignore{border-color:var(--border);color:var(--text-3)}
+
+  /* 已读/暂停折叠列表 */
+  .done-list{border-radius:12px;overflow:hidden;background:rgb(var(--card)/calc(var(--card-alpha)*.5));border:1px solid var(--border)}
+  .done-row{display:flex;align-items:center;gap:.7rem;padding:.6rem .85rem}
+  .done-row + .done-row{border-top:1px solid var(--border)}
+  .done-row .m{width:24px;height:32px;border-radius:2px;background:linear-gradient(135deg,rgba(150,175,205,.35),rgba(150,175,205,.15));flex-shrink:0}
+  .done-row .info{flex:1;min-width:0}
+  .done-row .info b{display:block;font-size:.78rem;letter-spacing:.02em;font-weight:500}
+  .done-row .info small{display:block;font-size:.62rem;color:var(--text-3);margin-top:.1rem}
+  .done-row .status{font-size:.6rem;color:var(--success);letter-spacing:.06em;padding:.1rem .4rem;border-radius:100px;background:rgba(120,190,160,.12)}
+  .done-row .status.pause{color:var(--warn);background:rgba(220,180,130,.12)}
+
+  /* 新增纸书笔记 FAB */
+  .fab{position:fixed;bottom:calc(5.4rem + env(safe-area-inset-bottom));right:calc(50% - 240px);z-index:15;display:flex;align-items:center;gap:.35rem;padding:.7rem 1rem;border-radius:100px;font-family:'Noto Serif SC',serif;background:rgba(var(--glow)/.9);color:#fff;font-size:.78rem;letter-spacing:.05em;border:0;cursor:pointer;box-shadow:0 8px 24px -6px rgba(var(--glow)/.55)}
+  .fab svg{width:13px;height:13px;stroke:currentColor;stroke-width:2.2;fill:none}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;backdrop-filter:blur(12px);background:rgb(var(--void)/.82);border-top:1px solid var(--border)}
+  .tabbar .row-t{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">阅读<small>SHELF · HIGHLIGHTS · THEMES</small></div>
+    <button class="sync"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M20 9a9 9 0 0 0-14.85-3.36L1 10M23 14l-4.15 4.36A9 9 0 0 1 4 15"/></svg>同步</button>
+  </header>
+
+  <main>
+
+    <!-- 随机词条 -->
+    <div class="quote">
+      <button class="refresh" aria-label="换一句"><svg viewBox="0 0 24 24"><path d="M23 4v6h-6"/><path d="M20 9a9 9 0 0 0-14.85-3.36L1 10"/></svg></button>
+      <p class="qt">先坐下,是最重要的。剩下的事情,一旦坐下,便有了发生的可能。</p>
+      <div class="meta">——《深度工作》· 卡尔·纽波特</div>
+    </div>
+
+    <!-- 阅读汇总 -->
+    <div class="summary">
+      <div class="s-item"><div class="n">3.2<small>h</small></div><div class="l">本周</div></div>
+      <div class="s-item"><div class="n">2<small>本</small></div><div class="l">在读</div></div>
+      <div class="s-item"><div class="n">14<small>本</small></div><div class="l">今年读完</div></div>
+      <div class="s-item"><div class="n">128<small>条</small></div><div class="l">划线</div></div>
+    </div>
+
+    <!-- 在读 3D 书架 -->
+    <div class="sec-title"><span class="r-eyebrow">在读</span><a class="more" href="#">全部书架 →</a></div>
+    <div class="shelf">
+      <a class="book" href="#">
+        <div class="cover"><div class="t">深度工作</div><div class="a">卡尔·纽波特</div></div>
+        <div class="prog"><b>62%</b> · 128 划线</div>
+      </a>
+      <a class="book b2" href="#">
+        <div class="cover"><div class="t">The Practice</div><div class="a">Seth Godin</div></div>
+        <div class="prog"><b>34%</b> · 42 划线</div>
+      </a>
+      <a class="book b3" href="#">
+        <div class="cover"><div class="t">被讨厌的勇气</div><div class="a">岸见一郎</div></div>
+        <div class="prog"><b>已读完</b></div>
+      </a>
+      <a class="book add" href="#">
+        <div class="cover"><span>+</span></div>
+        <div class="prog">添加书籍</div>
+      </a>
+    </div>
+
+    <!-- 词条流 -->
+    <div class="sec-title"><span class="r-eyebrow">词条 · 按书</span><a class="more" href="#">全部 →</a></div>
+
+    <div class="h-group">
+      <div class="h-head">
+        <div class="mini"></div>
+        <div class="info"><b>《深度工作》</b><small>卡尔·纽波特 · 128 条</small></div>
+        <span class="chev open">▶</span>
+      </div>
+      <div class="h-items">
+        <div class="h-line">
+          <p>专注是稀缺的技能,而稀缺的技能是有价值的。</p>
+          <small>💭 我最近工作日晚上的娱乐反弹,是不是也和白天专注被打断有关?</small>
+          <a class="try"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>想试试</a>
+        </div>
+        <div class="h-line">
+          <p>只有当你把工作时长看成一个待优化的变量,而不是一个固定值,你才有机会。</p>
+          <a class="try"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>想试试</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="h-group">
+      <div class="h-head">
+        <div class="mini" style="background:linear-gradient(135deg,#8fa8b8,#4a5c74)"></div>
+        <div class="info"><b>《The Practice》</b><small>Seth Godin · 42 条</small></div>
+        <span class="chev">▶</span>
+      </div>
+    </div>
+
+    <!-- AI 认知主题 -->
+    <div class="sec-title"><span class="r-eyebrow">AI · 跨书主题</span><span style="font-size:.6rem;color:var(--text-3)">3 个主题</span></div>
+    <div class="themes">
+      <a class="theme" href="#">
+        <div class="kicker">主题 · 3 本书 8 条</div>
+        <h3>启动的门槛</h3>
+        <div class="desc">多本书都提到:开始一件事的关键不是意志力,而是降低单次门槛,让"启动"本身变得便宜。</div>
+        <div class="refs"><span>《深度工作》</span><span>《The Practice》</span><span>《原子习惯》</span></div>
+      </a>
+      <a class="theme" href="#">
+        <div class="kicker">主题 · 2 本书 5 条</div>
+        <h3>选择的边界</h3>
+        <div class="desc">在充分选项面前,克制是新的自由。给自己划出可做的事、不做的事。</div>
+        <div class="refs"><span>《深度工作》</span><span>《被讨厌的勇气》</span></div>
+      </a>
+      <a class="theme" href="#">
+        <div class="kicker">主题 · 2 本书 4 条</div>
+        <h3>被动的时间</h3>
+        <div class="desc">被算法/通知消耗的时间不是空白,是意愿的削减。</div>
+        <div class="refs"><span>《深度工作》</span><span>《注意力商人》</span></div>
+      </a>
+    </div>
+
+    <!-- AI 推荐尝试 -->
+    <div class="sec-title"><span class="r-eyebrow">想试试 · AI 推荐</span></div>
+    <div class="try-card">
+      <div class="hd"><span class="l">来自《深度工作》· 关联你的议题</span></div>
+      <p class="q"><b>用"分块专注 90 分钟"验证晚上的开始率。</b>基于书中提到的"深度工作时段",配合你当前议题"找回工作日晚上的主动权",尝试固定 21:00–22:30 无手机 90 分钟。</p>
+      <div class="meta">依据:2 条相关划线 · 与议题匹配度较高</div>
+      <div class="acts">
+        <button class="primary">发起实践</button>
+        <button>先收藏</button>
+        <button class="ignore">忽略</button>
+      </div>
+    </div>
+
+    <!-- 已读/暂停 -->
+    <div class="sec-title"><span class="r-eyebrow">已读 · 暂停</span><a class="more" href="#">14 本 →</a></div>
+    <div class="done-list">
+      <div class="done-row">
+        <div class="m"></div>
+        <div class="info"><b>《被讨厌的勇气》</b><small>2026-07-02 读完</small></div>
+        <span class="status">读完</span>
+      </div>
+      <div class="done-row">
+        <div class="m"></div>
+        <div class="info"><b>《原子习惯》</b><small>停在 45%</small></div>
+        <span class="status pause">暂停</span>
+      </div>
+    </div>
+
+  </main>
+
+  <button class="fab"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>纸书笔记</button>
+
+  <nav class="tabbar">
+    <div class="row-t">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="plan-i-dashboard.html"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="records.html"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+</div>
+</body>
+</html>

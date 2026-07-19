@@ -6,6 +6,7 @@ import { SleepAnalysis } from '@/features/records/components/sleep-analysis'
 import { ReflectionView } from '@/features/records/components/reflection-view'
 import { RecordsTabs, type RecordsTab } from '@/features/records/components/records-tabs.tsx'
 import { RecordsSubTabs, type RecordsSubTab } from '@/features/records/components/records-sub-tabs.tsx'
+import { PracticesList } from '@/features/records/components/practices-list'
 import { TabPlaceholder } from '@/features/records/components/tab-placeholder'
 
 export default function RecordsPageClient() {
@@ -21,10 +22,7 @@ export default function RecordsPageClient() {
           <div className="space-y-4">
             <RecordsSubTabs active={activeSubTab} onChange={setActiveSubTab} />
             {activeSubTab === 'list' ? (
-              <TabPlaceholder
-                title="实践记录建设中"
-                hint="下阶段接入实践数据后,这里会显示所有实践的轮次与时间线"
-              />
+              <PracticesList />
             ) : (
               <TabPlaceholder
                 title="趋势建设中"

@@ -22,7 +22,7 @@ export function ArrangementsBand() {
               <span className="w-4 h-4 rounded-full grid place-items-center border border-rhythm-border-strong text-rhythm-glow text-[0.7rem]">
                 +
               </span>
-              为{b.tag}上添加安排(下阶段接入)
+              添加{b.tag}间安排(下阶段接入)
             </div>
           </div>
         </div>

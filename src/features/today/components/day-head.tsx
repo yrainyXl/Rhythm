@@ -11,7 +11,7 @@ export function DayHead({
   completed: number
   total: number
 }) {
-  const pct = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0
+  const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((completed / total) * 100))) : 0
   return (
     <section className="flex items-end justify-between gap-4">
       <div>

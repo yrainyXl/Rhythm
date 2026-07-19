@@ -54,10 +54,10 @@ export function ReflectionDetailPage() {
     const result = await saveReflection({
       local_date: localDate,
       mood,
-      best_thing: bestThing || null,
-      improve_thing: improveThing || null,
-      tomorrow_focus: tomorrowFocus || null,
-      note: note || null,
+      best_thing: bestThing.trim() || null,
+      improve_thing: improveThing.trim() || null,
+      tomorrow_focus: tomorrowFocus.trim() || null,
+      note: note.trim() || null,
       is_shared: false,
     })
     if (result.error) {

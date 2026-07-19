@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useHabitStore } from '@/features/habits/store/habit-store'
 import { DayHead } from '@/features/today/components/day-head'
@@ -22,21 +22,17 @@ function formatDate(iso: string) {
 }
 
 export default function TodayPage() {
-  const { occurrences, generateOccurrences } = useHabitStore()
+  const { occurrences } = useHabitStore()
   const [todayDate] = useState(todayIsoDate)
-
-  useEffect(() => {
-    generateOccurrences(todayDate)
-  }, [todayDate, generateOccurrences])
 
   const total = occurrences.length
   const completed = occurrences.filter((o) => o.status === 'done').length
+  const hasData = total > 0
 
   const dateText = formatDate(todayDate)
-  const tonightHtml =
-    total === 0
-      ? '还没有习惯,先去「计划」添加。'
-      : `今日已完成 <b>${completed} / ${total}</b>,继续保持节奏。`
+  const tonightHtml = hasData
+    ? `今日已完成 <b>${completed} / ${total}</b>,继续保持节奏。`
+    : '今天的节奏正在整理…'
 
   return (
     <AuthGuard>

@@ -44,24 +44,34 @@ export function TodayHabits() {
   }
 
   const toggleDone = async (id: string, currentlyDone: boolean) => {
-    if (currentlyDone) await resetOccurrence(id)
-    else await completeOccurrence(id)
+    try {
+      if (currentlyDone) await resetOccurrence(id)
+      else await completeOccurrence(id)
+    } catch (err) {
+      console.error('toggleDone failed', err)
+    }
   }
 
   return (
     <div className="rounded-2xl border border-rhythm-border bg-rhythm-card/80 backdrop-blur-sm p-4 space-y-1">
       {[...pending, ...done].map((o) => {
         const isDone = o.status === 'done'
+        const isSkipped = o.status === 'skipped'
         return (
           <button
             key={o.id}
             type="button"
-            onClick={() => toggleDone(o.id, isDone)}
-            className="w-full flex items-center gap-3 py-2.5 px-1 text-left"
+            onClick={() => !isSkipped && toggleDone(o.id, isDone)}
+            disabled={isSkipped}
+            className="w-full flex items-center gap-3 py-2.5 px-1 text-left disabled:cursor-default"
           >
             <span
               className={`flex-none w-5 h-5 rounded-md border grid place-items-center transition-colors ${
-                isDone ? 'bg-rhythm-glow border-rhythm-glow' : 'border-rhythm-border-strong'
+                isDone
+                  ? 'bg-rhythm-glow border-rhythm-glow'
+                  : isSkipped
+                    ? 'border-rhythm-border opacity-40'
+                    : 'border-rhythm-border-strong'
               }`}
             >
               {isDone && (
@@ -72,13 +82,15 @@ export function TodayHabits() {
             </span>
             <span
               className={`flex-1 text-[0.84rem] tracking-tight ${
-                isDone ? 'text-rhythm-text-secondary line-through decoration-rhythm-text-faint' : 'text-rhythm-text-primary'
+                isDone || isSkipped
+                  ? 'text-rhythm-text-secondary line-through decoration-rhythm-text-faint'
+                  : 'text-rhythm-text-primary'
               }`}
             >
               {o.title_snapshot}
             </span>
             <span className="text-[0.62rem] tracking-tight text-rhythm-text-muted">
-              {o.status === 'skipped' ? '已跳过' : isDone ? '今日' : '待完成'}
+              {isSkipped ? '已跳过' : isDone ? '今日' : '待完成'}
             </span>
           </button>
         )

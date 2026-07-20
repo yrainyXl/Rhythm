@@ -773,6 +773,88 @@ export interface Database {
           updated_at?: string
         }
       }
+      weekly_reviews: {
+        Row: {
+          id: string
+          user_id: string
+          week_start: string
+          week_end: string
+          practice_completion_rate: number | null
+          reflection_count: number
+          average_sleep_hours: number | null
+          ai_body_md: string | null
+          status: 'unread' | 'confirmed' | 'edited'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          week_start: string
+          week_end: string
+          practice_completion_rate?: number | null
+          reflection_count?: number
+          average_sleep_hours?: number | null
+          ai_body_md?: string | null
+          status?: 'unread' | 'confirmed' | 'edited'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          week_start?: string
+          week_end?: string
+          practice_completion_rate?: number | null
+          reflection_count?: number
+          average_sleep_hours?: number | null
+          ai_body_md?: string | null
+          status?: 'unread' | 'confirmed' | 'edited'
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      ai_recommendations: {
+        Row: {
+          id: string
+          user_id: string
+          kind: 'observation' | 'try' | 'method_suggest'
+          weekly_review_id: string | null
+          title: string
+          body_md: string | null
+          evidence_ref: unknown
+          uncertainty_note: string | null
+          status: 'pending' | 'confirmed' | 'more_data' | 'dismissed'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          kind: 'observation' | 'try' | 'method_suggest'
+          weekly_review_id?: string | null
+          title: string
+          body_md?: string | null
+          evidence_ref?: unknown
+          uncertainty_note?: string | null
+          status?: 'pending' | 'confirmed' | 'more_data' | 'dismissed'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          kind?: 'observation' | 'try' | 'method_suggest'
+          weekly_review_id?: string | null
+          title?: string
+          body_md?: string | null
+          evidence_ref?: unknown
+          uncertainty_note?: string | null
+          status?: 'pending' | 'confirmed' | 'more_data' | 'dismissed'
+          created_at?: string
+          updated_at?: string
+        }
+      }
       goals: {
         Row: {
           id: string

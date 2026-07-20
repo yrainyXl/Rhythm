@@ -23,6 +23,32 @@ interface PracticeState {
   createTopic: (question: string) => Promise<{ error: string | null }>
   archiveTopic: (id: string) => Promise<void>
   deleteTopic: (id: string) => Promise<void>
+
+  createPractice: (input: {
+    title: string
+    topicId: string | null
+    assumption: string
+    periodDays: number
+  }) => Promise<{ error: string | null }>
+  endPractice: (id: string) => Promise<void>
+  deletePractice: (id: string) => Promise<void>
+}
+
+function daysFromNow(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days - 1)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function todayIso(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 export const usePracticeStore = create<PracticeState>((set, get) => ({
@@ -126,5 +152,81 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
     await supabase.from('topics').delete().eq('id', id).eq('user_id', user.id)
     set({ topics: get().topics.filter((t) => t.id !== id) })
+  },
+
+  createPractice: async ({ title, topicId, assumption, periodDays }) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return { error: 'Not authenticated' }
+
+    const t = title.trim()
+    if (!t) return { error: '实践名不能为空' }
+    if (periodDays < 3 || periodDays > 60) return { error: '周期必须在 3–60 天之间' }
+
+    const { data: practice, error: pErr } = await supabase
+      .from('practices')
+      .insert({
+        user_id: user.id,
+        title: t,
+        topic_id: topicId,
+        assumption: assumption.trim() || null,
+      })
+      .select()
+      .single()
+
+    if (pErr || !practice) return { error: pErr?.message ?? '创建失败' }
+
+    const { data: round, error: rErr } = await supabase
+      .from('practice_rounds')
+      .insert({
+        user_id: user.id,
+        practice_id: practice.id,
+        round_number: 1,
+        start_date: todayIso(),
+        end_date: daysFromNow(periodDays),
+        assumption: assumption.trim() || null,
+      })
+      .select()
+      .single()
+
+    if (rErr) return { error: rErr.message }
+
+    const withRound: PracticeWithLatestRound = { ...practice, latestRound: round ?? null }
+    set({ practices: [withRound, ...get().practices] })
+    return { error: null }
+  },
+
+  endPractice: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('practices').update({ status: 'ended' }).eq('id', id).eq('user_id', user.id)
+    const { data: latestRound } = await supabase
+      .from('practice_rounds')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('practice_id', id)
+      .order('round_number', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (latestRound && latestRound.status === 'active') {
+      await supabase.from('practice_rounds').update({ status: 'ended' }).eq('id', latestRound.id)
+    }
+    const practices = get().practices.map((p) =>
+      p.id === id
+        ? { ...p, status: 'ended' as const, latestRound: p.latestRound ? { ...p.latestRound, status: 'ended' as const } : null }
+        : p,
+    )
+    set({ practices })
+  },
+
+  deletePractice: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('practices').delete().eq('id', id).eq('user_id', user.id)
+    set({ practices: get().practices.filter((p) => p.id !== id) })
   },
 }))

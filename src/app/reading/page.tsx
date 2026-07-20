@@ -8,7 +8,6 @@ import { HighlightsStream } from '@/features/reading/components/highlights-strea
 import { ThemesRow } from '@/features/reading/components/themes-row'
 import { TryRecommendation } from '@/features/reading/components/try-recommendation'
 import { DoneBooksList } from '@/features/reading/components/done-books-list'
-import { PaperNoteFab } from '@/features/reading/components/paper-note-fab'
 
 function SectionTitle({ label, action }: { label: string; action?: string }) {
   return (
@@ -58,7 +57,6 @@ export default function ReadingPage() {
           <DoneBooksList />
         </section>
       </div>
-      <PaperNoteFab />
     </AuthGuard>
   )
 }

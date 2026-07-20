@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useHabitStore } from '@/features/habits/store/habit-store'
+import { usePracticeStore } from '@/features/practice/store/practice-store'
 import { PlanBriefing } from '@/features/plan/components/plan-briefing'
 import { PracticeCurrentCard } from '@/features/plan/components/practice-current-card'
 import { EntryCard } from '@/features/plan/components/entry-card'
@@ -16,11 +17,16 @@ function todayIsoDate() {
 
 export default function PlanPage() {
   const { occurrences, generateOccurrences } = useHabitStore()
+  const { topics, loadTopics } = usePracticeStore()
   const [todayDate] = useState(todayIsoDate)
 
   useEffect(() => {
     generateOccurrences(todayDate)
   }, [todayDate, generateOccurrences])
+
+  useEffect(() => {
+    loadTopics()
+  }, [loadTopics])
 
   const habitTotal = occurrences.length
   const habitDone = occurrences.filter((o) => o.status === 'done').length
@@ -34,15 +40,16 @@ export default function PlanPage() {
           <EntryCard
             eyebrow="议题"
             title="当前议题"
-            count={0}
+            count={topics.length}
             unit="个"
-            tail="下阶段接入"
+            tail={topics.length === 0 ? '还没有议题' : '点击查看'}
             icon={
               <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.7, fill: 'none' }}>
                 <path d="M12 8v4M12 16h.01" />
                 <circle cx="12" cy="12" r="9" />
               </svg>
             }
+            href="/habits/topics"
           />
           <EntryCard
             eyebrow="方法"

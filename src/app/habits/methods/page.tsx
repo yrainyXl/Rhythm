@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { AuthGuard } from '@/features/app/components/auth-guard'
+import { MethodsList } from '@/features/practice/components/methods-list'
 
 export default function MethodsPage() {
   return (
@@ -23,10 +24,7 @@ export default function MethodsPage() {
             经过实践验证、带适用条件的个人结论
           </p>
         </div>
-        <div className="r-card p-8 text-center">
-          <p className="text-sm text-rhythm-text-secondary">方法管理下阶段接入</p>
-          <p className="text-xs text-rhythm-text-muted mt-1">从实践复盘中沉淀真正有效的做法</p>
-        </div>
+        <MethodsList />
       </div>
     </AuthGuard>
   )

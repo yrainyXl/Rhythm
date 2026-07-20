@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
 import type { PracticeWithLatestRound } from '@/features/practice/store/practice-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
+import { QuickLogButtons } from '@/features/practice/components/quick-log-buttons'
+import { RoundTimeline } from '@/features/practice/components/round-timeline'
 
 function daysBetween(start: string, end: string): { total: number; elapsed: number } {
   const [sy, sm, sd] = start.split('-').map(Number)
@@ -54,19 +56,16 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
           {round?.start_date} 起
         </div>
       )}
-      <div className="flex gap-2 mt-auto pt-2 relative z-10">
-        <button
-          type="button"
-          className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer"
-          style={{ background: 'rgba(143,180,220,0.22)', border: '1px solid rgba(143,180,220,0.42)', color: 'rgb(143,180,220)' }}>
-          记一笔
-        </button>
-        <a
-          href="/records"
-          className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer bg-transparent text-rhythm-text-primary border border-rhythm-border-strong text-center no-underline">
-          记录
-        </a>
-      </div>
+      {round && (
+        <>
+          <div className="mt-3">
+            <QuickLogButtons roundId={round.id} />
+          </div>
+          <div className="mt-3">
+            <RoundTimeline roundId={round.id} startDate={round.start_date} endDate={round.end_date} />
+          </div>
+        </>
+      )}
     </div>
   )
 }

@@ -7,6 +7,8 @@ import type { Database } from '@/lib/supabase/database.types'
 type Topic = Database['public']['Tables']['topics']['Row']
 type Practice = Database['public']['Tables']['practices']['Row']
 type PracticeRound = Database['public']['Tables']['practice_rounds']['Row']
+type MethodRow = Database['public']['Tables']['methods']['Row']
+type MethodStatus = 'confirmed' | 'validating' | 'archived'
 
 export interface PracticeWithLatestRound extends Practice {
   latestRound: PracticeRound | null
@@ -32,6 +34,18 @@ interface PracticeState {
   }) => Promise<{ error: string | null }>
   endPractice: (id: string) => Promise<void>
   deletePractice: (id: string) => Promise<void>
+
+  methods: MethodRow[]
+  isLoadingMethods: boolean
+
+  loadMethods: () => Promise<void>
+  createMethod: (input: {
+    title: string
+    condition: string
+    status: MethodStatus
+  }) => Promise<{ error: string | null }>
+  updateMethodStatus: (id: string, status: MethodStatus) => Promise<void>
+  deleteMethod: (id: string) => Promise<void>
 }
 
 function daysFromNow(days: number): string {
@@ -56,6 +70,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   topics: [],
   isLoadingPractices: true,
   isLoadingTopics: true,
+  methods: [],
+  isLoadingMethods: true,
 
   loadPractices: async () => {
     const supabase = createBrowserClient()
@@ -228,5 +244,71 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
     await supabase.from('practices').delete().eq('id', id).eq('user_id', user.id)
     set({ practices: get().practices.filter((p) => p.id !== id) })
+  },
+
+  loadMethods: async () => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) {
+      set({ isLoadingMethods: false })
+      return
+    }
+
+    const { data } = await supabase
+      .from('methods')
+      .select('*')
+      .eq('user_id', user.id)
+      .neq('status', 'archived')
+      .order('created_at', { ascending: false })
+
+    set({ methods: data ?? [], isLoadingMethods: false })
+  },
+
+  createMethod: async ({ title, condition, status }) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return { error: 'Not authenticated' }
+
+    const t = title.trim()
+    if (!t) return { error: '方法标题不能为空' }
+
+    const { data, error } = await supabase
+      .from('methods')
+      .insert({
+        user_id: user.id,
+        title: t,
+        condition: condition.trim() || null,
+        status,
+      })
+      .select()
+      .single()
+
+    if (error) return { error: error.message }
+    if (data) {
+      set({ methods: [data, ...get().methods] })
+    }
+    return { error: null }
+  },
+
+  updateMethodStatus: async (id, status) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('methods').update({ status }).eq('id', id).eq('user_id', user.id)
+    if (status === 'archived') {
+      set({ methods: get().methods.filter((m) => m.id !== id) })
+    } else {
+      set({ methods: get().methods.map((m) => (m.id === id ? { ...m, status } : m)) })
+    }
+  },
+
+  deleteMethod: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('methods').delete().eq('id', id).eq('user_id', user.id)
+    set({ methods: get().methods.filter((m) => m.id !== id) })
   },
 }))

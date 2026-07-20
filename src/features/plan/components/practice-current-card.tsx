@@ -110,7 +110,9 @@ export function PracticeCurrentCard() {
   }, [loadPractices])
 
   const activePractices = practices.filter((p) => p.status === 'active')
-  const slides = activePractices.length + 1
+  const hasActive = activePractices.length > 0
+  // 有进行中实践时不展示"发起新实践"占位卡,通过实践管理页统一新建
+  const slides = hasActive ? activePractices.length : 1
 
   const handleScroll = () => {
     const el = scrollerRef.current
@@ -129,27 +131,30 @@ export function PracticeCurrentCard() {
 
   if (isLoadingPractices) {
     return (
-      <div className="col-span-full p-4 rounded-2xl border border-rhythm-border bg-rhythm-card/60 text-center text-xs text-rhythm-text-muted">
+      <div className="p-4 rounded-2xl border border-rhythm-border bg-rhythm-card/60 text-center text-xs text-rhythm-text-muted">
         加载中...
       </div>
     )
   }
 
   return (
-    <div className="col-span-full">
+    <div>
       <div
         ref={scrollerRef}
         onScroll={handleScroll}
         className="h-[220px] flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
         style={{ scrollbarWidth: 'none' }}>
-        {activePractices.map((p) => (
-          <div key={p.id} className="min-w-full snap-start pr-2">
-            <PracticeSlide practice={p} />
+        {hasActive ? (
+          activePractices.map((p, i) => (
+            <div key={p.id} className={`min-w-full snap-start ${i < activePractices.length - 1 ? 'pr-2' : ''}`}>
+              <PracticeSlide practice={p} />
+            </div>
+          ))
+        ) : (
+          <div className="min-w-full snap-start">
+            <NewPracticeSlide onOpen={() => setSheetOpen(true)} />
           </div>
-        ))}
-        <div className="min-w-full snap-start">
-          <NewPracticeSlide onOpen={() => setSheetOpen(true)} />
-        </div>
+        )}
       </div>
 
       {slides > 1 && (
@@ -158,7 +163,7 @@ export function PracticeCurrentCard() {
             <button
               key={i}
               type="button"
-              aria-label={i === activePractices.length ? '发起新实践' : `第 ${i + 1} 个实践`}
+              aria-label={`第 ${i + 1} 个实践`}
               onClick={() => goTo(i)}
               className={`h-1.5 rounded-full transition-all ${
                 i === activeIdx ? 'w-4 bg-rhythm-glow' : 'w-1.5 bg-rhythm-border-strong'

@@ -9,6 +9,8 @@ type Practice = Database['public']['Tables']['practices']['Row']
 type PracticeRound = Database['public']['Tables']['practice_rounds']['Row']
 type MethodRow = Database['public']['Tables']['methods']['Row']
 type MethodStatus = 'confirmed' | 'validating' | 'archived'
+type PracticeLog = Database['public']['Tables']['practice_logs']['Row']
+type LogStatus = 'done' | 'partial' | 'skipped'
 
 export interface PracticeWithLatestRound extends Practice {
   latestRound: PracticeRound | null
@@ -46,6 +48,18 @@ interface PracticeState {
   }) => Promise<{ error: string | null }>
   updateMethodStatus: (id: string, status: MethodStatus) => Promise<void>
   deleteMethod: (id: string) => Promise<void>
+
+  logsByRound: Record<string, PracticeLog[]>
+  isLoadingLogs: boolean
+
+  loadLogsForRound: (roundId: string) => Promise<void>
+  upsertLog: (input: {
+    roundId: string
+    localDate: string
+    status: LogStatus
+    note?: string
+  }) => Promise<{ error: string | null }>
+  deleteLog: (id: string) => Promise<void>
 }
 
 function daysFromNow(days: number): string {
@@ -72,6 +86,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   isLoadingTopics: true,
   methods: [],
   isLoadingMethods: true,
+  logsByRound: {},
+  isLoadingLogs: false,
 
   loadPractices: async () => {
     const supabase = createBrowserClient()
@@ -310,5 +326,82 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
     await supabase.from('methods').delete().eq('id', id).eq('user_id', user.id)
     set({ methods: get().methods.filter((m) => m.id !== id) })
+  },
+
+  loadLogsForRound: async (roundId) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    set({ isLoadingLogs: true })
+    const { data } = await supabase
+      .from('practice_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('round_id', roundId)
+      .order('local_date', { ascending: false })
+
+    set({
+      logsByRound: { ...get().logsByRound, [roundId]: data ?? [] },
+      isLoadingLogs: false,
+    })
+  },
+
+  upsertLog: async ({ roundId, localDate, status, note }) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return { error: 'Not authenticated' }
+
+    const existing = (get().logsByRound[roundId] ?? []).find((l) => l.local_date === localDate)
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('practice_logs')
+        .update({ status, note: note?.trim() || null })
+        .eq('id', existing.id)
+        .eq('user_id', user.id)
+        .select()
+        .single()
+
+      if (error) return { error: error.message }
+      if (data) {
+        const list = (get().logsByRound[roundId] ?? []).map((l) => (l.id === existing.id ? data : l))
+        set({ logsByRound: { ...get().logsByRound, [roundId]: list } })
+      }
+      return { error: null }
+    }
+
+    const { data, error } = await supabase
+      .from('practice_logs')
+      .insert({
+        user_id: user.id,
+        round_id: roundId,
+        local_date: localDate,
+        status,
+        note: note?.trim() || null,
+      })
+      .select()
+      .single()
+
+    if (error) return { error: error.message }
+    if (data) {
+      const list = [data, ...(get().logsByRound[roundId] ?? [])]
+      set({ logsByRound: { ...get().logsByRound, [roundId]: list } })
+    }
+    return { error: null }
+  },
+
+  deleteLog: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('practice_logs').delete().eq('id', id).eq('user_id', user.id)
+    const map = get().logsByRound
+    const newMap: Record<string, PracticeLog[]> = {}
+    for (const [k, list] of Object.entries(map)) {
+      newMap[k] = list.filter((l) => l.id !== id)
+    }
+    set({ logsByRound: newMap })
   },
 }))

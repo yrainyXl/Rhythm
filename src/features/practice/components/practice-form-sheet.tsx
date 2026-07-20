@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
+import { Dropdown } from '@/features/practice/components/dropdown'
 
 const PERIOD_PRESETS = [
   { label: '7 天', value: 7 },
@@ -23,6 +24,11 @@ export function PracticeFormSheet({
   const [periodDays, setPeriodDays] = useState<number>(7)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+
+  const topicOptions = useMemo(
+    () => [{ value: '', label: '不关联' }, ...topics.map((t) => ({ value: t.id, label: t.question }))],
+    [topics],
+  )
 
   useEffect(() => {
     if (open) {
@@ -104,15 +110,12 @@ export function PracticeFormSheet({
             {topics.length === 0 ? (
               <p className="text-xs text-rhythm-text-muted py-2">还没有议题,可以先去「计划 → 议题」创建</p>
             ) : (
-              <select
+              <Dropdown
                 value={topicId}
-                onChange={(e) => setTopicId(e.target.value)}
-                className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2.5 text-sm text-rhythm-text-primary focus:outline-none focus:border-rhythm-border-strong">
-                <option value="">不关联</option>
-                {topics.map((t) => (
-                  <option key={t.id} value={t.id}>{t.question}</option>
-                ))}
-              </select>
+                onChange={setTopicId}
+                options={topicOptions}
+                placeholder="选择议题"
+              />
             )}
           </div>
 

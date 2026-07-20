@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
+import type { PracticeWithLatestRound } from '@/features/practice/store/practice-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
 
 function daysBetween(start: string, end: string): { total: number; elapsed: number } {
@@ -16,15 +17,115 @@ function daysBetween(start: string, end: string): { total: number; elapsed: numb
   return { total, elapsed }
 }
 
+function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
+  const round = practice.latestRound
+  const dayInfo = round ? daysBetween(round.start_date, round.end_date) : null
+  return (
+    <div
+      className="w-full h-full p-4 rounded-2xl border relative overflow-hidden flex flex-col"
+      style={{
+        borderColor: 'rgba(143,180,220,0.28)',
+        background: 'linear-gradient(180deg, rgba(143,180,220,0.10), rgba(20,27,39,0.8))',
+      }}>
+      <div className="flex items-start justify-between mb-2">
+        <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgba(143,180,220,0.85)' }}>
+          {round ? `当前实践 · 第 ${round.round_number} 轮` : '当前实践'}
+        </span>
+        <div className="w-6 h-6 rounded-lg grid place-items-center flex-none"
+          style={{ background: 'rgba(143,180,220,0.2)', color: 'rgb(143,180,220)' }}>
+          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.7, fill: 'none' }}>
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+      </div>
+      <h3 className="font-serifsc font-medium text-[1.05rem] tracking-tight leading-snug m-0 mb-2 line-clamp-2">
+        {practice.title}
+      </h3>
+      {practice.assumption && (
+        <div className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed mb-2 pl-2 border-l-2 line-clamp-2"
+          style={{ borderColor: 'rgba(143,180,220,0.25)' }}>
+          <span className="text-rhythm-text-muted tracking-wider">假设　</span>{practice.assumption}
+        </div>
+      )}
+      {dayInfo && (
+        <div className="text-[0.68rem] text-rhythm-text-muted tracking-tight">
+          第 <span className="font-serifsc text-rhythm-text-primary">{dayInfo.elapsed}</span> / {dayInfo.total} 天
+          <span className="mx-1">·</span>
+          {round?.start_date} 起
+        </div>
+      )}
+      <div className="flex gap-2 mt-auto pt-2 relative z-10">
+        <button
+          type="button"
+          className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer"
+          style={{ background: 'rgba(143,180,220,0.22)', border: '1px solid rgba(143,180,220,0.42)', color: 'rgb(143,180,220)' }}>
+          记一笔
+        </button>
+        <a
+          href="/records"
+          className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer bg-transparent text-rhythm-text-primary border border-rhythm-border-strong text-center no-underline">
+          记录
+        </a>
+      </div>
+    </div>
+  )
+}
+
+function NewPracticeSlide({ onOpen }: { onOpen: () => void }) {
+  return (
+    <div
+      className="w-full h-full p-4 rounded-2xl border border-dashed relative overflow-hidden flex flex-col justify-center items-center gap-2.5"
+      style={{ borderColor: 'rgba(143,180,220,0.32)' }}>
+      <div className="w-10 h-10 rounded-full grid place-items-center"
+        style={{ background: 'rgba(143,180,220,0.16)', color: 'rgb(143,180,220)' }}>
+        <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
+          <path d="M12 5v14M5 12h14" />
+        </svg>
+      </div>
+      <div className="font-serifsc text-[0.9rem] font-medium tracking-tight text-rhythm-text-primary">
+        发起新实践
+      </div>
+      <div className="text-[0.66rem] text-rhythm-text-muted tracking-tight text-center px-4">
+        可以同时进行多轮实践,左右滑动切换
+      </div>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="mt-0.5 px-4 py-1.5 rounded-full text-[0.72rem] cursor-pointer"
+        style={{ background: 'rgba(143,180,220,0.22)', border: '1px solid rgba(143,180,220,0.42)', color: 'rgb(143,180,220)' }}>
+        开始
+      </button>
+    </div>
+  )
+}
+
 export function PracticeCurrentCard() {
   const { practices, isLoadingPractices, loadPractices } = usePracticeStore()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [activeIdx, setActiveIdx] = useState(0)
+  const scrollerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     loadPractices()
   }, [loadPractices])
 
-  const active = practices.find((p) => p.status === 'active')
+  const activePractices = practices.filter((p) => p.status === 'active')
+  const slides = activePractices.length + 1
+
+  const handleScroll = () => {
+    const el = scrollerRef.current
+    if (!el) return
+    const w = el.clientWidth
+    if (w === 0) return
+    const idx = Math.round(el.scrollLeft / w)
+    if (idx !== activeIdx) setActiveIdx(idx)
+  }
+
+  const goTo = (idx: number) => {
+    const el = scrollerRef.current
+    if (!el) return
+    el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
+  }
 
   if (isLoadingPractices) {
     return (
@@ -34,100 +135,40 @@ export function PracticeCurrentCard() {
     )
   }
 
-  if (!active) {
-    return (
-      <>
-        <div className="col-span-full p-4 rounded-2xl border relative overflow-hidden"
-          style={{
-            borderColor: 'rgba(143,180,220,0.28)',
-            background: 'linear-gradient(180deg, rgba(143,180,220,0.10), rgba(20,27,39,0.8))',
-          }}>
-          <div className="text-[0.58rem] tracking-[0.16em] uppercase mb-2" style={{ color: 'rgba(143,180,220,0.85)' }}>
-            当前实践 · 空
-          </div>
-          <h3 className="font-serifsc font-medium text-[1.05rem] tracking-tight leading-snug m-0 mb-2">
-            还没有进行中的实践
-          </h3>
-          <div className="text-[0.66rem] tracking-tight text-rhythm-text-secondary leading-relaxed mb-3">
-            发起一轮实践,记录假设与每日进展。
-          </div>
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="w-full py-2 rounded-[9px] font-inherit text-[0.75rem] tracking-tight cursor-pointer relative z-10"
-            style={{
-              background: 'rgba(143,180,220,0.22)',
-              border: '1px solid rgba(143,180,220,0.42)',
-              color: 'rgb(143,180,220)',
-            }}>
-            + 发起新实践
-          </button>
-        </div>
-        <PracticeFormSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
-      </>
-    )
-  }
-
-  const round = active.latestRound
-  const dayInfo = round ? daysBetween(round.start_date, round.end_date) : null
-
   return (
-    <>
-      <a
-        className="col-span-full block p-4 rounded-2xl border relative overflow-hidden no-underline"
-        style={{
-          borderColor: 'rgba(143,180,220,0.28)',
-          background: 'linear-gradient(180deg, rgba(143,180,220,0.10), rgba(20,27,39,0.8))',
-          color: 'inherit',
-        }}>
-        <div className="flex items-start justify-between mb-2">
-          <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgba(143,180,220,0.85)' }}>
-            {round ? `当前实践 · 第 ${round.round_number} 轮` : '当前实践'}
-          </span>
-          <div className="w-6 h-6 rounded-lg grid place-items-center flex-none"
-            style={{ background: 'rgba(143,180,220,0.2)', color: 'rgb(143,180,220)' }}>
-            <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.7, fill: 'none' }}>
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+    <div className="col-span-full">
+      <div
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="h-[220px] flex overflow-x-auto snap-x snap-mandatory scroll-smooth"
+        style={{ scrollbarWidth: 'none' }}>
+        {activePractices.map((p) => (
+          <div key={p.id} className="min-w-full snap-start pr-2">
+            <PracticeSlide practice={p} />
           </div>
+        ))}
+        <div className="min-w-full snap-start">
+          <NewPracticeSlide onOpen={() => setSheetOpen(true)} />
         </div>
-        <h3 className="font-serifsc font-medium text-[1.05rem] tracking-tight leading-snug m-0 mb-2">
-          {active.title}
-        </h3>
-        {active.assumption && (
-          <div className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed mb-2 pl-2 border-l-2"
-            style={{ borderColor: 'rgba(143,180,220,0.25)' }}>
-            <span className="text-rhythm-text-muted tracking-wider">假设　</span>{active.assumption}
-          </div>
-        )}
-        {dayInfo && (
-          <div className="text-[0.68rem] text-rhythm-text-muted tracking-tight">
-            第 <span className="font-serifsc text-rhythm-text-primary">{dayInfo.elapsed}</span> / {dayInfo.total} 天
-            <span className="mx-1">·</span>
-            {round?.start_date} 起
-          </div>
-        )}
-        <div className="flex gap-2 mt-3 relative z-10">
-          <button
-            type="button"
-            className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer"
-            style={{ background: 'rgba(143,180,220,0.22)', border: '1px solid rgba(143,180,220,0.42)', color: 'rgb(143,180,220)' }}>
-            记一笔
-          </button>
-          <button
-            type="button"
-            onClick={() => setSheetOpen(true)}
-            className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer bg-transparent text-rhythm-text-primary border border-rhythm-border-strong">
-            新实践
-          </button>
-          <a
-            href="/records"
-            className="flex-1 px-2 py-2 rounded-[9px] font-inherit text-[0.7rem] tracking-tight cursor-pointer bg-transparent text-rhythm-text-primary border border-rhythm-border-strong text-center no-underline">
-            记录
-          </a>
+      </div>
+
+      {slides > 1 && (
+        <div className="flex justify-center gap-1.5 mt-2">
+          {Array.from({ length: slides }).map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              aria-label={i === activePractices.length ? '发起新实践' : `第 ${i + 1} 个实践`}
+              onClick={() => goTo(i)}
+              className={`h-1.5 rounded-full transition-all ${
+                i === activeIdx ? 'w-4 bg-rhythm-glow' : 'w-1.5 bg-rhythm-border-strong'
+              }`}
+            />
+          ))}
         </div>
-      </a>
+      )}
+
       <PracticeFormSheet open={sheetOpen} onClose={() => setSheetOpen(false)} />
-    </>
+    </div>
   )
 }

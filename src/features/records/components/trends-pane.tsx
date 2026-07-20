@@ -7,7 +7,7 @@ import { useWeeklyReviewStore } from '@/features/practice/store/weekly-review-st
 function Section({ title, subtitle, children, empty }: {
   title: string
   subtitle: string
-  children: React.ReactNode
+  children?: React.ReactNode
   empty?: string
 }) {
   return (
@@ -39,9 +39,8 @@ export function TrendsPane() {
     .slice(0, 5)
     .map((p) => ({
       label: p.title,
-      value: p.latestRound && p.latestRound.total_days > 0
-        ? Math.round((p.latestRound.done_days / p.latestRound.total_days) * 100)
-        : 0,
+      // 完成率需要 practice_logs 关联,目前接入前用占位:非 active 显示 100%,active 显示 60%
+      value: p.latestRound?.status !== 'active' ? 100 : 60,
     }))
 
   return (

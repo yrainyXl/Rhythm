@@ -7,6 +7,8 @@ import { ReflectionView } from '@/features/records/components/reflection-view'
 import { RecordsTabs, type RecordsTab } from '@/features/records/components/records-tabs.tsx'
 import { RecordsSubTabs, type RecordsSubTab } from '@/features/records/components/records-sub-tabs.tsx'
 import { PracticesList } from '@/features/records/components/practices-list'
+import { TrendsPane } from '@/features/records/components/trends-pane'
+import { WeeklyReviewFeed } from '@/features/records/components/weekly-review-feed'
 import { TabPlaceholder } from '@/features/records/components/tab-placeholder'
 
 export default function RecordsPageClient() {
@@ -24,10 +26,7 @@ export default function RecordsPageClient() {
             {activeSubTab === 'list' ? (
               <PracticesList />
             ) : (
-              <TabPlaceholder
-                title="趋势建设中"
-                hint="完成率对比、方法沉淀累计、睡眠时长、复盘节奏等图表"
-              />
+              <TrendsPane />
             )}
           </div>
         )}
@@ -36,12 +35,7 @@ export default function RecordsPageClient() {
 
         {activeTab === 'reflection' && <ReflectionView />}
 
-        {activeTab === 'review' && (
-          <TabPlaceholder
-            title="AI 周回顾建设中"
-            hint="每周日自动生成,含数据摘要、观察与建议"
-          />
-        )}
+        {activeTab === 'review' && <WeeklyReviewFeed />}
       </div>
     </AuthGuard>
   )

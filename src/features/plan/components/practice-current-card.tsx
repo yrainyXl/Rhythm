@@ -1,11 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
 import type { PracticeWithLatestRound } from '@/features/practice/store/practice-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
-import { QuickLogButtons } from '@/features/practice/components/quick-log-buttons'
-import { RoundTimeline } from '@/features/practice/components/round-timeline'
 
 function daysBetween(start: string, end: string): { total: number; elapsed: number } {
   const [sy, sm, sd] = start.split('-').map(Number)
@@ -56,16 +55,11 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
           {round?.start_date} 起
         </div>
       )}
-      {round && (
-        <>
-          <div className="mt-3">
-            <QuickLogButtons roundId={round.id} />
-          </div>
-          <div className="mt-3">
-            <RoundTimeline roundId={round.id} startDate={round.start_date} endDate={round.end_date} />
-          </div>
-        </>
-      )}
+      <Link
+        href="/habits/practices"
+        className="mt-auto pt-3 self-end text-[0.68rem] tracking-tight text-rhythm-glow no-underline hover:text-rhythm-text-primary transition-colors">
+        进入实践 →
+      </Link>
     </div>
   )
 }

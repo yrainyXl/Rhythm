@@ -1,38 +1,23 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerSupabaseClient } from '@/lib/supabase/route-handler'
+import { createPgPool, getUserIdFromCloudbase } from '@/lib/cloudbase/server'
 
 export const dynamic = 'force-dynamic'
 
-const SERVER_AUTH_TIMEOUT_MS = 10_000
-const NO_STORE_HEADERS = {
-  'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
-  Expires: '0',
-  Pragma: 'no-cache',
-}
-
-export async function POST() {
-  const supabase = createRouteHandlerSupabaseClient()
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), SERVER_AUTH_TIMEOUT_MS)
-  )
-  const result = await Promise.race([supabase.auth.getUser(), timeout])
-
-  if (!result) {
-    return NextResponse.json(
-      { error: 'Auth refresh timed out' },
-      { status: 504, headers: NO_STORE_HEADERS }
+export async function POST(request: Request) {
+  const userId = await getUserIdFromCloudbase({ request })
+  if (!userId) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
+  const pool = createPgPool()
+  const client = await pool.connect()
+  try {
+    const res = await client.query(
+      'SELECT id, username, nickname, avatar_url, timezone FROM public.app_users WHERE id = $1',
+      [userId],
     )
+    return NextResponse.json({ user: res.rows[0] ?? null })
+  } finally {
+    client.release()
+    await pool.end()
   }
-
-  const { data, error } = result
-  if (error || !data.user) {
-    return NextResponse.json({ user: null }, { status: 401, headers: NO_STORE_HEADERS })
-  }
-
-  return NextResponse.json(
-    { user: data.user },
-    {
-      headers: NO_STORE_HEADERS,
-    }
-  )
 }

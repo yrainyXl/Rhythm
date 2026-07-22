@@ -1,8 +1,22 @@
-import cloudbase from '@cloudbase/node-sdk'
 import { Pool } from 'pg'
+import type { Pool as PoolType } from 'pg'
 import { cloudbaseEnv } from './env'
 
+// Import cloudbase dynamically because webpack/Next.js static analysis
+// will error on dynamic code evaluation inside @cloudbase/node-sdk
+// even though we explicitly use nodejs runtime in middleware
+let cloudbaseModule: any = null
+function getCloudbase() {
+  if (!cloudbaseModule) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    cloudbaseModule = require('@cloudbase/node-sdk')
+  }
+  // require returns the module directly in CommonJS
+  return cloudbaseModule.default || cloudbaseModule
+}
+
 export function createCloudbaseServer() {
+  const cloudbase = getCloudbase()
   return cloudbase.init({
     env: cloudbaseEnv.NEXT_PUBLIC_CLOUDBASE_ENV_ID,
     secretId: cloudbaseEnv.CLOUDBASE_SECRET_ID,
@@ -19,15 +33,15 @@ export function createPgPool() {
     database: cloudbaseEnv.TENCENTDB_DATABASE,
     ssl: cloudbaseEnv.TENCENTDB_SSL
       ? { rejectUnauthorized: false }
-      : undefined,
+      : false,
   })
 }
 
 export async function getUserIdFromCloudbase(ctx: {
-  cloudbase: cloudbase.CloudBase
   request: Request
 }): Promise<string | null> {
-  const auth = ctx.cloudbase.auth()
+  const cloudbase = createCloudbaseServer()
+  const auth = cloudbase.auth()
   // Extract Cloudbase session token from authorization header
   const authHeader = ctx.request.headers.get('authorization')
   const sessionToken = authHeader?.startsWith('Bearer ')
@@ -35,7 +49,7 @@ export async function getUserIdFromCloudbase(ctx: {
     : undefined
 
   // Build IContextParam with the right info
-  const context: cloudbase.IContextParam = {
+  const context: any = {
     memory_limit_in_mb: 128,
     time_limit_in_ms: 10000,
     request_id: '',
@@ -48,7 +62,7 @@ export async function getUserIdFromCloudbase(ctx: {
   }
 
   const ticket = await auth.getAuthContext(context)
-  if (!ticket?.openId) {
+  if (!ticket?.openid) {
     return null
   }
   // 查询 app_users 映射: cloudbase_uid = openId → id
@@ -57,7 +71,7 @@ export async function getUserIdFromCloudbase(ctx: {
   try {
     const res = await client.query(
       'SELECT id FROM public.app_users WHERE cloudbase_uid = $1',
-      [ticket.openId],
+      [ticket.openid],
     )
     if (res.rows.length === 0) {
       return null

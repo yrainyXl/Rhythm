@@ -12,6 +12,9 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
+    // @cloudbase/node-sdk 含动态代码评估,在 nodejs runtime 的 Route Handler /
+    // Server Component 中作为外部包加载,避免 webpack 打包触发 Edge 检查。
+    serverComponentsExternalPackages: ['@cloudbase/node-sdk'],
   },
   images: {
     remotePatterns: [

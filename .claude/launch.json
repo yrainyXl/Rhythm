@@ -1,7 +1,7 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "rhythm-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000 },
+    { "name": "rhythm-dev", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev"], "port": 3000, "autoPort": true },
     { "name": "prototypes", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8099", "--directory", "/Users/EDY/lumora/project/Rhythm/docs/product/prototypes"], "port": 8099 }
   ]
 }

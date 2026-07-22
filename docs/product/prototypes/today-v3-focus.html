@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 今天（一次一焦点）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+SC:wght@200;300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 一次一焦点 · 东方静谧 =====
+     信息架构：不平铺所有模块，只放大「当下时段最该做的一件事」，
+     其余（其它安排 / 习惯 / 记录）折成极简的一行行"次要行"，需要时才展开。
+     风格：大留白、水墨冷灰、极少色彩、超细笔画、呼吸节律。 */
+  :root,.dark{
+    --void: 9 13 20;              /* 比现有更深一档，衬托留白 */
+    --ink-1: rgba(226,231,238,.90);
+    --ink-2: rgba(210,218,228,.48);
+    --ink-3: rgba(200,210,222,.26);
+    --ink-4: rgba(200,210,222,.13);
+    --glow: 143 180 220;
+    --hair: rgba(150,175,205,.09);      /* 发丝线 */
+    --hair-strong: rgba(150,175,205,.16);
+    --success: rgba(120,190,160,.85);
+    --warn: rgba(220,180,130,.85);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--ink-1);
+    background:
+      radial-gradient(140% 90% at 50% -20%, rgba(28,42,64,.55) 0%, transparent 60%),
+      linear-gradient(180deg,#090D14 0%,#0A0F18 55%,#070A10 100%);
+    background-attachment:fixed;
+    min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Noto Serif SC',STSong,'PingFang SC',serif}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative;padding-bottom:calc(6rem + env(safe-area-inset-bottom))}
+
+  /* 顶部：极简，仅日期 + 一句气象式引导。无卡片、无头像框 */
+  .head{padding:calc(2.6rem + env(safe-area-inset-top)) 1.8rem 0;text-align:center}
+  .head .kicker{font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-3)}
+  .head .date{margin-top:.7rem;font-size:.82rem;letter-spacing:.16em;color:var(--ink-2)}
+
+  /* 核心焦点区：当下时段该做的一件事，占据视觉重心 */
+  .focus{padding:3.2rem 1.8rem 2.6rem;text-align:center;position:relative}
+  .focus .now-tag{display:inline-flex;align-items:center;gap:.5rem;font-size:.66rem;letter-spacing:.2em;color:rgb(var(--glow));text-transform:uppercase}
+  .focus .now-tag .ring{width:6px;height:6px;border-radius:50%;background:rgb(var(--glow));box-shadow:0 0 0 4px rgba(143,180,220,.14);animation:pulse 3.6s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:.5;box-shadow:0 0 0 3px rgba(143,180,220,.10)}50%{opacity:1;box-shadow:0 0 0 6px rgba(143,180,220,.18)}}
+  .focus h1{margin:1.4rem 0 0;font-weight:300;font-size:1.9rem;line-height:1.5;letter-spacing:.03em;max-width:16em;margin-left:auto;margin-right:auto}
+  .focus .why{margin-top:1.1rem;font-size:.78rem;line-height:1.9;color:var(--ink-2);max-width:22em;margin-left:auto;margin-right:auto}
+  .focus .why .link{color:rgb(var(--glow));border-bottom:1px solid rgba(143,180,220,.3);padding-bottom:1px}
+
+  /* 焦点操作：三态极简，无边框卡，靠间距 */
+  .focus-act{margin-top:2.4rem;display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap}
+  .fbtn{appearance:none;cursor:pointer;font-family:inherit;font-size:.8rem;letter-spacing:.03em;
+    padding:.75rem 1.4rem;border-radius:999px;border:1px solid var(--hair-strong);
+    background:rgba(143,180,220,.04);color:var(--ink-1);transition:all .3s}
+  .fbtn.primary{border-color:rgba(143,180,220,.32);background:linear-gradient(180deg,rgba(143,180,220,.2),rgba(143,180,220,.08));color:rgb(var(--glow))}
+  .fbtn:hover{border-color:rgba(143,180,220,.42)}
+  .focus-sub{margin-top:1.3rem;font-size:.7rem;letter-spacing:.06em;color:var(--ink-3)}
+  .focus-sub a{color:var(--ink-2);text-decoration:none;border-bottom:1px solid var(--hair)}
+
+  /* 分隔 —— 极细横线 + 中心小字，水墨留白分段 */
+  .divider{display:flex;align-items:center;gap:1rem;padding:0 1.8rem;margin:.6rem 0 1.4rem}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--hair)}
+  .divider span{font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-3)}
+
+  /* 次要区：其余安排 / 习惯，全部折成极简"发丝行" */
+  .rows{padding:0 1.8rem}
+  .row{display:flex;align-items:center;gap:.9rem;padding:.95rem 0;border-bottom:1px solid var(--hair)}
+  .row:last-child{border-bottom:0}
+  .row .mark{flex:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--hair-strong);display:grid;place-items:center;transition:all .25s;cursor:pointer}
+  .row .mark svg{width:9px;height:9px;stroke:rgba(9,13,20,.9);stroke-width:3;fill:none;opacity:0}
+  .row.done .mark{background:rgb(var(--glow));border-color:rgb(var(--glow))}
+  .row.done .mark svg{opacity:1}
+  .row .when{flex:none;width:2.6em;font-size:.64rem;letter-spacing:.1em;color:var(--ink-3)}
+  .row .txt{flex:1;font-size:.86rem;letter-spacing:.01em}
+  .row.done .txt{color:var(--ink-2)}
+  .row .meta{font-size:.62rem;color:var(--ink-3);letter-spacing:.04em}
+  .row .go{color:var(--ink-4);font-size:.95rem}
+  .row-add{display:flex;align-items:center;gap:.6rem;padding:.9rem 0;color:var(--ink-3);font-size:.78rem;cursor:pointer;transition:color .3s}
+  .row-add:hover{color:rgb(var(--glow))}
+  .row-add .p{width:16px;height:16px;border-radius:50%;border:1px solid var(--hair-strong);display:grid;place-items:center;font-size:.7rem;color:rgb(var(--glow))}
+
+  /* 自由记录：贴底、极轻，一条水平线上的输入 */
+  .capture{padding:2rem 1.8rem .4rem}
+  .capture .field{display:flex;align-items:center;gap:.8rem;border-bottom:1px solid var(--hair-strong);padding-bottom:.7rem;transition:border-color .3s}
+  .capture .field:focus-within{border-color:rgba(143,180,220,.4)}
+  .capture input{flex:1;background:none;border:0;outline:none;color:var(--ink-1);font-family:inherit;font-size:.86rem;letter-spacing:.01em}
+  .capture input::placeholder{color:var(--ink-3)}
+  .capture .mic{flex:none;width:26px;height:26px;display:grid;place-items:center;color:rgb(var(--glow));cursor:pointer}
+  .capture .mic svg{width:14px;height:14px;stroke:rgb(var(--glow));stroke-width:1.6;fill:none}
+  .capture .note{margin-top:.7rem;font-size:.62rem;letter-spacing:.04em;color:var(--ink-3);line-height:1.7}
+
+  /* 底 tab：无背景填充，纯发丝线分隔，融进夜色 */
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;
+    backdrop-filter:blur(14px);background:linear-gradient(180deg,transparent,rgba(7,10,16,.9) 40%);border-top:1px solid var(--hair)}
+  .tabbar .row2{display:flex;justify-content:space-around;padding:.7rem .5rem calc(.7rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar svg{width:18px;height:18px;stroke:var(--ink-3);stroke-width:1.4;fill:none}
+  .tabbar span{font-size:.6rem;letter-spacing:.08em;color:var(--ink-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:1.8}
+  .tabbar a.on span{color:rgb(var(--glow))}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(150,175,205,.12);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="head">
+    <div class="kicker serif">Rhythm</div>
+    <div class="date">七月十六日 · 星期四 · 晚上</div>
+  </div>
+
+  <!-- 核心焦点：当下时段最该做的一件事 -->
+  <section class="focus">
+    <span class="now-tag"><span class="ring"></span>此刻 · 晚上</span>
+    <h1 class="serif">完成个人项目的一小节</h1>
+    <p class="why">这属于你正在进行的实践 <span class="link">找回工作日晚上的主动权</span>，第 2 轮 · 第 4 天。本轮想验证：确定一件事 + 约定娱乐结束时间，能否提高开始率。</p>
+
+    <div class="focus-act">
+      <button class="fbtn primary">开始，并记一笔</button>
+      <button class="fbtn">先做一点</button>
+      <button class="fbtn">今晚放下</button>
+    </div>
+    <div class="focus-sub">约 3 秒完成 · <a href="#">需要时展开详细记录 ›</a></div>
+  </section>
+
+  <!-- 其余今日安排：折成发丝行 -->
+  <div class="divider"><span>今日其余安排</span></div>
+  <div class="rows">
+    <div class="row done">
+      <span class="mark"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span class="when">早</span><span class="txt">晨间 10 分钟整理</span><span class="meta">已完成</span>
+    </div>
+    <div class="row">
+      <span class="mark"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span class="when">午</span><span class="txt">整理项目需求</span><span class="go">›</span>
+    </div>
+    <div class="row-add"><span class="p">+</span>为其它时段加一个明确的行动</div>
+  </div>
+
+  <!-- 习惯：更淡，只在下方轻轻带过 -->
+  <div class="divider"><span>日常打卡</span></div>
+  <div class="rows">
+    <div class="row done">
+      <span class="mark"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span class="txt">阅读 20 分钟</span><span class="meta">连续 12 天</span>
+    </div>
+    <div class="row">
+      <span class="mark"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <span class="txt">按时服药</span><span class="meta">今日</span>
+    </div>
+  </div>
+
+  <!-- 自由记录：贴底极轻 -->
+  <div class="capture">
+    <div class="field">
+      <input type="text" placeholder="此刻发生了什么，或你正在怎么想…" />
+      <button class="mic" aria-label="语音"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></button>
+    </div>
+    <p class="note">保存后，Rhythm 会静静建议关联到安排、实践或议题；你可以忽略。</p>
+  </div>
+
+  <nav class="tabbar">
+    <div class="row2">
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+
+</div>
+</body>
+</html>

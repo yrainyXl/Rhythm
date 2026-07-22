@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 今天（配色试验）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 排版固定为 V2；仅切换配色。四套主题写在 data-theme 上 ===== */
+
+  /* 主题 1：冷蓝夜（V2 原版，作对照） */
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --success-soft:rgba(120,190,160,.12);
+    --warn:rgba(220,180,130,.9); --warn-soft:rgba(220,180,130,.12);
+    --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14;
+    --card-alpha:.8; --practice-grad:rgba(143,180,220,.07);
+  }
+  /* 主题 2：暖白日间（复用现有 light 模式基调，明亮） */
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --success-soft:rgba(60,150,110,.12);
+    --warn:rgba(190,140,70,.95); --warn-soft:rgba(190,140,70,.12);
+    --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA;
+    --card-alpha:.9; --practice-grad:rgba(74,118,168,.08);
+  }
+  /* 主题 3：晨雾青瓷（清新，浅雾底 + 青绿强调） */
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --success-soft:rgba(60,155,115,.13);
+    --warn:rgba(200,150,80,.95); --warn-soft:rgba(200,150,80,.13);
+    --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3;
+    --card-alpha:.92; --practice-grad:rgba(70,150,130,.09);
+  }
+  /* 主题 4：暖阳杏色（温暖，米杏底 + 杏橙强调） */
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --success-soft:rgba(90,150,95,.13);
+    --warn:rgba(200,140,60,.95); --warn-soft:rgba(200,140,60,.13);
+    --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE;
+    --card-alpha:.92; --practice-grad:rgba(198,132,84,.1);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--text-1);
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--bg-radial) 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+    background-attachment:fixed; min-height:100dvh; overscroll-behavior:none; -webkit-font-smoothing:antialiased;
+    transition:color .4s;
+  }
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC','Microsoft YaHei',serif;font-weight:500;letter-spacing:.04em;color:var(--text-1)}
+  .r-eyebrow{font-size:.7rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void) / .7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+  .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;color:rgb(var(--glow));background:var(--glow-soft);border:1px solid var(--border-strong)}
+
+  main{padding:1.25rem 1.25rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.25rem}
+  .card{border-radius:1rem;border:1px solid var(--border);background:rgb(var(--card) / var(--card-alpha));backdrop-filter:blur(4px);
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 8px 24px -12px rgba(0,0,0,.5)}
+  .card-pad{padding:1rem}.card-pad-lg{padding:1.25rem}
+
+  .dayhead{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+  .dayhead .date{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .dayhead h1{margin:.35rem 0 0;font-family:'Noto Serif SC',serif;font-weight:400;font-size:1.6rem;letter-spacing:.04em;line-height:1.2}
+  .dayhead .tonight{font-size:.78rem;color:var(--text-2);margin-top:.4rem;line-height:1.6}
+  .dayhead .tonight b{color:rgb(var(--glow));font-weight:500}
+  .gauge{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;position:relative;
+    background:conic-gradient(rgb(var(--glow) / .7) 0deg 240deg, rgb(var(--glow) / .12) 240deg 360deg)}
+  .gauge::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgb(var(--card) / .95)}
+  .gauge span{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;line-height:1}
+  .gauge span b{font-family:'Noto Serif SC',serif;font-size:1.15rem;font-weight:500;color:rgb(var(--glow))}
+  .gauge span i{font-style:normal;font-size:.46rem;letter-spacing:.02em;color:var(--text-3);margin-top:.2rem;white-space:nowrap}
+
+  .sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem}
+  .sec .t{display:flex;align-items:center;gap:.5rem}
+  .sec .t .r-eyebrow{color:var(--text-2);text-transform:none;letter-spacing:.06em;font-size:.72rem}
+  .sec .t .dot{width:5px;height:5px;border-radius:50%;background:rgb(var(--glow));opacity:.6}
+  .text-btn{font-size:.75rem;color:rgb(var(--glow));letter-spacing:.03em;background:none;border:0;padding:.2rem .1rem;cursor:pointer;transition:color .3s}
+
+  .bands{display:flex;flex-direction:column;gap:.5rem}
+  .band{display:grid;grid-template-columns:42px 1fr;gap:.85rem;align-items:stretch}
+  .band .rail{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding-top:.2rem}
+  .band .rail .tag{font-size:.6rem;letter-spacing:.1em;color:var(--text-3)}
+  .band .rail .node{width:9px;height:9px;border-radius:50%;border:1px solid var(--border-strong);background:rgb(var(--card-inset) / .6)}
+  .band .rail .node.done{background:rgb(var(--glow));border-color:rgb(var(--glow));box-shadow:0 0 0 4px var(--glow-soft)}
+  .band .rail .line{flex:1;width:1px;background:linear-gradient(180deg,var(--border-strong),transparent)}
+  .plan-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .85rem;border-radius:.75rem;border:1px solid var(--border);background:rgb(var(--card-inset) / .35);transition:border-color .3s,background .3s}
+  .plan-item .lbl{display:flex;flex-direction:column;gap:.15rem}
+  .plan-item .lbl b{font-size:.86rem;font-weight:500;color:var(--text-1);letter-spacing:.01em}
+  .plan-item .lbl small{font-size:.66rem;color:var(--text-3)}
+  .plan-item .ico{color:var(--text-4);font-size:1.05rem;line-height:1}
+  .plan-empty{display:flex;align-items:center;gap:.6rem;padding:.7rem .85rem;border-radius:.75rem;border:1px dashed var(--border-strong);color:var(--text-3);font-size:.8rem;cursor:pointer}
+  .plan-empty .plus{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);color:rgb(var(--glow));font-size:.8rem}
+
+  .practice{border-color:rgb(var(--glow) / .22);background:linear-gradient(180deg,var(--practice-grad) 0%,rgb(var(--card) / .82) 60%)}
+  .practice .top{display:flex;gap:.7rem;align-items:flex-start}
+  .pcheck{flex:none;width:24px;height:24px;border-radius:8px;border:1px solid rgb(var(--glow) / .4);background:rgb(var(--glow) / .06);display:grid;place-items:center;margin-top:.1rem}
+  .pcheck svg{width:13px;height:13px;stroke:rgb(var(--glow));stroke-width:2.4;fill:none}
+  .pmeta{flex:1;min-width:0}
+  .pmeta .topic{font-size:.9rem;font-weight:500;letter-spacing:.01em;color:var(--text-1)}
+  .pmeta .sub{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+  .pmeta .sub .chip{font-size:.62rem;letter-spacing:.04em;color:var(--text-2);background:rgb(var(--card-inset) / .4);border:1px solid var(--border);padding:.12rem .45rem;border-radius:999px}
+  .pmeta .sub .chip.live{color:rgb(var(--glow));border-color:rgb(var(--glow) / .3);background:rgb(var(--glow) / .08)}
+  .pmeta .sub .sep{color:var(--text-4)}
+  .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-top:.85rem}
+  .quick button{appearance:none;border:1px solid var(--border);background:rgb(var(--card-inset) / .4);border-radius:.7rem;padding:.6rem .3rem;color:var(--text-2);font-size:.74rem;letter-spacing:.02em;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:.25rem}
+  .quick button .k{font-size:.6rem;color:var(--text-3);letter-spacing:.06em}
+  .quick button:hover{border-color:var(--border-strong);color:var(--text-1)}
+  /* 安排项：来自实践的行动（今日唯一记录点） */
+  .plan-item.from-practice{border-color:rgb(var(--glow) / .3);border-left:2px solid rgb(var(--glow) / .6);background:linear-gradient(180deg,var(--practice-grad),rgb(var(--card-inset) / .35))}
+  .pbadge{display:inline-flex;align-items:center;gap:.3rem;width:fit-content;font-size:.58rem;letter-spacing:.05em;color:rgb(var(--glow));background:rgb(var(--glow) / .1);border:1px solid rgb(var(--glow) / .3);padding:.1rem .45rem;border-radius:999px;margin-bottom:.35rem}
+  .pbadge .d{width:4px;height:4px;border-radius:50%;background:rgb(var(--glow))}
+  .plan-record{margin-top:.5rem;padding:.65rem .75rem;border-radius:.7rem;border:1px solid var(--border);background:rgb(var(--card-inset) / .3)}
+  .plan-record .quick{margin-top:0}
+  /* 详细记录：默认折叠 */
+  .detail-fold{margin-top:.55rem}
+  .detail-fold summary{list-style:none;cursor:pointer;font-size:.72rem;color:var(--text-2);display:inline-flex;align-items:center;gap:.3rem;letter-spacing:.02em}
+  .detail-fold summary::-webkit-details-marker{display:none}
+  .detail-fold summary .chev{color:var(--text-4);transition:transform .25s;display:inline-block}
+  .detail-fold[open] summary .chev{transform:rotate(90deg)}
+  .detail-body{margin-top:.55rem}
+  .detail-body textarea{width:100%;min-height:64px;resize:vertical;border-radius:.6rem;border:1px solid var(--border);background:rgb(var(--card-inset) / .5);color:var(--text-1);font-family:inherit;font-size:.78rem;line-height:1.6;padding:.55rem .65rem;outline:none;transition:border-color .2s,box-shadow .2s}
+  .detail-body textarea:focus{border-color:rgb(var(--glow) / .4);box-shadow:0 0 0 3px rgb(var(--glow) / .08)}
+  .detail-body textarea::placeholder{color:var(--text-3)}
+  .detail-foot{display:flex;align-items:center;justify-content:space-between;margin-top:.5rem;font-size:.64rem;color:var(--text-3)}
+  .detail-foot b{color:rgb(var(--glow));font-weight:500}
+  .detail-foot .save{appearance:none;cursor:pointer;font-family:inherit;font-size:.7rem;letter-spacing:.03em;color:rgb(var(--glow));border:1px solid rgb(var(--glow) / .3);background:rgb(var(--glow) / .1);padding:.35rem .9rem;border-radius:.6rem}
+  /* 实践概览：瘦身，无记录操作、无假设全文/七天刻度/观察入口 */
+  .practice-lite .pl-row{display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem}
+  .practice-lite .topic{font-size:.9rem;font-weight:500;letter-spacing:.01em;color:var(--text-1)}
+  .practice-lite .sub{margin-top:.3rem;font-size:.66rem;color:var(--text-2);letter-spacing:.02em}
+  .practice-lite .go{color:var(--text-4);font-size:1.05rem;line-height:1}
+  .practice-lite .pl-foot{margin-top:.6rem;padding-top:.55rem;border-top:1px solid var(--border);font-size:.66rem;line-height:1.65;color:var(--text-3)}
+  .practice-lite .pl-foot b{color:var(--text-2);font-weight:500}
+
+  .habits{display:flex;flex-direction:column;gap:.4rem}
+  .habit{display:flex;align-items:center;gap:.7rem;padding:.65rem .3rem}
+  .habit .cbox{flex:none;width:20px;height:20px;border-radius:6px;border:1px solid var(--border-strong);display:grid;place-items:center;cursor:pointer;transition:all .25s}
+  .habit .cbox svg{width:11px;height:11px;stroke:rgb(var(--card));stroke-width:3;fill:none;opacity:0}
+  .habit.done .cbox{background:rgb(var(--glow));border-color:rgb(var(--glow))}
+  .habit.done .cbox svg{opacity:1}
+  .habit.done .name{color:var(--text-2);text-decoration:line-through;text-decoration-color:var(--text-4)}
+  .habit .name{flex:1;font-size:.84rem;letter-spacing:.01em}
+  .habit .streak{font-size:.62rem;color:var(--text-3);letter-spacing:.04em}
+
+  .capture .input-wrap{display:flex;align-items:center;gap:.6rem;border-radius:.9rem;border:1px solid var(--border);background:rgb(var(--card-inset) / .6);padding:.7rem .8rem;transition:border-color .25s,box-shadow .25s}
+  .capture .input-wrap:focus-within{border-color:rgb(var(--glow) / .4);box-shadow:0 0 0 3px rgb(var(--glow) / .08)}
+  .capture .input-wrap input{flex:1;background:none;border:0;outline:none;color:var(--text-1);font-size:.84rem;font-family:inherit}
+  .capture .input-wrap input::placeholder{color:var(--text-3)}
+  .capture .voice{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);color:rgb(var(--glow));background:rgb(var(--glow) / .06);cursor:pointer}
+  .capture .voice svg{width:13px;height:13px;stroke:rgb(var(--glow));stroke-width:1.9;fill:none}
+  .capture .hint{margin-top:.5rem;font-size:.66rem;color:var(--text-3);letter-spacing:.02em}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;
+    backdrop-filter:blur(12px);background:rgb(var(--void) / .82);border-top:1px solid var(--border)}
+  .tabbar .row{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(150,175,205,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">节奏<small>RHYTHM</small></div>
+    <div class="avatar">许</div>
+  </header>
+
+  <main>
+    <section class="dayhead">
+      <div>
+        <div class="date">7月16日 · 星期四</div>
+        <h1 class="r-title">今天</h1>
+        <p class="tonight">下一项 <b>20:00 · 个人项目</b>，实践进行到 <b>第 4 天</b>。</p>
+      </div>
+      <div class="gauge"><span><b>3</b><i>今日记录</i></span></div>
+    </section>
+
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">今日安排</span></div>
+        <button class="text-btn">添加安排</button>
+      </div>
+      <div class="card card-pad">
+        <div class="bands">
+          <div class="band">
+            <div class="rail"><span class="tag">早</span><span class="node done"></span><span class="line"></span></div>
+            <div class="body"><div class="plan-item"><div class="lbl"><b>晨间 10 分钟整理</b><small>08:30 · 已完成</small></div><span class="ico">›</span></div></div>
+          </div>
+          <div class="band">
+            <div class="rail"><span class="tag">午</span><span class="node"></span><span class="line"></span></div>
+            <div class="body"><div class="plan-item"><div class="lbl"><b>整理项目需求</b><small>14:00 · 进行中</small></div><span class="ico">›</span></div></div>
+          </div>
+          <div class="band">
+            <div class="rail"><span class="tag">晚</span><span class="node"></span></div>
+            <div class="body">
+              <div class="plan-item from-practice">
+                <div class="lbl"><span class="pbadge"><span class="d"></span>来自实践 · 找回工作日晚上的主动权</span><b>完成个人项目的一小节</b><small>20:00 · 计划开始 · 第 4 天</small></div>
+                <span class="ico">›</span>
+              </div>
+              <div class="plan-record">
+                <div class="quick">
+                  <button><span class="k">快速记录</span>完成了</button>
+                  <button><span class="k">快速记录</span>做了一点</button>
+                  <button><span class="k">快速记录</span>没开始</button>
+                </div>
+                <details class="detail-fold">
+                  <summary>展开详细记录<span class="chev">›</span></summary>
+                  <div class="detail-body">
+                    <textarea placeholder="真实发生了什么？当时怎么想的？（可选）"></textarea>
+                    <div class="detail-foot"><span>结果会自动进入 <b>本轮实践</b></span><button class="save">保存</button></div>
+                  </div>
+                </details>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <div class="rail"><span class="tag">夜</span><span class="node"></span></div>
+            <div class="body"><div class="plan-empty"><span class="plus">+</span>为这个时段加一个明确的行动</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">进行中的实践</span></div>
+        <button class="text-btn">查看实践</button>
+      </div>
+      <div class="card card-pad-lg practice practice-lite">
+        <div class="pl-row">
+          <div class="pmeta">
+            <div class="topic">找回工作日晚上的主动权</div>
+            <div class="sub">第 2 轮 · 第 4 天 · 议题：下班后被娱乐带走</div>
+          </div>
+          <span class="go">›</span>
+        </div>
+        <div class="pl-foot">今日行动 <b>「完成个人项目的一小节」</b> 已在上方安排中，去那里记录一次即可。</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">日常打卡</span></div>
+        <button class="text-btn">管理</button>
+      </div>
+      <div class="card card-pad">
+        <div class="habits">
+          <div class="habit done"><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span class="name">阅读 20 分钟</span><span class="streak">连续 12 天</span></div>
+          <div class="habit"><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span><span class="name">按时服药</span><span class="streak">今日</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">记录此刻的想法</span></div></div>
+      <div class="capture">
+        <div class="input-wrap">
+          <input type="text" placeholder="发生了什么，或者你正在怎么想…" />
+          <button class="voice" aria-label="语音记录"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg></button>
+        </div>
+        <p class="hint">保存后，Rhythm 会建议关联到安排、实践或议题，你可以确认或忽略。</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <div class="row">
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+
+</div>
+</body>
+</html>

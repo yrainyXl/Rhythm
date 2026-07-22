@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · App 形态参考 2（再 6 种）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --accent:#5B8DEF; --accent2:#7B5BEF;
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:#3ECF8E; --warn:#E6A23C; --pink:#EC6F9C;
+    --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14;
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --accent:#3B6FCF; --accent2:#6B4FE0;
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:#2EA86F; --warn:#C68A30;
+    --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA;
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --accent:#2E8C72; --accent2:#4A7CA0;
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:#2E9B6E; --warn:#B07A30;
+    --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3;
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --accent:#B8743A; --accent2:#A8566A;
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:#5A8A45; --warn:#B07628;
+    --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:var(--text-1);
+    background:linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));background-attachment:fixed;min-height:100dvh;
+    -webkit-font-smoothing:antialiased;padding:2.5rem 1.2rem 4rem}
+  .wrap{max-width:1200px;margin:0 auto}
+  h1{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.5rem;margin:0 0 .4rem}
+  .lead{color:var(--text-2);font-size:.85rem;line-height:1.8;max-width:680px;margin-bottom:2rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.6rem}
+  .col h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.02rem;margin:0 0 .15rem}
+  .col-head{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+  .col-head .tag{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem}
+  .col-head p{font-size:.7rem;line-height:1.7;color:var(--text-2);margin:.5rem 0 0}
+  .phone{width:100%;max-width:290px;margin:0 auto;border-radius:1.6rem;overflow:hidden;border:1px solid var(--border-strong);
+    background:var(--bg-2);box-shadow:0 20px 50px -20px rgba(0,0,0,.6);min-height:600px;display:flex;flex-direction:column;position:relative}
+  .serif{font-family:'Noto Serif SC',serif}
+
+  /* ============ F · iOS 提醒事项原生风（毛玻璃、分组、勾选） ============ */
+  .pF .stb{display:flex;justify-content:space-between;padding:.7rem 1.1rem .2rem;font-size:.6rem;color:var(--text-3)}
+  .pF .grp{padding:0 1.1rem}
+  .pF .grp-h{font-size:1.05rem;font-weight:700;padding:.9rem 0 .5rem;display:flex;align-items:center;gap:.5rem}
+  .pF .grp-h .cnt{font-size:.7rem;color:var(--text-3);font-weight:500}
+  .pF .grp-h .add{margin-left:auto;width:24px;height:24px;border-radius:7px;background:rgba(91,141,239,.16);color:var(--accent);border:0;font-size:1rem;display:grid;place-items:center}
+  .pF .grp-body{background:rgba(255,255,255,.04);border:1px solid rgba(150,175,205,.10);border-radius:.75rem;overflow:hidden;backdrop-filter:blur(8px)}
+  .pF .row{display:flex;align-items:flex-start;gap:.6rem;padding:.7rem .8rem;cursor:pointer}
+  .pF .row + .row{border-top:1px solid rgba(150,175,205,.08)}
+  .pF .row .cb{width:22px;height:22px;border-radius:50%;border:2px solid var(--text-3);flex:none;margin-top:1px;cursor:pointer;display:grid;place-items:center}
+  .pF .row .cb.done{background:var(--accent);border-color:var(--accent);color:#fff;font-size:.6rem}
+  .pF .row .b{flex:1}
+  .pF .row .n{font-size:.76rem;font-weight:500}
+  .pF .row .m{font-size:.6rem;color:var(--text-3);margin-top:.12rem}
+  .pF .row .m .pill{background:rgba(91,141,239,.16);color:var(--accent);padding:.06rem .35rem;border-radius:5px;margin-right:.2rem}
+  .pF .row.done .n{color:var(--text-3)}
+  .pF .row .ic{font-size:.7rem;color:var(--text-3);align-self:center}
+
+  /* ============ G · Linear 风（状态分组折叠 + 行尾小标） ============ */
+  .pG .tb{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem .3rem}
+  .pG .tb .t{font-size:1.1rem;font-weight:600}
+  .pG .tb .r{display:flex;gap:.4rem}
+  .pG .tb .r button{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--text-2);font-size:.85rem;display:grid;place-items:center;cursor:pointer}
+  .pG .filter{display:flex;gap:.4rem;padding:.2rem 1.1rem .4rem;overflow-x:auto}
+  .pG .filter .f{font-size:.62rem;padding:.3rem .6rem;border-radius:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text-2);white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:.3rem}
+  .pG .filter .f.on{background:rgba(91,141,239,.14);border-color:rgba(91,141,239,.35);color:var(--accent)}
+  .pG .filter .f .k{width:6px;height:6px;border-radius:50%}
+  .pG .sec{padding:.5rem 1.1rem 0}
+  .pG .sec-h{display:flex;align-items:center;gap:.5rem;padding:.7rem 0 .3rem;cursor:pointer}
+  .pG .sec-h .tri{font-size:.6rem;color:var(--text-3)}
+  .pG .sec-h .lab{font-size:.68rem;font-weight:600;color:var(--text-1);letter-spacing:.02em}
+  .pG .sec-h .dot{width:7px;height:7px;border-radius:2px}
+  .pG .sec-h .cnt{font-size:.6rem;color:var(--text-3)}
+  .pG .sec-body{overflow:hidden}
+  .pG .row{display:flex;align-items:center;gap:.55rem;padding:.55rem .2rem;border-top:1px solid var(--border);cursor:pointer}
+  .pG .row .id{font-size:.58rem;color:var(--text-3);font-variant-numeric:tabular-nums;min-width:30px}
+  .pG .row .n{flex:1;font-size:.74rem;font-weight:500;line-height:1.4}
+  .pG .row .n .sub{font-size:.58rem;color:var(--text-3);font-weight:400;display:block;margin-top:.1rem}
+  .pG .row .pri{width:8px;height:8px;border-radius:50%;flex:none}
+
+  /* ============ H · 倒序时间流（Day One / 反思日记风） ============ */
+  .pH .tb{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem .3rem}
+  .pH .tb .t{font-size:1.1rem;font-weight:700}
+  .pH .tb .add{width:30px;height:30px;border-radius:9px;background:var(--accent);border:0;color:#fff;font-size:1.2rem;display:grid;place-items:center;cursor:pointer}
+  .pH .feed{padding:.4rem 1.1rem 1.2rem;display:flex;flex-direction:column;gap:1.1rem}
+  .pH .day-h{font-size:.62rem;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+  .pH .day-h::after{content:"";flex:1;height:1px;background:var(--border)}
+  .pH .entry{display:flex;gap:.7rem}
+  .pH .entry .rail{display:flex;flex-direction:column;align-items:center;flex:none}
+  .pH .entry .pt{width:9px;height:9px;border-radius:50%;background:var(--text-4);margin-top:.4rem}
+  .pH .entry.live .pt{background:var(--accent);box-shadow:0 0 0 3px rgba(91,141,239,.2)}
+  .pH .entry.ok .pt{background:var(--success)}
+  .pH .entry .line{width:2px;flex:1;background:var(--border);margin:.3rem 0}
+  .pH .card{flex:1;border-radius:.8rem;border:1px solid var(--border);background:rgb(var(--card));padding:.7rem .85rem;margin-bottom:.3rem}
+  .pH .card .kind{font-size:.56rem;color:var(--accent);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+  .pH .card .kind.issue{color:rgb(var(--glow))} .pH .card .kind.method{color:var(--warn)}
+  .pH .card .ttl{font-size:.78rem;font-weight:500;margin-top:.2rem;line-height:1.4}
+  .pH .card .meta{font-size:.58rem;color:var(--text-3);margin-top:.2rem;line-height:1.5}
+  .pH .card .acts{display:flex;gap:.4rem;margin-top:.5rem}
+  .pH .card .acts button{font-size:.6rem;padding:.3rem .55rem;border-radius:.4rem;border:1px solid var(--border-strong);background:none;color:var(--text-2);cursor:pointer}
+  .pH .card .acts button.pri{background:rgba(91,141,239,.14);border-color:rgba(91,141,239,.4);color:var(--accent)}
+
+  /* ============ I · 健身圆环概览风 ============ */
+  .pI .stb{display:flex;justify-content:space-between;padding:.7rem 1.1rem .2rem;font-size:.6rem;color:var(--text-3)}
+  .pI .title{font-size:1.2rem;font-weight:700;padding:.3rem 1.1rem .1rem}
+  .pI .ring-wrap{display:flex;align-items:center;gap:1rem;padding:.6rem 1.1rem}
+  .pI .ring{width:88px;height:88px;border-radius:50%;flex:none;position:relative;
+    background:conic-gradient(var(--accent) 0 57%, rgba(91,141,239,.15) 57% 100%)}
+  .pI .ring::before{content:"";position:absolute;inset:11px;border-radius:50%;background:var(--bg-2)}
+  .pI .ring .ctr{position:absolute;inset:0;display:grid;place-items:center;font-size:.72rem;font-weight:700;z-index:1}
+  .pI .ring .ctr small{display:block;font-size:.5rem;font-weight:400;color:var(--text-3)}
+  .pI .ring-info .n{font-size:.8rem;font-weight:600}
+  .pI .ring-info .s{font-size:.62rem;color:var(--text-3);margin-top:.2rem;line-height:1.5}
+  .pI .ring-info .acts{display:flex;gap:.4rem;margin-top:.5rem}
+  .pI .ring-info .acts button{font-size:.62rem;padding:.35rem .7rem;border-radius:.5rem;border:0;cursor:pointer;font-weight:600}
+  .pI .ring-info .acts .pri{background:var(--accent);color:#fff}
+  .pI .ring-info .acts .sec{background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-1)}
+  .pI .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;padding:.6rem 1.1rem}
+  .pI .grid2 .c{border-radius:.75rem;background:rgb(var(--card));border:1px solid var(--border);padding:.7rem}
+  .pI .grid2 .c .ic{font-size:.8rem;margin-bottom:.3rem}
+  .pI .grid2 .c .n{font-size:.66rem;font-weight:600}
+  .pI .grid2 .c .v{font-size:.58rem;color:var(--text-3);margin-top:.1rem}
+  .pI .sec-h{font-size:.6rem;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;padding:1rem 1.1rem .4rem}
+  .pI .list{padding:0 1.1rem 1.2rem}
+  .pI .row{display:flex;align-items:center;gap:.6rem;padding:.6rem 0;border-top:1px solid var(--border);cursor:pointer}
+  .pI .row .n{flex:1;font-size:.72rem;font-weight:500}
+  .pI .row .v{font-size:.58rem;color:var(--text-3)}
+  .pI .row .arr{color:var(--text-4)}
+
+  /* ============ J · Notion 抽屉分区 + 块流 ============ */
+  .pJ .tb{display:flex;align-items:center;justify-content:space-between;padding:.7rem 1.1rem .3rem}
+  .pJ .tb .l{display:flex;align-items:center;gap:.4rem}
+  .pJ .tb .burger{font-size:.9rem;color:var(--text-2);cursor:pointer}
+  .pJ .tb .t{font-size:1rem;font-weight:600}
+  .pJ .tb .more{color:var(--text-2);font-size:1rem;cursor:pointer}
+  .pJ .drawer-bar{display:flex;gap:.5rem;padding:.2rem 1.1rem .6rem;overflow-x:auto}
+  .pJ .drawer-bar .d{display:flex;align-items:center;gap:.4rem;font-size:.64rem;padding:.32rem .6rem;border-radius:7px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text-2);white-space:nowrap;cursor:pointer}
+  .pJ .drawer-bar .d.on{background:rgba(143,180,220,.12);border-color:rgba(143,180,220,.3);color:rgb(var(--glow))}
+  .pJ .drawer-bar .d .em{font-size:.7rem}
+  .pJ .blocks{padding:.2rem 1.1rem 1.2rem;display:flex;flex-direction:column;gap:.6rem}
+  .pJ .callout{display:flex;gap:.55rem;padding:.7rem .8rem;border-radius:.6rem;background:rgba(143,180,220,.08);border:1px solid rgba(143,180,220,.16)}
+  .pJ .callout .em{font-size:.85rem}
+  .pJ .callout .t{font-size:.68rem;line-height:1.55;color:var(--text-1)}
+  .pJ .callout .t b{color:rgb(var(--glow))}
+  .pJ .callout .acts{margin-top:.5rem;display:flex;gap:.4rem}
+  .pJ .callout .acts button{font-size:.6rem;padding:.3rem .55rem;border-radius:.4rem;border:1px solid rgba(143,180,220,.3);background:rgba(143,180,220,.1);color:rgb(var(--glow));cursor:pointer}
+  .pJ .db-card{border:1px solid var(--border);border-radius:.6rem;overflow:hidden}
+  .pJ .db-card .head{display:flex;align-items:center;gap:.4rem;padding:.5rem .7rem;border-bottom:1px solid var(--border);font-size:.62rem;color:var(--text-3)}
+  .pJ .db-card .head .n{font-size:.66rem;font-weight:600;color:var(--text-1)}
+  .pJ .db-card .head .add{margin-left:auto;color:var(--accent);font-size:.7rem}
+  .pJ .db-row{display:flex;align-items:center;gap:.45rem;padding:.5rem .7rem;border-bottom:1px solid var(--border);cursor:pointer}
+  .pJ .db-row:last-child{border-bottom:0}
+  .pJ .db-row .st{width:6px;height:6px;border-radius:50%;flex:none}
+  .pJ .db-row .n{flex:1;font-size:.68rem;font-weight:500}
+  .pJ .db-row .tag{font-size:.54rem;color:var(--text-3)}
+
+  /* ============ K · 极简毛玻璃 · 单焦点（iOS 原生倒叙 + 大留白） ============ */
+  .pK .stb{display:flex;justify-content:space-between;padding:.7rem 1.1rem .2rem;font-size:.6rem;color:var(--text-3)}
+  .pK .nav{display:flex;justify-content:space-between;align-items:center;padding:.4rem 1.1rem .3rem}
+  .pK .nav .seg{display:flex;gap:.3rem}
+  .pK .nav .seg .s{font-size:.66rem;padding:.25rem .55rem;border-radius:6px;color:var(--text-3);cursor:pointer}
+  .pK .nav .seg .s.on{background:rgba(255,255,255,.08);color:var(--text-1)}
+  .pK .focus{padding:1.2rem 1.3rem;text-align:center}
+  .pK .focus .cap{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  .pK .focus h1{font-family:'Noto Serif SC',serif;font-weight:400;font-size:1.5rem;line-height:1.4;margin:.7rem 0 0}
+  .pK .focus .sub{font-size:.7rem;color:var(--text-2);margin-top:.5rem;line-height:1.6}
+  .pK .focus .sub b{color:var(--accent);font-weight:500}
+  .pK .focus .acts{display:flex;gap:.6rem;justify-content:center;margin-top:1.3rem}
+  .pK .focus .acts button{font-size:.74rem;padding:.6rem 1.4rem;border-radius:999px;border:0;cursor:pointer;font-weight:600}
+  .pK .focus .acts .pri{background:var(--accent);color:#fff}
+  .pK .focus .acts .sec{background:rgba(255,255,255,.08);color:var(--text-1)}
+  .pK .below{padding:1rem 1.3rem 1.2rem;border-top:1px solid var(--border);margin-top:1rem}
+  .pK .below .h{font-size:.58rem;color:var(--text-3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem}
+  .pK .below .row{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-top:1px solid var(--border);cursor:pointer}
+  .pK .below .row .em{font-size:.8rem}
+  .pK .below .row .n{flex:1;font-size:.74rem}
+  .pK .below .row .v{font-size:.58rem;color:var(--text-3)}
+
+  .note{margin-top:1.8rem;padding:1rem 1.1rem;border-radius:.8rem;border:1px solid var(--border);background:rgb(var(--card) / .5);font-size:.72rem;line-height:1.7;color:var(--text-2)}
+  .note b{color:var(--text-1)}
+  .note .row-label{font-weight:600;color:var(--accent);margin-top:.6rem;display:block}
+
+  /* ===== 主题切换器 ===== */
+  .theme-switch{position:fixed;top:.8rem;right:.8rem;z-index:100;display:flex;gap:.4rem;align-items:center;
+    background:rgb(var(--void) / .82);backdrop-filter:blur(14px);border:1px solid var(--border-strong);
+    border-radius:999px;padding:.3rem .4rem;box-shadow:0 6px 20px -8px rgba(0,0,0,.4)}
+  .theme-switch .lbl{font-size:.6rem;color:var(--text-3);letter-spacing:.04em;padding:0 .2rem 0 .4rem}
+  .theme-switch button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;position:relative}
+  .theme-switch button::after{content:"";position:absolute;inset:3px;border-radius:50%}
+  .theme-switch button[data-t="cool"]::after{background:linear-gradient(135deg,#8FB4DC,#0B1019)}
+  .theme-switch button[data-t="day"]::after{background:linear-gradient(135deg,#F6F4EF,#3B6FCF)}
+  .theme-switch button[data-t="celadon"]::after{background:linear-gradient(135deg,#EFF4F2,#2E8C72)}
+  .theme-switch button[data-t="apricot"]::after{background:linear-gradient(135deg,#F9F3EB,#B8743A)}
+  .theme-switch button.on{border-color:var(--accent)}
+
+</style>
+</head>
+<body>
+<div class="theme-switch">
+    <span class="lbl">肤色</span>
+    <button data-t="cool" class="on" title="冷蓝(暗)"></button>
+    <button data-t="day" title="日间"></button>
+    <button data-t="celadon" title="青瓷"></button>
+    <button data-t="apricot" title="杏色"></button>
+  </div>
+
+<div class="wrap">
+  <h1>App 形态参考 2 · 再 6 种范式</h1>
+  <p class="lead">继续抛开产品内容，看 6 种不同气质的成熟 app 形态。每个都带明确操作按钮，不是数据面板。配合上一组 A-E 共 11 种，选一个大方向。</p>
+
+  <div class="grid">
+    <!-- F · iOS 提醒事项 -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">F</div>
+        <h2>iOS 提醒事项原生风</h2>
+        <p>大分组标题 + 圆角毛玻璃组容器 + 圆形勾选行。组标题带计数和右上添加。系统原生感、克制冷峻，行可直接勾选。像 iOS 提醒事项、Apple 生态。</p>
+      </div>
+      <div class="phone pF">
+        <div class="stb"><span>9:41</span><span>100%</span></div>
+        <div class="grp">
+          <div class="grp-h">进行中的实践<span class="cnt">1</span><button class="add">+</button></div>
+          <div class="grp-body">
+            <div class="row"><div class="cb"></div><div class="b"><div class="n">找回工作日晚上的主动权</div><div class="m"><span class="pill">第2轮</span>D4/7 · 还有2天</div></div><div class="ic">›</div></div>
+          </div>
+          <div class="grp-h">议题<span class="cnt">3</span></div>
+          <div class="grp-body">
+            <div class="row"><div class="cb"></div><div class="b"><div class="n">为什么白天注意力难持续</div><div class="m"><span class="pill">第1轮</span>记录3 · 阅读有候选</div></div><div class="ic">›</div></div>
+            <div class="row"><div class="cb"></div><div class="b"><div class="n">是不是把休息也当成任务</div><div class="m">记录2 · AI 观察</div></div><div class="ic">›</div></div>
+          </div>
+          <div class="grp-h">已验证方法<span class="cnt">1</span></div>
+          <div class="grp-body">
+            <div class="row done"><div class="cb done">✓</div><div class="b"><div class="n">把行动缩小到 15 分钟</div><div class="m">来源：下班后议题</div></div><div class="ic">›</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- G · Linear -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">G</div>
+        <h2>Linear 风（状态分组折叠）</h2>
+        <p>顶栏标题 + 右上操作组 + 横向筛选条 + 按状态分组的可折叠区（带小三角+状态色块+计数）+ 紧凑行（ID+标题+优先级色点）。极客、密集、结构感强。</p>
+      </div>
+      <div class="phone pG">
+        <div class="tb"><span class="t">探索</span><div class="r"><button>⌕</button><button>+</button></div></div>
+        <div class="filter">
+          <span class="f on"><span class="k" style="background:var(--accent)"></span>全部</span>
+          <span class="f"><span class="k" style="background:var(--success)"></span>进行中</span>
+          <span class="f"><span class="k" style="background:var(--warn)"></span>候选</span>
+          <span class="f"><span class="k" style="background:var(--text-4)"></span>已沉淀</span>
+        </div>
+        <div class="sec">
+          <div class="sec-h"><span class="tri">▾</span><span class="dot" style="background:var(--success)"></span><span class="lab">进行中</span><span class="cnt">2</span></div>
+          <div class="sec-body">
+            <div class="row"><span class="id">EXP-4</span><div class="n">找回工作日晚上的主动权<span class="sub">下班后总被娱乐带走 · 第2轮 D4/7</span></div><span class="pri" style="background:var(--accent)"></span></div>
+            <div class="row"><span class="id">EXP-2</span><div class="n">用阅读笔记调整专注方式<span class="sub">注意力难以持续 · 第1轮 D2</span></div><span class="pri" style="background:var(--warn)"></span></div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sec-h"><span class="tri">▾</span><span class="dot" style="background:var(--text-3)"></span><span class="lab">议题（无实践）</span><span class="cnt">1</span></div>
+          <div class="sec-body">
+            <div class="row"><span class="id">ISS-3</span><div class="n">是不是把休息也当成任务？<span class="sub">记录2 · AI 提出观察</span></div><span class="pri" style="background:var(--text-4)"></span></div>
+          </div>
+        </div>
+        <div class="sec">
+          <div class="sec-h"><span class="tri">▸</span><span class="dot" style="background:var(--warn)"></span><span class="lab">已验证方法</span><span class="cnt">1</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- H · 倒序时间流 -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">H</div>
+        <h2>倒序时间流</h2>
+        <p>右上添加 + 按日期分组（今天/昨天/更早）+ 每条带时间轴竖线 + 卡片化条目（类型标识+标题+操作按钮）。偏回顾叙事，像 Day One、日志反思类。能自然把「最近发生了什么」摆前面。</p>
+      </div>
+      <div class="phone pH">
+        <div class="tb"><span class="t">探索</span><button class="add">+</button></div>
+        <div class="feed">
+          <div class="day-h">本周</div>
+          <div class="entry live">
+            <div class="rail"><span class="pt"></span><span class="line"></span></div>
+            <div class="card">
+              <div class="kind">实践 · 进行中</div>
+              <div class="ttl">找回工作日晚上的主动权</div>
+              <div class="meta">第 2 轮 · D4/7 · 还有 2 天到检查点</div>
+              <div class="acts"><button class="pri">查看实践</button><button>记录</button></div>
+            </div>
+          </div>
+          <div class="day-h">上周</div>
+          <div class="entry">
+            <div class="rail"><span class="pt"></span><span class="line"></span></div>
+            <div class="card">
+              <div class="kind issue">议题</div>
+              <div class="ttl">为什么白天注意力难持续？</div>
+              <div class="meta">第 1 轮 · 记录 3 · 阅读有候选</div>
+              <div class="acts"><button class="pri">进入议题</button></div>
+            </div>
+          </div>
+          <div class="entry ok">
+            <div class="rail"><span class="pt"></span></div>
+            <div class="card">
+              <div class="kind method">我的方法</div>
+              <div class="ttl">把行动缩小到 15 分钟</div>
+              <div class="meta">已验证 · 来源：下班后议题</div>
+              <div class="acts"><button class="pri">查看</button><button>转习惯</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- I · 健身圆环 -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">I</div>
+        <h2>圆环概览风</h2>
+        <p>顶部活动环（一图概括实践进度）+ 环旁信息与主操作 + 2 列小卡 + 列表。视觉冲击强，用图形而非数字墙表达状态。像 Apple 健身、Streaks。</p>
+      </div>
+      <div class="phone pI">
+        <div class="stb"><span>9:41</span><span>100%</span></div>
+        <div class="title">探索</div>
+        <div class="ring-wrap">
+          <div class="ring"><div class="ctr">D4<small>/7</small></div></div>
+          <div class="ring-info">
+            <div class="n">找回晚上的主动权</div>
+            <div class="s">第 2 轮 · 还有 2 天到检查点</div>
+            <div class="acts"><button class="pri">查看实践</button><button class="sec">记录</button></div>
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="c"><div class="ic">🎯</div><div class="n">3 个议题</div><div class="v">2 在实践</div></div>
+          <div class="c"><div class="ic">💡</div><div class="n">1 个方法</div><div class="v">已验证</div></div>
+        </div>
+        <div class="sec-h">其他探索</div>
+        <div class="list">
+          <div class="row"><div class="n">白天注意力难持续</div><div class="v">第1轮</div><div class="arr">›</div></div>
+          <div class="row"><div class="n">休息也当成任务？</div><div class="v">记录2</div><div class="arr">›</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- J · Notion 抽屉分区 -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">J</div>
+        <h2>抽屉分区 + 块流</h2>
+        <p>左上汉堡 + 横向分区抽屉条（带 emoji）+ 正文是不同形态的块（callout 提示块 / database 行卡）。强调「我在组织内容」，块可嵌入操作。像 Notion 移动端。</p>
+      </div>
+      <div class="phone pJ">
+        <div class="tb"><div class="l"><span class="burger">≡</span><span class="t">计划</span></div><span class="more">⋯</span></div>
+        <div class="drawer-bar">
+          <span class="d on"><span class="em">🧭</span>方向</span>
+          <span class="d"><span class="em">🔭</span>探索</span>
+          <span class="d"><span class="em">✅</span>习惯</span>
+        </div>
+        <div class="blocks">
+          <div class="callout">
+            <span class="em">🧭</span>
+            <div>
+              <div class="t">长期方向：<b>让工作日晚上重新由自己主动支配</b></div>
+              <div class="acts"><button>编辑方向</button><button>看进展</button></div>
+            </div>
+          </div>
+          <div class="db-card">
+            <div class="head"><span class="n">服务它的实践</span><span class="add">+</span></div>
+            <div class="db-row"><span class="st" style="background:var(--accent)"></span><div class="n">找回晚上的主动权</div><span class="tag">R2 · D4</span></div>
+            <div class="db-row"><span class="st" style="background:var(--success)"></span><div class="n">调整专注方式</div><span class="tag">R1 · D2</span></div>
+          </div>
+          <div class="db-card">
+            <div class="head"><span class="n">已验证的方法</span><span class="add">+</span></div>
+            <div class="db-row"><span class="st" style="background:var(--warn)"></span><div class="n">把行动缩小到 15 分钟</div><span class="tag">来源：下班后</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- K · 极简单焦点 -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">K</div>
+        <h2>极简单焦点（大留白 + 胶囊按钮）</h2>
+        <p>顶部小分段 + 居中放大「当前这一件」+ 两个大胶囊主操作 + 下方极简行。大留白、东方呼吸感，但保留显式按钮。最不像面板、最像「在用 app 做一件事」。像 Stoa、一些正念 app。</p>
+      </div>
+      <div class="phone pK">
+        <div class="stb"><span>9:41</span><span>100%</span></div>
+        <div class="nav"><div class="seg"><span class="s">方向</span><span class="s on">探索</span><span class="s">习惯</span></div></div>
+        <div class="focus">
+          <div class="cap">当前实践 · 第 2 轮</div>
+          <h1>找回工作日<br>晚上的主动权</h1>
+          <div class="sub">议题：下班后总被娱乐带走<br>D4/7 · <b>还有 2 天到检查点</b></div>
+          <div class="acts"><button class="pri">查看实践</button><button class="sec">记录</button></div>
+        </div>
+        <div class="below">
+          <div class="h">其他探索</div>
+          <div class="row"><span class="em">❓</span><div class="n">白天注意力难持续</div><div class="v">第1轮</div></div>
+          <div class="row"><span class="em">❓</span><div class="n">休息也当成任务？</div><div class="v">记录2</div></div>
+          <div class="row"><span class="em">💡</span><div class="n">行动缩小到 15 分钟</div><div class="v">方法</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>11 种范式光谱（A-K）：</b>
+    <span class="row-label">偏结构/密集</span>Linear(G) · 卡片入口(A) · 抽屉块流(J)
+    <span class="row-label">偏列表/勾选</span>iOS 提醒(F) · 任务复选(B) · 主角+列表(D)
+    <span class="row-label">偏卡/自包含</span>对象卡流(C)
+    <span class="row-label">偏时间/叙事</span>倒序时间流(H) · 时间轴章节(E)
+    <span class="row-label">偏概览/视觉</span>圆环(I)
+    <span class="row-label">偏留白/单焦点</span>极简单焦点(K)
+    <br><br>
+    <b>判断标准仍是：</b>哪个一眼像「能操作的 app」、不像「能看的数据面板」，且气质符合 Rhythm 想要的那种安静、不焦虑、鼓励持续实践的感觉。
+  </div>
+</div>
+<script>
+  (function(){
+    var root=document.documentElement;
+    var saved=localStorage.getItem('rhythm-theme');
+    if(saved){root.setAttribute('data-theme',saved);}
+    document.querySelectorAll('.theme-switch button').forEach(function(b){
+      b.addEventListener('click',function(){
+        var t=b.dataset.t;
+        root.setAttribute('data-theme',t);
+        localStorage.setItem('rhythm-theme',t);
+        document.querySelectorAll('.theme-switch button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});
+      });
+      if(b.dataset.t===root.getAttribute('data-theme'))b.classList.add('on');
+    });
+  })();
+</script>
+
+</body>
+</html>

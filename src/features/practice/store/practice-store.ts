@@ -5,6 +5,7 @@ import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
 type Topic = Database['public']['Tables']['topics']['Row']
+type Direction = Database['public']['Tables']['directions']['Row']
 type Practice = Database['public']['Tables']['practices']['Row']
 type PracticeRound = Database['public']['Tables']['practice_rounds']['Row']
 type MethodRow = Database['public']['Tables']['methods']['Row']
@@ -19,14 +20,17 @@ export interface PracticeWithLatestRound extends Practice {
 interface PracticeState {
   practices: PracticeWithLatestRound[]
   topics: Topic[]
+  directions: Direction[]
   isLoadingPractices: boolean
   isLoadingTopics: boolean
+  isLoadingDirections: boolean
 
   loadPractices: () => Promise<void>
   loadTopics: () => Promise<void>
-  createTopic: (question: string) => Promise<{ error: string | null }>
-  archiveTopic: (id: string) => Promise<void>
-  deleteTopic: (id: string) => Promise<void>
+  loadDirections: () => Promise<void>
+  createDirection: (title: string, description: string | null) => Promise<{ error: string | null }>
+  archiveDirection: (id: string) => Promise<void>
+  deleteDirection: (id: string) => Promise<void>
 
   createPractice: (input: {
     title: string
@@ -82,8 +86,10 @@ function todayIso(): string {
 export const usePracticeStore = create<PracticeState>((set, get) => ({
   practices: [],
   topics: [],
+  directions: [],
   isLoadingPractices: true,
   isLoadingTopics: true,
+  isLoadingDirections: true,
   methods: [],
   isLoadingMethods: true,
   logsByRound: {},
@@ -184,6 +190,67 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
 
     await supabase.from('topics').delete().eq('id', id).eq('user_id', user.id)
     set({ topics: get().topics.filter((t) => t.id !== id) })
+  },
+
+  loadDirections: async () => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) {
+      set({ isLoadingDirections: false })
+      return
+    }
+
+    const { data } = await supabase
+      .from('directions')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+
+    set({ directions: data ?? [], isLoadingDirections: false })
+  },
+
+  createDirection: async (title, description) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return { error: 'Not authenticated' }
+
+    const trimmed = title.trim()
+    if (!trimmed) return { error: '方向标题不能为空' }
+
+    const { data, error } = await supabase
+      .from('directions')
+      .insert({
+        user_id: user.id,
+        title: trimmed,
+        description: description?.trim() || null
+      })
+      .select()
+      .single()
+
+    if (error) return { error: error.message }
+    if (data) {
+      set({ directions: [data, ...get().directions] })
+    }
+    return { error: null }
+  },
+
+  archiveDirection: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('directions').update({ status: 'archived' }).eq('id', id).eq('user_id', user.id)
+    set({ directions: get().directions.filter((d) => d.id !== id) })
+  },
+
+  deleteDirection: async (id) => {
+    const supabase = createBrowserClient()
+    const user = await getCurrentUser(supabase)
+    if (!user) return
+
+    await supabase.from('directions').delete().eq('id', id).eq('user_id', user.id)
+    set({ directions: get().directions.filter((d) => d.id !== id) })
   },
 
   createPractice: async ({ title, topicId, assumption, periodDays }) => {

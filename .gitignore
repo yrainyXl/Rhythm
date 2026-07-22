@@ -38,3 +38,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .superpowers/
+
+# 本地 skill 集合（mattpocock/skills 等，仅个人试用，不进团队仓库）
+.agents/
+.claude/skills/
+skills-lock.json

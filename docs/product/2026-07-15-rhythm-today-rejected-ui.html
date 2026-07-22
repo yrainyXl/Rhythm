@@ -1,0 +1,55 @@
+<style>
+  .today-shell{max-width:1080px;margin:0 auto}.note{padding:14px 18px;border-left:3px solid rgba(139,174,222,.55);background:rgba(92,119,158,.07);border-radius:0 14px 14px 0;color:rgba(216,226,239,.64);font-size:12px;line-height:1.7;margin:18px 0 24px}.layout{display:grid;grid-template-columns:360px 1fr;gap:28px;align-items:start}.wire{border:1px solid rgba(142,162,194,.28);border-radius:30px;background:#171e2c;padding:23px 18px 17px;min-height:690px;box-shadow:0 20px 48px rgba(0,0,0,.2)}.date{font-size:11px;color:rgba(212,223,238,.42);margin-bottom:20px}.title{font-size:24px;color:#eef3fa;margin-bottom:20px}.section-name{display:flex;justify-content:space-between;align-items:center;color:#dfe8f5;font-size:13px;margin:21px 0 10px}.section-name span{color:#8eadde;font-size:11px}.schedule{border-top:1px solid rgba(136,158,191,.18);border-bottom:1px solid rgba(136,158,191,.18);padding:13px 0}.schedule-row{display:grid;grid-template-columns:55px 1fr auto;align-items:center;padding:9px 0}.schedule-row+.schedule-row{border-top:1px solid rgba(136,158,191,.09)}.time{color:#8eabd2;font-size:10px}.task{color:rgba(235,240,247,.85);font-size:12px}.edit{color:rgba(203,215,231,.35);font-size:10px}.practice{padding:14px 0;border-bottom:1px solid rgba(136,158,191,.13)}.practice-top{display:flex;gap:11px;align-items:center}.check{width:22px;height:22px;border-radius:7px;border:1px solid rgba(149,179,221,.55)}.practice-main{flex:1}.practice-main b{display:block;color:#edf2f8;font-size:12px;margin-bottom:3px}.practice-main small{display:block;color:rgba(204,216,232,.42);font-size:9px}.more{color:rgba(203,215,231,.35);font-size:16px}.practice-actions{display:flex;gap:9px;margin:11px 0 0 33px}.action{font-size:9px;padding:5px 9px;border-radius:8px;color:rgba(205,218,235,.62);background:rgba(92,121,161,.09);border:1px solid rgba(133,158,195,.16)}.action.primary{color:#a9c4e9;border-color:rgba(136,173,222,.34)}.habit{display:flex;gap:10px;align-items:center;padding:10px 0;color:rgba(226,233,242,.72);font-size:11px}.capture-line{margin-top:21px;padding-top:16px;border-top:1px solid rgba(136,158,191,.18)}.capture-line label{display:block;color:rgba(218,228,240,.62);font-size:11px;margin-bottom:9px}.input{border:1px solid rgba(135,160,197,.22);border-radius:12px;padding:11px 12px;color:rgba(208,219,233,.37);font-size:10px;display:flex;justify-content:space-between}.tabs{display:flex;justify-content:space-around;margin-top:28px;padding-top:13px;border-top:1px solid rgba(136,158,191,.15);font-size:9px;color:rgba(205,216,230,.32)}.tabs .on{color:#9ebbe3}.details h3{color:#edf2f8;font-size:18px;margin:0 0 15px}.flow-row{display:grid;grid-template-columns:48px 1fr;gap:13px;margin-bottom:20px}.number{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:rgba(111,147,197,.12);color:#a8c3e9;font-size:11px}.flow-copy h4{margin:0 0 6px;color:#dfe9f6;font-size:13px}.flow-copy p{margin:0;color:rgba(210,221,235,.56);font-size:11px;line-height:1.7}.boundary{margin-top:23px;padding:17px;border-radius:15px;background:rgba(72,95,130,.1);border:1px solid rgba(130,157,197,.16)}.boundary h4{margin:0 0 9px;color:#dce7f6;font-size:12px}.boundary ul{margin:0;padding-left:18px;color:rgba(208,220,235,.58);font-size:11px;line-height:1.8}.record-levels{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px}.level{padding:14px;border-radius:14px;border:1px solid rgba(132,159,199,.18);background:rgba(80,104,143,.07)}.level strong{display:block;color:#dce7f6;font-size:11px;margin-bottom:6px}.level span{color:rgba(208,219,234,.52);font-size:10px;line-height:1.6}@media(max-width:820px){.layout{grid-template-columns:1fr}.wire{max-width:380px;margin:0 auto}.record-levels{grid-template-columns:1fr}}
+</style>
+
+<div class="today-shell">
+  <h2>“今天”页结构草图</h2>
+  <p class="subtitle">这张图只确认内容层级和操作位置，不代表最终视觉风格。最终 UI 会沿用当前项目更有氛围感的设计，并针对不同模块单独设计。</p>
+  <div class="note">核心原则：计划是明确安排，不是抽象问候；实践与习惯都能快速完成，但实践额外提供详细记录入口；随手想法只在今天页出现，不做全局悬浮按钮。</div>
+
+  <div class="layout">
+    <div class="wire">
+      <div class="date">7月16日 · 星期四</div><div class="title">今天</div>
+
+      <div class="section-name">今日安排 <span>添加安排</span></div>
+      <div class="schedule">
+        <div class="schedule-row"><span class="time">下午</span><span class="task">整理项目需求</span><span class="edit">编辑</span></div>
+        <div class="schedule-row"><span class="time">晚上</span><span class="task">完成个人项目的一小节</span><span class="edit">编辑</span></div>
+      </div>
+
+      <div class="section-name">进行中的实践 <span>查看实践</span></div>
+      <div class="practice">
+        <div class="practice-top"><span class="check"></span><div class="practice-main"><b>完成今晚安排</b><small>找回工作日晚上的主动权 · 第 2 轮 · 第 4 天</small></div><span class="more">···</span></div>
+        <div class="practice-actions"><span class="action primary">快速记录</span><span class="action">详细记录</span></div>
+      </div>
+
+      <div class="section-name">日常打卡 <span>管理</span></div>
+      <div class="habit"><span class="check"></span><span>阅读 20 分钟</span></div>
+      <div class="habit"><span class="check"></span><span>按时服药</span></div>
+
+      <div class="capture-line"><label>记录此刻的想法</label><div class="input"><span>发生了什么，或者你正在怎么想…</span><span>语音</span></div></div>
+      <div class="tabs"><span class="on">今天</span><span>计划</span><span>记录</span><span>阅读</span><span>我的</span></div>
+    </div>
+
+    <div class="details">
+      <h3>交互层级</h3>
+      <div class="flow-row"><div class="number">01</div><div class="flow-copy"><h4>添加安排</h4><p>选择今天的时间段：早上、下午、晚上或具体时间；填写明确行动。可以自己输入，也可以从当前方向、实践和近期进展中选择建议。</p></div></div>
+      <div class="flow-row"><div class="number">02</div><div class="flow-copy"><h4>快速记录</h4><p>点击实践项或“快速记录”，只选：完成、做了一点、没开始。整个操作应在当前页面完成，不弹出完整表单。</p></div></div>
+      <div class="flow-row"><div class="number">03</div><div class="flow-copy"><h4>详细记录</h4><p>需要时进入记录层：真实行动、当时想法、可能原因、补充语音或文字。系统可以追问，但默认不展开，也不要求每天填写。</p></div></div>
+      <div class="flow-row"><div class="number">04</div><div class="flow-copy"><h4>日常打卡</h4><p>只保留已经认可、想长期重复的简单行为。主要是勾选与历史查看，不混入假设、轮次和复杂复盘。</p></div></div>
+      <div class="flow-row"><div class="number">05</div><div class="flow-copy"><h4>记录此刻的想法</h4><p>只在今天页提供自然的文字/语音输入。无需先选类型，保存后系统建议关联到安排、实践或议题；用户可以忽略或修正。</p></div></div>
+
+      <div class="record-levels">
+        <div class="level"><strong>轻量记录 · 默认</strong><span>结果 + 可选原因标签，约 3 秒完成。</span></div>
+        <div class="level"><strong>详细记录 · 主动展开</strong><span>原话、行动经过、想法与原因；用于关键时刻，而非每日义务。</span></div>
+      </div>
+
+      <div class="boundary"><h4>今天页不承担的内容</h4><ul><li>不展示详细趋势图和复杂统计；这些进入“记录”。</li><li>不在这里配置整轮实践；这里只呈现今日动作。</li><li>不强制每天制定计划；没有安排时保持简洁空状态。</li><li>计划条目不是普通待办库，只服务当天明确行动。</li></ul></div>
+    </div>
+  </div>
+
+  <div class="options" style="margin-top:28px">
+    <div class="option" data-choice="approve-today" onclick="toggleSelect(this)"><div class="letter">✓</div><div class="content"><h3>今天页结构合理</h3><p>继续设计“计划”模块与多轮实践流程。</p></div></div>
+    <div class="option" data-choice="revise-today" onclick="toggleSelect(this)"><div class="letter">↺</div><div class="content"><h3>需要调整</h3><p>指出计划、打卡或随手记录哪里还不符合真实使用。</p></div></div>
+  </div>
+</div>

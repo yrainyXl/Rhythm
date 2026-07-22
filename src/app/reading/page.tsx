@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { RandomHighlightHero } from '@/features/reading/components/random-highlight-hero'
 import { ReadingStatsBar } from '@/features/reading/components/reading-stats-bar'
@@ -16,7 +17,17 @@ function SectionTitle({ label, action }: { label: string; action?: string }) {
         <span className="w-1.5 h-1.5 rounded-full bg-rhythm-glow opacity-60" />
         <span className="text-xs tracking-[0.06em] text-rhythm-text-secondary">{label}</span>
       </div>
-      {action && (
+      {action && action === '全部书架 →' && (
+        <Link href="/reading/books" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer no-underline hover:underline">
+          {action}
+        </Link>
+      )}
+      {action && action === '全部 →' && (
+        <Link href="/reading/highlights" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer no-underline hover:underline">
+          {action}
+        </Link>
+      )}
+      {action && !['全部书架 →', '全部 →'].includes(action) && (
         <button type="button" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer">
           {action}
         </button>

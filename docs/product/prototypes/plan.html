@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 计划</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 计划页：沿用今天页视觉语言（同 token / 四皮肤 / 默认冷蓝） =====
+     IA：当前实践为主角，议题/方向/习惯分层展开。
+     不重复今天页打卡，不塞统计图表。 */
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --success-soft:rgba(120,190,160,.12);
+    --warn:rgba(220,180,130,.9); --warn-soft:rgba(220,180,130,.12);
+    --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14;
+    --card-alpha:.8; --practice-grad:rgba(143,180,220,.07);
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --success-soft:rgba(60,150,110,.12);
+    --warn:rgba(190,140,70,.95); --warn-soft:rgba(190,140,70,.12);
+    --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA;
+    --card-alpha:.9; --practice-grad:rgba(74,118,168,.08);
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --success-soft:rgba(60,155,115,.13);
+    --warn:rgba(200,150,80,.95); --warn-soft:rgba(200,150,80,.13);
+    --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3;
+    --card-alpha:.92; --practice-grad:rgba(70,150,130,.09);
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --success-soft:rgba(90,150,95,.13);
+    --warn:rgba(200,140,60,.95); --warn-soft:rgba(200,140,60,.13);
+    --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE;
+    --card-alpha:.92; --practice-grad:rgba(198,132,84,.1);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--text-1);
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--bg-radial) 0%, transparent 55%),
+      linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+    background-attachment:fixed; min-height:100dvh; overscroll-behavior:none; -webkit-font-smoothing:antialiased;
+  }
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC','Microsoft YaHei',serif;font-weight:500;letter-spacing:.04em;color:var(--text-1)}
+  .r-eyebrow{font-size:.7rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);background:rgb(var(--void) / .7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+  .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;color:rgb(var(--glow));background:var(--glow-soft);border:1px solid var(--border-strong)}
+
+  main{padding:1.25rem 1.25rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.5rem}
+  .card{border-radius:1rem;border:1px solid var(--border);background:rgb(var(--card) / var(--card-alpha));backdrop-filter:blur(4px);
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 8px 24px -12px rgba(0,0,0,.5)}
+  .card-pad{padding:1rem}.card-pad-lg{padding:1.25rem}
+
+  .sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem}
+  .sec .t{display:flex;align-items:center;gap:.5rem}
+  .sec .t .r-eyebrow{color:var(--text-2);text-transform:none;letter-spacing:.06em;font-size:.72rem}
+  .sec .t .dot{width:5px;height:5px;border-radius:50%;background:rgb(var(--glow));opacity:.6}
+  .text-btn{font-size:.75rem;color:rgb(var(--glow));letter-spacing:.03em;background:none;border:0;padding:.2rem .1rem;cursor:pointer}
+
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;
+    backdrop-filter:blur(12px);background:rgb(var(--void) / .82);border-top:1px solid var(--border)}
+  .tabbar .row{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(150,175,205,.15);border-radius:3px}
+
+  /* —— 主实践卡（页面第一主角） —— */
+  .hero{border-color:rgb(var(--glow) / .24);background:linear-gradient(180deg,var(--practice-grad) 0%,rgb(var(--card) / .84) 55%)}
+  .hero .issue{font-size:.66rem;letter-spacing:.03em;color:var(--text-2);margin-bottom:.4rem}
+  .hero .issue b{color:rgb(var(--glow));font-weight:500}
+  .hero h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.25rem;letter-spacing:.02em;line-height:1.35;margin:0}
+  /* 轮次轨迹：非进度条，用节点链表达 第1轮已结束→第2轮进行中→检查点 */
+  .track{display:flex;align-items:center;gap:.35rem;margin:1rem 0 .2rem;flex-wrap:wrap}
+  .track .r{display:flex;align-items:center;gap:.4rem;padding:.35rem .6rem;border-radius:999px;border:1px solid var(--border);background:rgb(var(--card-inset) / .4);font-size:.64rem;letter-spacing:.02em;color:var(--text-2)}
+  .track .r .n{width:5px;height:5px;border-radius:50%;background:var(--text-3)}
+  .track .r.done{color:var(--text-3)}
+  .track .r.done .n{background:var(--success)}
+  .track .r.live{color:rgb(var(--glow));border-color:rgb(var(--glow) / .35);background:rgb(var(--glow) / .1)}
+  .track .r.live .n{background:rgb(var(--glow));box-shadow:0 0 0 3px rgb(var(--glow) / .18)}
+  .track .r.next{border-style:dashed;color:var(--text-3)}
+  .track .arr{color:var(--text-4);font-size:.7rem}
+  /* 本轮要点：定义式两列 */
+  .facts{margin-top:.9rem;display:grid;grid-template-columns:auto 1fr;gap:.4rem .8rem}
+  .facts dt{font-size:.62rem;letter-spacing:.06em;color:var(--text-3);white-space:nowrap;padding-top:.1rem}
+  .facts dd{margin:0;font-size:.78rem;line-height:1.5;color:var(--text-1)}
+  .facts dd em{font-style:normal;color:rgb(var(--glow))}
+  /* 最近几次轻量摘要（无图表） */
+  .recents{margin-top:.9rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;gap:.3rem}
+  .recents .lbl{font-size:.6rem;letter-spacing:.06em;color:var(--text-3);margin-right:.3rem;padding-top:.15rem;white-space:nowrap}
+  .dots{display:flex;gap:.28rem;flex-wrap:wrap}
+  .dots i{width:16px;height:16px;border-radius:5px;display:inline-grid;place-items:center;font-size:.5rem;font-style:normal}
+  .dots i.d{background:var(--success-soft);color:var(--success)}
+  .dots i.p{background:var(--warn-soft);color:var(--warn)}
+  .dots i.n{background:rgb(var(--danger) / .14);color:var(--danger)}
+  .dots i.f{background:rgb(var(--card-inset) / .5);color:var(--text-4)}
+  /* 主实践操作行 */
+  .hero-act{margin-top:1rem;display:flex;gap:.5rem;flex-wrap:wrap}
+  .hero-act button{appearance:none;cursor:pointer;font-family:inherit;font-size:.72rem;letter-spacing:.02em;
+    padding:.5rem .85rem;border-radius:.7rem;border:1px solid var(--border-strong);background:none;color:var(--text-2);transition:all .25s}
+  .hero-act button.pri{border-color:rgb(var(--glow) / .35);background:rgb(var(--glow) / .1);color:rgb(var(--glow))}
+  .hero-act button:hover{border-color:rgb(var(--glow) / .4);color:var(--text-1)}
+  .hero-checkpt{margin-top:.85rem;font-size:.66rem;color:var(--text-2);display:flex;align-items:center;gap:.4rem}
+  .hero-checkpt .cd{color:var(--warn);font-weight:500}
+
+  /* 次要实践：简列表 */
+  .mini{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.8rem 0;border-top:1px solid var(--border)}
+  .mini:first-child{border-top:0}
+  .mini .l .nm{font-size:.84rem;font-weight:500}
+  .mini .l .st{font-size:.63rem;color:var(--text-3);margin-top:.2rem;letter-spacing:.02em}
+  .mini .badge{font-size:.58rem;letter-spacing:.04em;padding:.15rem .5rem;border-radius:999px;border:1px solid var(--border);color:var(--text-2);white-space:nowrap}
+  .mini .badge.paused{color:var(--warn);border-color:rgb(var(--warn) / .3);background:var(--warn-soft)}
+
+  /* —— 议题：引文式列表，非同构卡片 —— */
+  .issues{display:flex;flex-direction:column}
+  .issue-row{padding:.95rem 0;border-top:1px solid var(--border);cursor:pointer}
+  .issue-row:first-child{border-top:0}
+  .issue-row .q{font-family:'Noto Serif SC',serif;font-size:.98rem;line-height:1.5;letter-spacing:.01em;color:var(--text-1);
+    padding-left:.8rem;border-left:2px solid rgb(var(--glow) / .4)}
+  .issue-row .meta{margin-top:.5rem;padding-left:.8rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;font-size:.64rem;color:var(--text-3);letter-spacing:.02em}
+  .issue-row .meta .tag{padding:.12rem .45rem;border-radius:999px;border:1px solid var(--border);color:var(--text-2)}
+  .issue-row .meta .tag.live{color:rgb(var(--glow));border-color:rgb(var(--glow) / .3);background:rgb(var(--glow) / .08)}
+  .issue-row .meta .tag.cand{color:var(--warn);border-color:rgb(var(--warn) / .3);background:var(--warn-soft)}
+  .issue-row .meta .sep{color:var(--text-4)}
+
+  /* —— 长期方向：纵向进展节点，无百分比 —— */
+  .dir h2{font-family:'Noto Serif SC',serif;font-weight:400;font-size:1.05rem;line-height:1.5;letter-spacing:.02em;margin:0 0 .2rem}
+  .dir .cap{font-size:.63rem;letter-spacing:.06em;color:var(--text-3);margin-bottom:1rem}
+  .timeline{position:relative;padding-left:1.3rem}
+  .timeline::before{content:"";position:absolute;left:4px;top:.3rem;bottom:.3rem;width:1px;background:var(--border-strong)}
+  .tl-node{position:relative;padding-bottom:1rem}
+  .tl-node:last-child{padding-bottom:0}
+  .tl-node .pt{position:absolute;left:-1.3rem;top:.15rem;width:9px;height:9px;border-radius:50%;border:1px solid var(--border-strong);background:rgb(var(--card-inset) / .8)}
+  .tl-node.on .pt{background:rgb(var(--glow));border-color:rgb(var(--glow));box-shadow:0 0 0 3px rgb(var(--glow) / .15)}
+  .tl-node .when{font-size:.6rem;letter-spacing:.06em;color:var(--text-3)}
+  .tl-node .txt{font-size:.78rem;line-height:1.6;color:var(--text-1);margin-top:.2rem}
+  .tl-node .txt.mut{color:var(--text-2)}
+  .tl-node .serving{margin-top:.35rem;font-size:.62rem;color:rgb(var(--glow));letter-spacing:.02em}
+
+  /* —— 习惯：紧凑配置列表 —— */
+  .habit-cfg{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-top:1px solid var(--border)}
+  .habit-cfg:first-child{border-top:0}
+  .habit-cfg .nm{flex:1}
+  .habit-cfg .nm b{font-size:.82rem;font-weight:500;display:block}
+  .habit-cfg .nm small{font-size:.6rem;color:var(--text-3);letter-spacing:.02em}
+  .habit-cfg .from{font-size:.55rem;color:var(--success);border:1px solid rgb(var(--success) / .3);background:var(--success-soft);padding:.1rem .4rem;border-radius:999px;white-space:nowrap}
+  .habit-cfg .toggle{flex:none;width:34px;height:19px;border-radius:999px;background:rgb(var(--glow) / .25);position:relative;cursor:pointer}
+  .habit-cfg .toggle::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:rgb(var(--glow));transition:left .2s}
+  .habit-cfg.off .toggle{background:rgb(var(--card-inset) / .8)}
+  .habit-cfg.off .toggle::after{left:17px;background:var(--text-3)}
+
+  /* 新建实践入口按钮 */
+  .new-practice{display:flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.85rem;border-radius:.8rem;
+    border:1px dashed var(--border-strong);background:none;color:var(--text-2);font-family:inherit;font-size:.8rem;letter-spacing:.02em;cursor:pointer}
+  .new-practice .p{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border-strong);color:rgb(var(--glow))}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">计划<small>PLAN</small></div>
+    <div class="avatar">许</div>
+  </header>
+
+  <main>
+
+    <!-- 1. 当前实践：第一主角 -->
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">当前实践</span></div></div>
+      <div class="card card-pad-lg hero">
+        <div class="issue">在解决议题 · <b>下班后总被娱乐带走</b></div>
+        <h2>找回工作日晚上的主动权</h2>
+
+        <!-- 轮次轨迹（非进度条） -->
+        <div class="track">
+          <span class="r done"><span class="n"></span>第 1 轮 已结束</span>
+          <span class="arr">→</span>
+          <span class="r live"><span class="n"></span>第 2 轮 进行中 · 第 4/7 天</span>
+          <span class="arr">→</span>
+          <span class="r next"><span class="n"></span>检查点</span>
+        </div>
+
+        <!-- 本轮要点 -->
+        <dl class="facts">
+          <dt>本轮变量</dt><dd>在确定一件事的基础上，<em>额外约定娱乐结束时间</em></dd>
+          <dt>观察周期</dt><dd>7 天（第 4 天，非完成率）</dd>
+          <dt>下次检查</dt><dd>还有 2 天 · 7 月 18 日</dd>
+        </dl>
+
+        <!-- 最近几次轻量摘要 -->
+        <div class="recents">
+          <span class="lbl">最近</span>
+          <div class="dots">
+            <i class="d">完</i><i class="p">半</i><i class="d">完</i><i class="n">无</i>
+            <i class="f"></i><i class="f"></i><i class="f"></i>
+          </div>
+        </div>
+
+        <div class="hero-checkpt"><span class="cd">再过 2 天</span>到达本轮检查点，届时汇总事实并追问一个关键问题。</div>
+
+        <div class="hero-act">
+          <button class="pri">查看实践</button>
+          <button>调整本轮</button>
+          <button>阶段检查</button>
+          <button>暂停 / 结束</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 次要实践 + 新建 -->
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">其他实践</span></div><button class="text-btn">全部</button></div>
+      <div class="card card-pad">
+        <div class="mini">
+          <div class="l"><div class="nm">用阅读笔记调整专注方式</div><div class="st">第 1 轮 · 第 2 天 · 议题：注意力难以持续</div></div>
+          <span class="badge">进行中</span>
+        </div>
+        <div class="mini">
+          <div class="l"><div class="nm">睡前不带手机进卧室</div><div class="st">第 2 轮结束后暂停，待复盘</div></div>
+          <span class="badge paused">已暂停</span>
+        </div>
+      </div>
+      <button class="new-practice" style="margin-top:.75rem"><span class="p">+</span>发起一次新实践</button>
+    </section>
+
+    <!-- 2. 当前议题：引文式列表 -->
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">当前议题</span></div><button class="text-btn">新建议题</button></div>
+      <div class="card card-pad">
+        <div class="issues">
+          <div class="issue-row">
+            <div class="q">为什么下班回家后总会陷入游戏和手机？</div>
+            <div class="meta"><span class="tag live">正在进行第 2 轮实践</span><span class="sep">·</span>最近记录 6 条</div>
+          </div>
+          <div class="issue-row">
+            <div class="q">为什么白天注意力总是很难持续超过半小时？</div>
+            <div class="meta"><span class="tag live">第 1 轮实践</span><span class="sep">·</span>最近记录 3 条<span class="sep">·</span><span class="tag cand">阅读有候选办法</span></div>
+          </div>
+          <div class="issue-row">
+            <div class="q">是不是我把休息也当成了必须完成的任务？</div>
+            <div class="meta">尚无实践<span class="sep">·</span>最近记录 2 条<span class="sep">·</span><span class="tag cand">AI 提出了一个观察</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 长期方向与近期进展 -->
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">长期方向</span></div><button class="text-btn">编辑</button></div>
+      <div class="card card-pad-lg dir">
+        <h2>让工作日晚上重新由自己主动支配</h2>
+        <div class="cap">近期进展 · 不设百分比，只记录变化</div>
+        <div class="timeline">
+          <div class="tl-node on">
+            <span class="pt"></span>
+            <div class="when">本周</div>
+            <div class="txt">加入「娱乐结束时间」后，一周内有 4 天成功开始了当晚的事。</div>
+            <div class="serving">← 实践「找回工作日晚上的主动权」正在服务这个方向</div>
+          </div>
+          <div class="tl-node">
+            <span class="pt"></span>
+            <div class="when">两周前</div>
+            <div class="txt mut">发现「只定一件事」还不够，疲惫时仍会放弃——启动成本需要更低。</div>
+          </div>
+          <div class="tl-node">
+            <span class="pt"></span>
+            <div class="when">下一阶段可能关注</div>
+            <div class="txt mut">把行动缩小到 15 分钟，观察是否更容易开始。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 普通习惯：紧凑配置 -->
+    <section>
+      <div class="sec"><div class="t"><span class="dot"></span><span class="r-eyebrow">日常习惯</span></div><button class="text-btn">新建习惯</button></div>
+      <div class="card card-pad">
+        <div class="habit-cfg">
+          <div class="nm"><b>阅读 20 分钟</b><small>每天 · 21:00 提醒</small></div>
+          <span class="from">由实践转化</span>
+          <span class="toggle"></span>
+        </div>
+        <div class="habit-cfg">
+          <div class="nm"><b>按时服药</b><small>每天 · 08:00 提醒</small></div>
+          <span class="toggle"></span>
+        </div>
+        <div class="habit-cfg off">
+          <div class="nm"><b>睡前拉伸</b><small>每天 · 无提醒</small></div>
+          <span class="toggle"></span>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="row">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+
+</div>
+</body>
+</html>

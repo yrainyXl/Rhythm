@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 今天（此刻记录流）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 此刻记录流 · 温暖弥散 =====
+     信息架构：顶部就是「记录此刻」输入，整页是一条自上而下的今日时间流——
+     已发生的记录、安排、实践打卡按时间线穿插，越往下越接近现在。
+     记录是主角，计划/实践/习惯作为流中的不同"事件类型"卡片出现。
+     风格：暖色柔光渐变、圆润气泡、低对比、弥散治愈感（保留冷蓝作点缀而非主色）。 */
+  :root,.dark{
+    --void:16 13 18;                       /* 暖调深底（偏紫棕，非纯蓝黑） */
+    --card:rgba(34,28,34,.72);
+    --card-2:rgba(40,33,40,.6);
+    --ink-1:rgba(238,230,232,.92);
+    --ink-2:rgba(226,214,216,.56);
+    --ink-3:rgba(220,205,208,.33);
+    --ink-4:rgba(220,205,208,.16);
+    --amber:224 178 138;                   /* 暖琥珀主强调 #E0B28A */
+    --amber-soft:rgba(224,178,138,.14);
+    --rose:214 158 168;                     /* 柔玫瑰点缀 */
+    --sky:158 186 214;                      /* 冷蓝退为点缀色 */
+    --hair:rgba(220,190,180,.10);
+    --hair-strong:rgba(220,190,180,.18);
+    --success:rgba(150,196,160,.9);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--ink-1);
+    background:
+      radial-gradient(120% 70% at 20% -8%, rgba(224,178,138,.14) 0%, transparent 50%),
+      radial-gradient(110% 60% at 90% 8%, rgba(214,158,168,.10) 0%, transparent 48%),
+      linear-gradient(180deg,#16131A 0%,#141019 48%,#100C14 100%);
+    background-attachment:fixed;
+    min-height:100dvh;overscroll-behavior:none;-webkit-font-smoothing:antialiased;
+  }
+  .serif{font-family:'Noto Serif SC',STSong,'PingFang SC',serif}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh}
+
+  /* 顶栏：柔和，日期 + 一句暖问候（此处允许更"人"一点，但仍具体） */
+  .top{padding:calc(1.4rem + env(safe-area-inset-top)) 1.4rem .3rem;display:flex;align-items:center;justify-content:space-between}
+  .top .l .d{font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+  .top .l h1{margin:.3rem 0 0;font-weight:400;font-size:1.35rem;letter-spacing:.03em}
+  .top .avatar{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:.85rem;
+    color:rgb(var(--amber));background:var(--amber-soft);border:1px solid var(--hair-strong)}
+
+  /* 记录入口：置顶主角，圆润气泡 + 暖光边 */
+  .compose{margin:1.1rem 1.4rem 0;border-radius:1.4rem;padding:1rem 1.1rem;
+    background:linear-gradient(180deg,rgba(224,178,138,.10),var(--card));
+    border:1px solid var(--hair-strong);
+    box-shadow:0 1px 0 rgba(255,255,255,.03) inset,0 10px 30px -14px rgba(0,0,0,.6)}
+  .compose .field{display:flex;align-items:center;gap:.7rem}
+  .compose input{flex:1;background:none;border:0;outline:none;color:var(--ink-1);font-family:inherit;font-size:.9rem}
+  .compose input::placeholder{color:var(--ink-3)}
+  .compose .mic{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+    background:rgba(224,178,138,.12);border:1px solid var(--hair-strong);cursor:pointer}
+  .compose .mic svg{width:15px;height:15px;stroke:rgb(var(--amber));stroke-width:1.7;fill:none}
+  .compose .row{display:flex;align-items:center;justify-content:space-between;margin-top:.75rem;padding-top:.7rem;border-top:1px solid var(--hair)}
+  .compose .chips{display:flex;gap:.4rem}
+  .compose .chips b{font-size:.62rem;letter-spacing:.04em;color:var(--ink-2);background:rgba(220,190,180,.06);border:1px solid var(--hair);padding:.2rem .55rem;border-radius:999px}
+  .compose .hint{font-size:.6rem;color:var(--ink-3);letter-spacing:.03em}
+
+  /* 时间流主体 */
+  .stream{padding:1.4rem 1.4rem calc(6.5rem + env(safe-area-inset-bottom));position:relative}
+  .stream::before{content:"";position:absolute;left:calc(1.4rem + 7px);top:1.9rem;bottom:6.5rem;width:1px;
+    background:linear-gradient(180deg,transparent,var(--hair-strong) 8%,var(--hair-strong) 88%,transparent)}
+  .ev{position:relative;padding-left:2.2rem;margin-bottom:1.15rem}
+  .ev .tl{position:absolute;left:0;top:.25rem;width:15px;height:15px;border-radius:50%;
+    background:var(--void);border:1.5px solid var(--hair-strong);z-index:1}
+  .ev .time{font-size:.6rem;letter-spacing:.1em;color:var(--ink-3);margin-bottom:.4rem;text-transform:uppercase}
+
+  /* 事件卡通用 */
+  .bubble{border-radius:1.2rem;padding:.85rem 1rem;background:var(--card);border:1px solid var(--hair);
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset,0 8px 22px -14px rgba(0,0,0,.55)}
+  /* 记录型：暖气泡 */
+  .ev.note .tl{border-color:rgba(224,178,138,.5);background:rgba(224,178,138,.15)}
+  .ev.note .bubble{background:linear-gradient(180deg,rgba(224,178,138,.07),var(--card))}
+  .ev.note .bubble p{margin:0;font-size:.86rem;line-height:1.7;color:var(--ink-1)}
+  .ev.note .bubble .assoc{margin-top:.55rem;font-size:.64rem;color:var(--ink-2);display:flex;align-items:center;gap:.4rem}
+  .ev.note .bubble .assoc .k{color:rgb(var(--amber))}
+  .ev.note .bubble .assoc .undo{margin-left:auto;color:var(--ink-3);border-bottom:1px solid var(--hair)}
+
+  /* 实践型：主线，蓝点缀 + 快速三态 */
+  .ev.practice .tl{border-color:rgba(158,186,214,.55);background:rgba(158,186,214,.16)}
+  .ev.practice .bubble{border-color:rgba(158,186,214,.2)}
+  .ev.practice .eyebrow{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:rgb(var(--sky));margin-bottom:.35rem}
+  .ev.practice .topic{font-size:.9rem;font-weight:500;letter-spacing:.01em}
+  .ev.practice .sub{margin-top:.35rem;font-size:.66rem;color:var(--ink-2);line-height:1.6}
+  .ev.practice .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-top:.8rem}
+  .ev.practice .quick button{appearance:none;cursor:pointer;font-family:inherit;font-size:.72rem;
+    padding:.55rem .3rem;border-radius:.8rem;border:1px solid var(--hair);background:rgba(220,190,180,.04);color:var(--ink-2);transition:all .25s}
+  .ev.practice .quick button:hover{border-color:var(--hair-strong);color:var(--ink-1)}
+  .ev.practice .expand{margin-top:.6rem;font-size:.68rem;color:rgb(var(--sky));text-decoration:none}
+
+  /* 安排型：待办气泡，可勾选 */
+  .ev.plan .tl{background:var(--void)}
+  .ev.plan.done .tl{border-color:rgb(var(--amber));background:rgb(var(--amber))}
+  .ev.plan .bubble{display:flex;align-items:center;gap:.75rem}
+  .ev.plan .cbox{flex:none;width:20px;height:20px;border-radius:7px;border:1px solid var(--hair-strong);display:grid;place-items:center;cursor:pointer;transition:all .25s}
+  .ev.plan .cbox svg{width:11px;height:11px;stroke:rgba(16,12,20,.9);stroke-width:3;fill:none;opacity:0}
+  .ev.plan.done .cbox{background:rgb(var(--amber));border-color:rgb(var(--amber))}
+  .ev.plan.done .cbox svg{opacity:1}
+  .ev.plan .txt{flex:1;font-size:.85rem}
+  .ev.plan.done .txt{color:var(--ink-2);text-decoration:line-through;text-decoration-color:var(--ink-4)}
+  .ev.plan .go{color:var(--ink-4)}
+
+  /* 习惯型：合并成一张紧凑气泡 */
+  .ev.habits .tl{border-color:rgba(150,196,160,.4);background:rgba(150,196,160,.12)}
+  .ev.habits .bubble{padding:.7rem .9rem}
+  .ev.habits .hrow{display:flex;align-items:center;gap:.7rem;padding:.4rem 0}
+  .ev.habits .hrow+.hrow{border-top:1px solid var(--hair)}
+  .ev.habits .cbox{flex:none;width:18px;height:18px;border-radius:50%;border:1px solid var(--hair-strong);display:grid;place-items:center;cursor:pointer}
+  .ev.habits .cbox svg{width:9px;height:9px;stroke:rgba(16,12,20,.9);stroke-width:3;fill:none;opacity:0}
+  .ev.habits .hrow.done .cbox{background:var(--success);border-color:var(--success)}
+  .ev.habits .hrow.done .cbox svg{opacity:1}
+  .ev.habits .hn{flex:1;font-size:.82rem}
+  .ev.habits .hs{font-size:.6rem;color:var(--ink-3)}
+
+  /* “未来”节点：晚上要开始的那件事，用虚线气泡指向前方 */
+  .ev.future .tl{border-style:dashed}
+  .ev.future .bubble{background:transparent;border-style:dashed;border-color:var(--hair-strong)}
+  .ev.future .bubble .up{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgb(var(--amber));margin-bottom:.3rem}
+  .ev.future .bubble .txt{font-size:.88rem;font-weight:500}
+  .ev.future .bubble .add{margin-top:.5rem;font-size:.68rem;color:var(--ink-2)}
+
+  /* 底 tab：暖调玻璃 */
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;
+    backdrop-filter:blur(14px);background:rgba(16,12,20,.82);border-top:1px solid var(--hair)}
+  .tabbar .r2{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.28rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar svg{width:19px;height:19px;stroke:var(--ink-3);stroke-width:1.5;fill:none}
+  .tabbar span{font-size:.6rem;letter-spacing:.06em;color:var(--ink-3)}
+  .tabbar a.on svg{stroke:rgb(var(--amber));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--amber))}
+  ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:rgba(220,190,180,.12);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="top">
+    <div class="l">
+      <div class="d">七月十六日 · 星期四</div>
+      <h1 class="serif">今天走到晚上了</h1>
+    </div>
+    <div class="avatar">许</div>
+  </div>
+
+  <!-- 记录入口：主角，置顶 -->
+  <div class="compose">
+    <div class="field">
+      <input type="text" placeholder="记一笔此刻——发生了什么，或你正在怎么想…" />
+      <button class="mic" aria-label="语音"><svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg></button>
+    </div>
+    <div class="row">
+      <div class="chips"><b>无需先分类</b><b>可语音</b></div>
+      <span class="hint">保存后建议关联</span>
+    </div>
+  </div>
+
+  <!-- 今日时间流 -->
+  <div class="stream">
+
+    <!-- 未来：晚上要开始的核心事，指向前方 -->
+    <div class="ev future">
+      <span class="tl"></span>
+      <div class="time">晚上 · 计划开始</div>
+      <div class="bubble">
+        <div class="up">接下来</div>
+        <div class="txt">完成个人项目的一小节</div>
+        <div class="add">来自实践「找回工作日晚上的主动权」· 到点会轻轻提醒你</div>
+      </div>
+    </div>
+
+    <!-- 实践打卡：主线事件 -->
+    <div class="ev practice">
+      <span class="tl"></span>
+      <div class="time">今晚 · 待记录</div>
+      <div class="bubble">
+        <div class="eyebrow">进行中的实践 · 第 2 轮 · 第 4 天</div>
+        <div class="topic">找回工作日晚上的主动权</div>
+        <div class="sub">本轮假设：确定一件事 + 约定娱乐结束时间，能否提高开始率。</div>
+        <div class="quick">
+          <button>完成了</button><button>做了一点</button><button>没开始</button>
+        </div>
+        <a class="expand" href="#">展开详细记录 · 真实行动 / 想法 / 原因 ›</a>
+      </div>
+    </div>
+
+    <!-- 一条随手记录 -->
+    <div class="ev note">
+      <span class="tl"></span>
+      <div class="time">18:40</div>
+      <div class="bubble">
+        <p>到家很累，想先躺一会儿。担心又会一直刷手机。</p>
+        <div class="assoc"><span class="k">建议关联 ›</span> 议题：下班后被娱乐带走 <a class="undo" href="#">忽略</a></div>
+      </div>
+    </div>
+
+    <!-- 已完成安排 -->
+    <div class="ev plan done">
+      <span class="tl"></span>
+      <div class="time">下午 14:00</div>
+      <div class="bubble">
+        <span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="txt">整理项目需求</span>
+        <span class="go">›</span>
+      </div>
+    </div>
+
+    <!-- 习惯合并气泡 -->
+    <div class="ev habits">
+      <span class="tl"></span>
+      <div class="time">日常打卡</div>
+      <div class="bubble">
+        <div class="hrow done"><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span class="hn">阅读 20 分钟</span><span class="hs">连续 12 天</span></div>
+        <div class="hrow"><span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span class="hn">按时服药</span><span class="hs">今日</span></div>
+      </div>
+    </div>
+
+    <!-- 清晨完成 -->
+    <div class="ev plan done">
+      <span class="tl"></span>
+      <div class="time">早上 08:30</div>
+      <div class="bubble">
+        <span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="txt">晨间 10 分钟整理</span>
+        <span class="go">›</span>
+      </div>
+    </div>
+
+  </div>
+
+  <nav class="tabbar">
+    <div class="r2">
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+
+</div>
+</body>
+</html>

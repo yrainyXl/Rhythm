@@ -4,14 +4,14 @@ import { create } from 'zustand'
 import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
 import type { Database } from '@/lib/supabase/database.types'
 
-type ReadingBook = Database['public']['Tables']['reading_books']['Row']
+export type ReadingBook = Database['public']['Tables']['reading_books']['Row']
 type ReadingSession = Database['public']['Tables']['reading_sessions']['Row']
 type ReadingHighlight = Database['public']['Tables']['reading_highlights']['Row']
 type BookStatus = 'reading' | 'finished' | 'paused' | 'dropped'
 type BookSource = 'manual' | 'weixin_read' | 'kindle' | 'other'
 
 export type HighlightWithBook = ReadingHighlight & {
-  reading_books: { title: string; author: string | null; cover_url: string | null } | null
+  reading_books: Pick<ReadingBook, 'title' | 'author' | 'cover_url' | 'status'> | null
 }
 
 export type SyncResult = { books: number; highlights: number; thoughts: number }

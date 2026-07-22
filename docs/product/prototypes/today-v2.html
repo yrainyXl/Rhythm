@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 今天</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== Rhythm 设计 token（复刻自 src/app/globals.css） ===== */
+  :root,.dark{
+    --r-void: 11 16 25;          /* #0B1019 最底层背景 */
+    --r-depth: 17 24 35;          /* #111823 深层背景 */
+    --r-surface: 22 29 43;        /* #161D2B 表面 */
+    --r-card: 20 27 39;           /* #141B27 卡片 */
+    --r-card-hover: 26 34 49;      /* #1A2231 卡片 hover */
+    --r-glow: 143 180 220;        /* #8FB4DC 主强调 冷月光蓝 */
+    --r-accent: rgba(160,195,220,.28);
+    --r-glow-soft: rgba(143,180,220,.15);
+    --r-border: rgba(150,175,205,.10);
+    --r-border-strong: rgba(150,175,205,.18);
+    --r-mist: rgba(170,190,210,.12);
+    --r-success: rgba(120,190,160,.9);
+    --r-success-soft: rgba(120,190,160,.12);
+    --r-warn: rgba(220,180,130,.9);
+    --r-warn-soft: rgba(220,180,130,.12);
+    --r-danger: rgba(220,140,140,.9);
+    --r-text-primary: rgba(222,228,236,.92);
+    --r-text-secondary: rgba(210,218,228,.55);
+    --r-text-muted: rgba(200,210,222,.32);
+    --r-text-faint: rgba(200,210,222,.18);
+    --r-bg-radial: rgba(30,44,66,.5);
+    --r-bg-1:#0B1019; --r-bg-2:#0D1420; --r-bg-3:#090D14;
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;
+    color:var(--r-text-primary);
+    background:
+      radial-gradient(120% 80% at 50% -10%, var(--r-bg-radial) 0%, transparent 55%),
+      linear-gradient(180deg, var(--r-bg-1) 0%, var(--r-bg-2) 50%, var(--r-bg-3) 100%);
+    background-attachment:fixed;
+    min-height:100dvh;
+    overscroll-behavior:none;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* 字体语义类 */
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC','Microsoft YaHei',serif;font-weight:500;letter-spacing:.04em;color:var(--r-text-primary)}
+  .r-eyebrow{font-size:.7rem;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--r-text-muted)}
+  .r-label{font-size:.75rem;font-weight:400;letter-spacing:.04em;color:var(--r-text-secondary)}
+
+  /* 移动端单列容器 */
+  .app{max-width:512px;margin:0 auto;min-height:100dvh;position:relative}
+
+  /* 顶栏：毛玻璃 + 安全区 */
+  .topbar{
+    position:sticky;top:0;z-index:20;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;
+    backdrop-filter:blur(12px);
+    background:rgba(11,16,25,.7);
+    border-bottom:1px solid var(--r-border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--r-text-muted);margin-top:2px}
+  .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;color:rgb(var(--r-glow));background:var(--r-glow-soft);border:1px solid var(--r-border-strong)}
+
+  /* 主区 */
+  main{padding:1.25rem 1.25rem calc(6.5rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:1.25rem}
+
+  /* 卡片：半透明毛玻璃 + 顶部高光 inset + 底部柔阴影 */
+  .card{
+    border-radius:1rem;
+    border:1px solid var(--r-border);
+    background:rgba(20,27,39,.8);
+    backdrop-filter:blur(4px);
+    box-shadow:0 1px 0 rgba(255,255,255,.02) inset, 0 8px 24px -12px rgba(0,0,0,.5);
+  }
+  .card-pad{padding:1rem}
+  .card-pad-lg{padding:1.25rem}
+
+  /* —— 头部今日状态 —— */
+  .dayhead{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+  .dayhead .date{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--r-text-muted)}
+  .dayhead h1{margin:.35rem 0 0;font-family:'Noto Serif SC',serif;font-weight:400;font-size:1.6rem;letter-spacing:.04em;line-height:1.2}
+  .dayhead .tonight{font-size:.78rem;color:var(--r-text-secondary);margin-top:.4rem;line-height:1.6}
+  .dayhead .tonight b{color:rgb(var(--r-glow));font-weight:500}
+  .gauge{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;position:relative;
+    background:conic-gradient(rgba(143,180,220,.7) 0deg 0deg, rgba(143,180,220,.08) 0deg 360deg)}
+  .gauge::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(11,16,25,.9)}
+  .gauge span{position:relative;z-index:1;font-family:'Noto Serif SC',serif;font-size:.95rem;color:rgb(var(--r-glow))}
+
+  /* —— 区块标题行 —— */
+  .sec{display:flex;align-items:center;justify-content:space-between;margin-bottom:.55rem}
+  .sec .t{display:flex;align-items:center;gap:.5rem}
+  .sec .t .r-eyebrow{color:var(--r-text-secondary);text-transform:none;letter-spacing:.06em;font-size:.72rem}
+  .sec .t .dot{width:5px;height:5px;border-radius:50%;background:rgb(var(--r-glow));opacity:.6}
+  .text-btn{font-size:.75rem;color:rgb(var(--r-glow));letter-spacing:.03em;background:none;border:0;padding:.2rem .1rem;cursor:pointer;transition:color .3s}
+  .text-btn:hover{color:var(--r-text-primary)}
+
+  /* —— 今日安排：时间带 —— */
+  .bands{display:flex;flex-direction:column;gap:.5rem}
+  .band{display:grid;grid-template-columns:42px 1fr;gap:.85rem;align-items:stretch}
+  .band .rail{display:flex;flex-direction:column;align-items:center;gap:.3rem;padding-top:.2rem}
+  .band .rail .tag{font-size:.6rem;letter-spacing:.1em;color:var(--r-text-muted);writing-mode:initial}
+  .band .rail .node{width:9px;height:9px;border-radius:50%;border:1px solid var(--r-border-strong);background:rgba(11,16,25,.6)}
+  .band .rail .node.done{background:rgb(var(--r-glow));border-color:rgb(var(--r-glow));box-shadow:0 0 0 4px rgba(143,180,220,.12)}
+  .band .rail .line{flex:1;width:1px;background:linear-gradient(180deg,var(--r-border-strong),transparent)}
+  .band .body{padding-bottom:.1rem}
+  .plan-item{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .85rem;border-radius:.75rem;border:1px solid var(--r-border);background:rgba(11,16,25,.35);transition:border-color .3s,background .3s}
+  .plan-item:hover{border-color:var(--r-border-strong);background:rgba(11,16,25,.5)}
+  .plan-item .lbl{display:flex;flex-direction:column;gap:.15rem}
+  .plan-item .lbl b{font-size:.86rem;font-weight:500;color:var(--r-text-primary);letter-spacing:.01em}
+  .plan-item .lbl small{font-size:.66rem;color:var(--r-text-muted)}
+  .plan-item .ico{color:var(--r-text-faint);font-size:1.05rem;line-height:1}
+  .plan-empty{display:flex;align-items:center;gap:.6rem;padding:.7rem .85rem;border-radius:.75rem;border:1px dashed var(--r-border-strong);color:var(--r-text-muted);font-size:.8rem;cursor:pointer;transition:color .3s,border-color .3s}
+  .plan-empty:hover{color:var(--r-text-secondary);border-color:rgb(var(--r-glow))}
+  .plan-empty .plus{width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--r-border-strong);color:rgb(var(--r-glow));font-size:.8rem}
+
+  /* —— 进行中实践：核心卡，强调态 —— */
+  .practice{border-color:rgba(143,180,220,.22);background:linear-gradient(180deg,rgba(143,180,220,.07) 0%,rgba(20,27,39,.82) 60%)}
+  .practice .top{display:flex;gap:.7rem;align-items:flex-start}
+  .pcheck{flex:none;width:24px;height:24px;border-radius:8px;border:1px solid rgba(143,180,220,.4);background:rgba(143,180,220,.06);display:grid;place-items:center;margin-top:.1rem}
+  .pcheck svg{width:13px;height:13px;stroke:rgb(var(--r-glow));stroke-width:2.4;fill:none}
+  .pmeta{flex:1;min-width:0}
+  .pmeta .topic{font-size:.9rem;font-weight:500;letter-spacing:.01em;color:var(--r-text-primary)}
+  .pmeta .sub{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin-top:.3rem}
+  .pmeta .sub .chip{font-size:.62rem;letter-spacing:.04em;color:var(--r-text-secondary);background:rgba(11,16,25,.4);border:1px solid var(--r-border);padding:.12rem .45rem;border-radius:999px}
+  .pmeta .sub .chip.live{color:rgb(var(--r-glow));border-color:rgba(143,180,220,.3);background:rgba(143,180,220,.08)}
+  .pmeta .sub .sep{color:var(--r-text-faint)}
+  .pmeta .assumption{margin-top:.55rem;font-size:.72rem;line-height:1.65;color:var(--r-text-secondary);padding-left:.7rem;border-left:2px solid rgba(143,180,220,.25)}
+  .pmeta .assumption em{font-style:normal;color:var(--r-text-muted);letter-spacing:.05em}
+  /* 轮次进度条 */
+  .round-track{margin-top:.7rem;height:4px;border-radius:999px;background:rgba(143,180,220,.1);overflow:hidden}
+  .round-track i{display:block;height:100%;width:57%;border-radius:999px;background:linear-gradient(90deg,rgba(143,180,220,.5),rgba(143,180,220,.9))}
+  .round-ticks{display:flex;justify-content:space-between;margin-top:.35rem;font-size:.58rem;color:var(--r-text-muted);letter-spacing:.04em}
+  /* 快速记录三态 */
+  .quick{display:grid;grid-template-columns:repeat(3,1fr);gap:.45rem;margin-top:.85rem}
+  .quick button{appearance:none;border:1px solid var(--r-border);background:rgba(11,16,25,.4);border-radius:.7rem;padding:.6rem .3rem;color:var(--r-text-secondary);font-size:.74rem;letter-spacing:.02em;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:.25rem}
+  .quick button .k{font-size:.6rem;color:var(--r-text-muted);letter-spacing:.06em}
+  .quick button:hover{border-color:var(--r-border-strong);color:var(--r-text-primary)}
+  .quick button.sel-done{border-color:rgba(120,190,160,.4);background:var(--r-success-soft);color:var(--r-success)}
+  .quick button.sel-partial{border-color:rgba(220,180,130,.4);background:var(--r-warn-soft);color:var(--r-warn)}
+  .quick button.sel-none{border-color:rgba(220,140,140,.4);background:rgba(220,140,140,.12);color:var(--r-danger)}
+  .quick button.sel-done .k,.quick button.sel-partial .k,.quick button.sel-none .k{color:inherit;opacity:.7}
+  .detail-row{margin-top:.6rem;display:flex;align-items:center;justify-content:space-between}
+  .detail-row a{font-size:.74rem;color:var(--r-text-secondary);display:inline-flex;align-items:center;gap:.3rem;text-decoration:none}
+  .detail-row a .chev{color:var(--r-text-faint)}
+
+  /* —— 习惯打卡 —— */
+  .habits{display:flex;flex-direction:column;gap:.4rem}
+  .habit{display:flex;align-items:center;gap:.7rem;padding:.65rem .3rem}
+  .habit .cbox{flex:none;width:20px;height:20px;border-radius:6px;border:1px solid var(--r-border-strong);display:grid;place-items:center;cursor:pointer;transition:all .25s}
+  .habit .cbox svg{width:11px;height:11px;stroke:rgba(11,16,25,.9);stroke-width:3;fill:none;opacity:0}
+  .habit.done .cbox{background:rgb(var(--r-glow));border-color:rgb(var(--r-glow))}
+  .habit.done .cbox svg{opacity:1}
+  .habit.done .name{color:var(--r-text-secondary);text-decoration:line-through;text-decoration-color:var(--r-text-faint)}
+  .habit .name{flex:1;font-size:.84rem;letter-spacing:.01em}
+  .habit .streak{font-size:.62rem;color:var(--r-text-muted);letter-spacing:.04em}
+
+  /* —— 自由记录 —— */
+  .capture .input-wrap{display:flex;align-items:center;gap:.6rem;border-radius:.9rem;border:1px solid var(--r-border);background:rgba(11,16,25,.6);padding:.7rem .8rem;transition:border-color .25s,box-shadow .25s}
+  .capture .input-wrap:focus-within{border-color:rgba(143,180,220,.4);box-shadow:0 0 0 3px rgba(143,180,220,.08)}
+  .capture .input-wrap input{flex:1;background:none;border:0;outline:none;color:var(--r-text-primary);font-size:.84rem;font-family:inherit}
+  .capture .input-wrap input::placeholder{color:var(--r-text-muted)}
+  .capture .voice{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--r-border-strong);color:rgb(var(--r-glow));background:rgba(143,180,220,.06);cursor:pointer}
+  .capture .voice svg{width:13px;height:13px;stroke:rgb(var(--r-glow));stroke-width:1.9;fill:none}
+  .capture .hint{margin-top:.5rem;font-size:.66rem;color:var(--r-text-muted);letter-spacing:.02em}
+
+  /* —— 底部 tab —— */
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;
+    backdrop-filter:blur(12px);background:rgba(11,16,25,.82);border-top:1px solid var(--r-border)}
+  .tabbar .row{display:flex;justify-around;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--r-text-muted);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--r-text-muted)}
+  .tabbar a.on svg{stroke:rgb(var(--r-glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--r-glow))}
+
+  /* 可滚动区微调 */
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-thumb{background:rgba(150,175,205,.15);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="brand">节奏<small>RHYTHM</small></div>
+    <div class="avatar">许</div>
+  </header>
+
+  <main>
+    <!-- 今日状态头 -->
+    <section class="dayhead">
+      <div>
+        <div class="date">7月16日 · 星期四</div>
+        <h1 class="r-title">今天</h1>
+        <p class="tonight">今晚有 <b>1 件事</b>在等你开始，实践进行到 <b>第 4 / 7 天</b>。</p>
+      </div>
+      <div class="gauge" title="今日完成 0/3"><span>0/3</span></div>
+    </section>
+
+    <!-- 今日安排：时间带 -->
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">今日安排</span></div>
+        <button class="text-btn">添加安排</button>
+      </div>
+      <div class="card card-pad">
+        <div class="bands">
+          <!-- 早上 已完成 -->
+          <div class="band">
+            <div class="rail"><span class="tag">早</span><span class="node done"></span><span class="line"></span></div>
+            <div class="body">
+              <div class="plan-item">
+                <div class="lbl"><b>晨间 10 分钟整理</b><small>08:30 · 已完成</small></div>
+                <span class="ico">›</span>
+              </div>
+            </div>
+          </div>
+          <!-- 下午 进行中 -->
+          <div class="band">
+            <div class="rail"><span class="tag">午</span><span class="node"></span><span class="line"></span></div>
+            <div class="body">
+              <div class="plan-item">
+                <div class="lbl"><b>整理项目需求</b><small>14:00 · 进行中</small></div>
+                <span class="ico">›</span>
+              </div>
+            </div>
+          </div>
+          <!-- 晚上 待安排的核心 -->
+          <div class="band">
+            <div class="rail"><span class="tag">晚</span><span class="node"></span></div>
+            <div class="body">
+              <div class="plan-item">
+                <div class="lbl"><b>完成个人项目的一小节</b><small>20:00 · 计划开始</small></div>
+                <span class="ico">›</span>
+              </div>
+            </div>
+          </div>
+          <!-- 空时间带：引导添加 -->
+          <div class="band">
+            <div class="rail"><span class="tag">夜</span><span class="node"></span></div>
+            <div class="body">
+              <div class="plan-empty"><span class="plus">+</span>为今晚加一个明确的行动</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 进行中的实践（核心） -->
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">进行中的实践</span></div>
+        <button class="text-btn">查看实践</button>
+      </div>
+      <div class="card card-pad-lg practice">
+        <div class="top">
+          <span class="pcheck"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+          <div class="pmeta">
+            <div class="topic">找回工作日晚上的主动权</div>
+            <div class="sub">
+              <span class="chip live">● 第 2 轮</span>
+              <span class="sep">·</span>
+              <span class="chip">第 4 天</span>
+              <span class="sep">·</span>
+              <span class="chip">议题：下班后被娱乐带走</span>
+            </div>
+            <div class="assumption"><em>本轮假设　</em>确定一件事 + 约定娱乐结束时间，看开始率是否提高。</div>
+            <div class="round-track"><i></i></div>
+            <div class="round-ticks"><span>D1</span><span>D2</span><span>D3</span><span>D4</span><span>D5</span><span>D6</span><span>D7</span></div>
+          </div>
+        </div>
+
+        <div class="quick">
+          <button><span class="k">快速记录</span>完成了</button>
+          <button><span class="k">快速记录</span>做了一点</button>
+          <button><span class="k">快速记录</span>没开始</button>
+        </div>
+
+        <div class="detail-row">
+          <a href="#">展开详细记录<span class="chev">›</span></a>
+          <a href="#">查看本轮观察</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日常打卡 -->
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">日常打卡</span></div>
+        <button class="text-btn">管理</button>
+      </div>
+      <div class="card card-pad">
+        <div class="habits">
+          <div class="habit done">
+            <span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            <span class="name">阅读 20 分钟</span>
+            <span class="streak">连续 12 天</span>
+          </div>
+          <div class="habit">
+            <span class="cbox"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
+            <span class="name">按时服药</span>
+            <span class="streak">今日</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 页面内自由记录 -->
+    <section>
+      <div class="sec">
+        <div class="t"><span class="dot"></span><span class="r-eyebrow">记录此刻的想法</span></div>
+      </div>
+      <div class="capture">
+        <div class="input-wrap">
+          <input type="text" placeholder="发生了什么，或者你正在怎么想…" />
+          <button class="voice" title="语音记录" aria-label="语音记录">
+            <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>
+          </button>
+        </div>
+        <p class="hint">保存后，Rhythm 会建议关联到安排、实践或议题，你可以确认或忽略。</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- 底部 tab -->
+  <nav class="tabbar">
+    <div class="row">
+      <a class="on" href="#">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span>今天</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="3" r="1.3" fill="currentColor" stroke="none"/></svg>
+        <span>计划</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg>
+        <span>记录</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg>
+        <span>阅读</span>
+      </a>
+      <a href="#">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <span>我的</span>
+      </a>
+    </div>
+  </nav>
+
+</div>
+</body>
+</html>

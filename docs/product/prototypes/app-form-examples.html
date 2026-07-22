@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · App 形态参考（5 种范式）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --accent:#5B8DEF; --accent2:#7B5BEF;
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:#3ECF8E; --warn:#E6A23C;
+    --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14;
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --accent:#3B6FCF; --accent2:#6B4FE0;
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:#2EA86F; --warn:#C68A30;
+    --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA;
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --accent:#2E8C72; --accent2:#4A7CA0;
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:#2E9B6E; --warn:#B07A30;
+    --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3;
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --accent:#B8743A; --accent2:#A8566A;
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:#5A8A45; --warn:#B07628;
+    --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:var(--text-1);
+    background:linear-gradient(180deg,var(--bg-1),var(--bg-2) 50%,var(--bg-3));background-attachment:fixed;min-height:100dvh;
+    -webkit-font-smoothing:antialiased;padding:2.5rem 1.2rem 4rem}
+  .wrap{max-width:1200px;margin:0 auto}
+  h1{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.5rem;margin:0 0 .4rem}
+  .lead{color:var(--text-2);font-size:.85rem;line-height:1.8;max-width:680px;margin-bottom:2rem}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.6rem}
+  .col h2{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.02rem;margin:0 0 .15rem}
+  .col .sub{font-size:.68rem;color:var(--text-3);margin-bottom:1rem}
+  .col-head{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+  .col-head .tag{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:.3rem}
+  .col-head p{font-size:.7rem;line-height:1.7;color:var(--text-2);margin:.5rem 0 0}
+  .phone{width:100%;max-width:290px;margin:0 auto;border-radius:1.6rem;overflow:hidden;border:1px solid var(--border-strong);
+    background:var(--bg-2);box-shadow:0 20px 50px -20px rgba(0,0,0,.6);min-height:580px;display:flex;flex-direction:column;position:relative}
+  .serif{font-family:'Noto Serif SC',serif}
+  .ic{display:grid;place-items:center;flex:none}
+
+  /* ============ A · 卡片入口式 ============ */
+  .pA .stb{display:flex;justify-content:space-between;padding:.7rem 1.1rem .2rem;font-size:.6rem;color:var(--text-3)}
+  .pA .title{font-size:1.4rem;font-weight:700;padding:.4rem 1.1rem .2rem}
+  .pA .tabs{display:flex;gap:.4rem;padding:.6rem 1.1rem;overflow-x:auto}
+  .pA .tabs .t{font-size:.7rem;padding:.38rem .75rem;border-radius:999px;background:rgb(var(--card));border:1px solid var(--border);color:var(--text-2);white-space:nowrap;cursor:pointer}
+  .pA .tabs .t.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .pA .hero{margin:.3rem 1.1rem;border-radius:1rem;padding:1rem 1.1rem;background:linear-gradient(135deg,#5B8DEF,#7B5BEF);color:#fff}
+  .pA .hero .cap{font-size:.6rem;opacity:.8;letter-spacing:.06em;text-transform:uppercase}
+  .pA .hero .big{font-size:1.2rem;font-weight:700;margin-top:.2rem}
+  .pA .hero .sub{font-size:.66rem;opacity:.9;margin-top:.15rem}
+  .pA .hero .act{margin-top:.8rem;display:flex;gap:.5rem}
+  .pA .hero .act button{font-size:.7rem;padding:.42rem .85rem;border-radius:.55rem;border:0;background:rgba(255,255,255,.22);color:#fff;font-weight:600;cursor:pointer}
+  .pA .hero .act button.pri{background:#fff;color:#5B8DEF}
+  .pA .g2{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;padding:.8rem 1.1rem 0}
+  .pA .g2 .c{border-radius:.8rem;background:rgb(var(--card));border:1px solid var(--border);padding:.8rem}
+  .pA .g2 .c .e{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:.85rem;margin-bottom:.35rem}
+  .pA .g2 .c .n{font-size:.7rem;font-weight:600}
+  .pA .g2 .c .v{font-size:.58rem;color:var(--text-3);margin-top:.1rem}
+  .pA .list{padding:.7rem 1.1rem 1.2rem}
+  .pA .list .row{display:flex;align-items:center;gap:.6rem;padding:.65rem .8rem;border-radius:.75rem;background:rgb(var(--card));border:1px solid var(--border);margin-bottom:.45rem;cursor:pointer}
+  .pA .list .row .e{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:.75rem}
+  .pA .list .row .n{flex:1;font-size:.73rem;font-weight:500}
+  .pA .list .row .v{font-size:.6rem;color:var(--text-3)}
+  .pA .list .row .arr{color:var(--text-4)}
+
+  /* ============ B · 列表复选式 ============ */
+  .pB .tb{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem .3rem}
+  .pB .tb .t{font-size:1.15rem;font-weight:700}
+  .pB .tb .add{width:30px;height:30px;border-radius:9px;background:var(--accent);border:0;color:#fff;font-size:1.2rem;display:grid;place-items:center;cursor:pointer}
+  .pB .seg{display:flex;margin:.3rem 1.1rem .4rem;background:rgb(var(--card-inset) / .6);border-radius:.65rem;padding:2px}
+  .pB .seg .s{flex:1;text-align:center;font-size:.66rem;padding:.38rem;border-radius:.5rem;color:var(--text-3);cursor:pointer}
+  .pB .seg .s.on{background:rgb(var(--card));color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .pB .gh{font-size:.58rem;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;padding:.9rem 1.1rem .35rem}
+  .pB .task{display:flex;align-items:flex-start;gap:.6rem;padding:.65rem 1.1rem;cursor:pointer;border-bottom:1px solid var(--border)}
+  .pB .task .cb{width:20px;height:20px;border-radius:6px;border:2px solid var(--text-3);flex:none;margin-top:1px;cursor:pointer}
+  .pB .task .cb.done{background:var(--success);border-color:var(--success);color:#fff;font-size:.65rem}
+  .pB .task .b{flex:1}
+  .pB .task .b .n{font-size:.76rem;font-weight:500}
+  .pB .task .b .m{font-size:.6rem;color:var(--text-3);margin-top:.12rem}
+  .pB .task .b .m .tag{background:rgba(91,141,239,.18);color:var(--accent);padding:.05rem .3rem;border-radius:4px;margin-right:.2rem}
+  .pB .task.done .n{text-decoration:line-through;color:var(--text-3)}
+  .pB .bigadd{margin:1rem 1.1rem;padding:.8rem;border-radius:.7rem;border:1.5px dashed var(--border-strong);background:none;color:var(--text-2);font-size:.72rem;text-align:center;cursor:pointer}
+
+  /* ============ C · 对象卡流 ============ */
+  .pC .tb{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem .2rem}
+  .pC .tb .t{font-size:1.15rem;font-weight:700}
+  .pC .tb .add{width:30px;height:30px;border-radius:9px;background:var(--accent);border:0;color:#fff;font-size:1.2rem;display:grid;place-items:center;cursor:pointer}
+  .pC .chips{display:flex;gap:.4rem;padding:.5rem 1.1rem;overflow-x:auto}
+  .pC .chips .c{font-size:.64rem;padding:.32rem .65rem;border-radius:999px;background:rgb(var(--card));border:1px solid var(--border);color:var(--text-2);white-space:nowrap;cursor:pointer}
+  .pC .chips .c.on{background:rgba(91,141,239,.16);border-color:rgba(91,141,239,.4);color:var(--accent)}
+  .pC .feed{padding:.3rem 1.1rem 1.2rem;display:flex;flex-direction:column;gap:.7rem}
+  .pC .card{border-radius:.9rem;border:1px solid var(--border);background:rgb(var(--card));overflow:hidden}
+  .pC .card .top{display:flex;align-items:center;gap:.5rem;padding:.7rem .85rem .35rem}
+  .pC .card .badge{font-size:.56rem;padding:.18rem .45rem;border-radius:5px;font-weight:600;letter-spacing:.02em}
+  .pC .card .badge.live{background:rgba(62,207,142,.16);color:var(--success)}
+  .pC .card .badge.issue{background:rgba(143,180,220,.14);color:rgb(var(--glow))}
+  .pC .card .badge.method{background:rgba(230,162,60,.16);color:var(--warn)}
+  .pC .card .dot{width:5px;height:5px;border-radius:50%;background:var(--success);margin-left:auto}
+  .pC .card .ttl{font-family:'Noto Serif SC',serif;font-size:.85rem;padding:0 .85rem .35rem;line-height:1.4}
+  .pC .card .meta{font-size:.6rem;color:var(--text-3);padding:0 .85rem .6rem;line-height:1.5}
+  .pC .card .meta em{font-style:normal;color:var(--text-2)}
+  .pC .card .acts{display:flex;gap:.5rem;padding:.55rem .85rem;border-top:1px solid var(--border)}
+  .pC .card .acts button{flex:1;font-size:.64rem;padding:.42rem;border-radius:.5rem;border:1px solid var(--border-strong);background:none;color:var(--text-2);cursor:pointer}
+  .pC .card .acts button.pri{background:rgba(91,141,239,.14);border-color:rgba(91,141,239,.4);color:var(--accent);font-weight:600}
+
+  /* ============ D · 混合式（主角卡 + 列表） ============ */
+  .pD .tb{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem .3rem}
+  .pD .tb .t{font-size:1.15rem;font-weight:700}
+  .pD .tb .add{width:30px;height:30px;border-radius:9px;background:var(--accent);border:0;color:#fff;font-size:1.2rem;display:grid;place-items:center;cursor:pointer}
+  .pD .seg{display:flex;margin:.2rem 1.1rem .6rem;background:rgb(var(--card-inset) / .6);border-radius:.65rem;padding:2px}
+  .pD .seg .s{flex:1;text-align:center;font-size:.66rem;padding:.38rem;border-radius:.5rem;color:var(--text-3);cursor:pointer}
+  .pD .seg .s.on{background:rgb(var(--card));color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .pD .hero{margin:0 1.1rem .8rem;border-radius:.95rem;border:1px solid rgba(91,141,239,.3);background:linear-gradient(180deg,rgba(91,141,239,.1),rgb(var(--card)));padding:1rem}
+  .pD .hero .cap{font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:.4rem}
+  .pD .hero .cap .live{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px rgba(91,141,239,.2)}
+  .pD .hero .ttl{font-family:'Noto Serif SC',serif;font-size:.95rem;margin:.4rem 0 .3rem;line-height:1.4}
+  .pD .hero .meta{font-size:.62rem;color:var(--text-2);line-height:1.5;margin-bottom:.7rem}
+  .pD .hero .meta b{color:var(--accent)}
+  .pD .hero .acts{display:flex;gap:.5rem}
+  .pD .hero .acts button{font-size:.66rem;padding:.45rem .8rem;border-radius:.55rem;border:1px solid var(--border-strong);background:none;color:var(--text-2);cursor:pointer}
+  .pD .hero .acts button.pri{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .pD .gh{font-size:.58rem;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase;padding:0 1.1rem .35rem}
+  .pD .list{padding:0 1.1rem 1.2rem}
+  .pD .row{display:flex;align-items:center;gap:.6rem;padding:.7rem 0;border-bottom:1px solid var(--border);cursor:pointer}
+  .pD .row .e{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;font-size:.8rem;background:rgb(var(--card-inset) / .5)}
+  .pD .row .n{flex:1;font-size:.74rem;font-weight:500}
+  .pD .row .v{font-size:.58rem;color:var(--text-3)}
+  .pD .row .arr{color:var(--text-4)}
+
+  /* ============ E · 时间轴章节式 ============ */
+  .pE .tb{display:flex;align-items:center;justify-content:space-between;padding:.8rem 1.1rem .3rem}
+  .pE .tb .t{font-size:1.15rem;font-weight:700}
+  .pE .tb .add{width:30px;height:30px;border-radius:9px;background:var(--accent);border:0;color:#fff;font-size:1.2rem;display:grid;place-items:center;cursor:pointer}
+  .pE .seg{display:flex;margin:.2rem 1.1rem .4rem;background:rgb(var(--card-inset) / .6);border-radius:.65rem;padding:2px}
+  .pE .seg .s{flex:1;text-align:center;font-size:.64rem;padding:.36rem;border-radius:.5rem;color:var(--text-3);cursor:pointer}
+  .pE .seg .s.on{background:rgb(var(--card));color:var(--text-1);box-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .pE .timeline{padding:0 1.1rem 1.2rem;position:relative}
+  .pE .tl-head{display:flex;align-items:baseline;gap:.5rem;padding:1rem 0 .5rem}
+  .pE .tl-head .d{font-size:.72rem;font-weight:700;color:var(--accent)}
+  .pE .tl-head .s{font-size:.58rem;color:var(--text-3)}
+  .pE .tl-item{display:flex;gap:.7rem;padding:.55rem 0}
+  .pE .tl-item .rail{display:flex;flex-direction:column;align-items:center;flex:none}
+  .pE .tl-item .pt{width:10px;height:10px;border-radius:50%;border:2px solid var(--border-strong);background:var(--bg-2);margin-top:.25rem}
+  .pE .tl-item.live .pt{background:var(--accent);border-color:var(--accent);box-shadow:0 0 0 3px rgba(91,141,239,.2)}
+  .pE .tl-item .line{width:2px;flex:1;background:var(--border);margin-top:.2rem}
+  .pE .tl-item:last-child .line{display:none}
+  .pE .tl-item .body{flex:1;padding-bottom:.3rem}
+  .pE .tl-item .body .n{font-size:.76rem;font-weight:500;line-height:1.4}
+  .pE .tl-item .body .m{font-size:.6rem;color:var(--text-3);margin-top:.15rem;line-height:1.5}
+  .pE .tl-item .body .acts{display:flex;gap:.45rem;margin-top:.5rem}
+  .pE .tl-item .body .acts button{font-size:.6rem;padding:.32rem .6rem;border-radius:.45rem;border:1px solid var(--border-strong);background:none;color:var(--text-2);cursor:pointer}
+  .pE .tl-item .body .acts button.pri{background:rgba(91,141,239,.14);border-color:rgba(91,141,239,.4);color:var(--accent)}
+
+  .note{margin-top:1.8rem;padding:1rem 1.1rem;border-radius:.8rem;border:1px solid var(--border);background:rgb(var(--card) / .5);font-size:.72rem;line-height:1.7;color:var(--text-2)}
+  .note b{color:var(--text-1)}
+
+  /* ===== 主题切换器 ===== */
+  .theme-switch{position:fixed;top:.8rem;right:.8rem;z-index:100;display:flex;gap:.4rem;align-items:center;
+    background:rgb(var(--void) / .82);backdrop-filter:blur(14px);border:1px solid var(--border-strong);
+    border-radius:999px;padding:.3rem .4rem;box-shadow:0 6px 20px -8px rgba(0,0,0,.4)}
+  .theme-switch .lbl{font-size:.6rem;color:var(--text-3);letter-spacing:.04em;padding:0 .2rem 0 .4rem}
+  .theme-switch button{width:22px;height:22px;border-radius:50%;border:2px solid transparent;cursor:pointer;padding:0;position:relative}
+  .theme-switch button::after{content:"";position:absolute;inset:3px;border-radius:50%}
+  .theme-switch button[data-t="cool"]::after{background:linear-gradient(135deg,#8FB4DC,#0B1019)}
+  .theme-switch button[data-t="day"]::after{background:linear-gradient(135deg,#F6F4EF,#3B6FCF)}
+  .theme-switch button[data-t="celadon"]::after{background:linear-gradient(135deg,#EFF4F2,#2E8C72)}
+  .theme-switch button[data-t="apricot"]::after{background:linear-gradient(135deg,#F9F3EB,#B8743A)}
+  .theme-switch button.on{border-color:var(--accent)}
+
+</style>
+</head>
+<body>
+<div class="theme-switch">
+    <span class="lbl">肤色</span>
+    <button data-t="cool" class="on" title="冷蓝(暗)"></button>
+    <button data-t="day" title="日间"></button>
+    <button data-t="celadon" title="青瓷"></button>
+    <button data-t="apricot" title="杏色"></button>
+  </div>
+
+<div class="wrap">
+  <h1>App 形态参考 · 5 种范式</h1>
+  <p class="lead">抛开产品内容，看 5 种成熟 app 处理「多分类内容 + 操作」的典型形态。共同点：都有明确的操作按钮/入口、内容以可点击对象承载、不像数据面板。选一个大方向，再往里填我们的内容。</p>
+
+  <div class="grid">
+    <!-- A -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">A</div>
+        <h2>卡片入口式</h2>
+        <p>大标题 + 分段胶囊 + 醒目 hero 卡（带主操作按钮）+ 小卡网格 + 可点击行列表。分区清晰、有明确主操作。像 Apple 健康、设置首页。<b>注：此风格典型带悬浮加号，但我们文档已否决，真做时内化到顶栏。</b></p>
+      </div>
+      <div class="phone pA">
+        <div class="stb"><span>9:41</span><span>100%</span></div>
+        <div class="title">计划</div>
+        <div class="tabs"><span class="t on">探索</span><span class="t">方向</span><span class="t">习惯</span></div>
+        <div class="hero">
+          <div class="cap">当前实践</div>
+          <div class="big">找回晚上的主动权</div>
+          <div class="sub">第 2 轮 · 第 4/7 天 · 还有 2 天</div>
+          <div class="act"><button class="pri">查看实践</button><button>调整</button></div>
+        </div>
+        <div class="g2">
+          <div class="c"><div class="e">🎯</div><div class="n">3 个议题</div><div class="v">2 个在实践</div></div>
+          <div class="c"><div class="e">🧪</div><div class="n">2 个实践</div><div class="v">1 进行中</div></div>
+        </div>
+        <div class="list">
+          <div class="row"><div class="e">❓</div><div class="n">为什么下班总陷入娱乐</div><div class="v">6 条</div><div class="arr">›</div></div>
+          <div class="row"><div class="e">💡</div><div class="n">行动缩小到 15 分钟</div><div class="v">已验证</div><div class="arr">›</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">B</div>
+        <h2>列表复选式</h2>
+        <p>标题 + 右上添加按钮 + 分段控件 + 分组的可勾选行。每行是一条可操作对象，带复选、标签、进入箭头。交互极轻，底部虚线大添加。像 Things、提醒事项。</p>
+      </div>
+      <div class="phone pB">
+        <div class="tb"><span class="t">探索</span><button class="add">+</button></div>
+        <div class="seg"><div class="s on">进行中</div><div class="s">议题</div><div class="s">方法</div></div>
+        <div class="gh">当前实践</div>
+        <div class="task"><div class="cb"></div><div class="b"><div class="n">找回工作日晚上的主动权</div><div class="m"><span class="tag">第2轮</span>D4/7 · 还有2天</div></div></div>
+        <div class="gh">其他议题</div>
+        <div class="task"><div class="cb"></div><div class="b"><div class="n">为什么白天注意力难持续</div><div class="m"><span class="tag">第1轮</span>记录3 · 阅读有候选</div></div></div>
+        <div class="task"><div class="cb"></div><div class="b"><div class="n">是不是把休息也当成任务</div><div class="m">记录2 · AI 观察</div></div></div>
+        <div class="gh">已验证的方法</div>
+        <div class="task done"><div class="cb done">✓</div><div class="b"><div class="n">把行动缩小到 15 分钟</div><div class="m">来源：下班后议题</div></div></div>
+        <div class="bigadd">+ 新建议题或实践</div>
+      </div>
+    </div>
+
+    <!-- C -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">C</div>
+        <h2>对象卡流</h2>
+        <p>每个对象（实践/议题/方法）是一张完整卡片：类型徽章 + 标题 + 元信息 + 底部操作按钮行。卡片自包含、可独立操作，垂直滚动。像 Notion 数据库卡视图、Linear issue 卡。</p>
+      </div>
+      <div class="phone pC">
+        <div class="tb"><span class="t">探索</span><button class="add">+</button></div>
+        <div class="chips"><span class="c on">全部</span><span class="c">进行中</span><span class="c">议题</span><span class="c">方法</span></div>
+        <div class="feed">
+          <div class="card">
+            <div class="top"><span class="badge live">实践 · 进行中</span><span class="dot"></span></div>
+            <div class="ttl">找回工作日晚上的主动权</div>
+            <div class="meta">议题：下班后总被娱乐带走 · 第 2 轮 D4/7 · <em>还有 2 天到检查点</em></div>
+            <div class="acts"><button class="pri">查看实践</button><button>记录</button><button>调整</button></div>
+          </div>
+          <div class="card">
+            <div class="top"><span class="badge issue">议题</span></div>
+            <div class="ttl">为什么白天注意力难持续？</div>
+            <div class="meta">第 1 轮实践 · 记录 3 · <em>阅读有候选办法</em></div>
+            <div class="acts"><button class="pri">进入议题</button><button>记一笔</button></div>
+          </div>
+          <div class="card">
+            <div class="top"><span class="badge method">我的方法</span></div>
+            <div class="ttl">把行动缩小到 15 分钟</div>
+            <div class="meta">已验证 · 来源：下班后议题第 2 轮</div>
+            <div class="acts"><button class="pri">查看方法</button><button>转为习惯</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- D -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">D</div>
+        <h2>主角卡 + 列表（混合）</h2>
+        <p>标题 + 添加 + 分段，当前分段有一张大的「进行中」卡（带主操作按钮），下方是其余对象的紧凑行列表。有明确主角又有列表纵深，介于 A 与 B 之间。</p>
+      </div>
+      <div class="phone pD">
+        <div class="tb"><span class="t">计划</span><button class="add">+</button></div>
+        <div class="seg"><div class="s">方向</div><div class="s on">探索</div><div class="s">习惯</div></div>
+        <div class="hero">
+          <div class="cap"><span class="live"></span>当前实践 · 第 2 轮</div>
+          <div class="ttl">找回工作日晚上的主动权</div>
+          <div class="meta">议题：下班后总被娱乐带走 · D4/7 · <b>还有 2 天到检查点</b></div>
+          <div class="acts"><button class="pri">查看实践</button><button>阶段检查</button><button>调整</button></div>
+        </div>
+        <div class="gh">其他探索</div>
+        <div class="list">
+          <div class="row"><div class="e">❓</div><div class="n">为什么白天注意力难持续</div><div class="v">第1轮</div><div class="arr">›</div></div>
+          <div class="row"><div class="e">❓</div><div class="n">是不是把休息也当成任务</div><div class="v">记录2</div><div class="arr">›</div></div>
+          <div class="row"><div class="e">💡</div><div class="n">把行动缩小到 15 分钟</div><div class="v">方法</div><div class="arr">›</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- E -->
+    <div class="col">
+      <div class="col-head">
+        <div class="tag">E</div>
+        <h2>时间轴章节式</h2>
+        <p>按章节/时间分组（今天/本周/更早 或 按议题），每组下是带操作的对象，左侧时间轴竖线串联。有明确时间锚点和操作按钮。像 Day One、日志类 app。</p>
+      </div>
+      <div class="phone pE">
+        <div class="tb"><span class="t">探索</span><button class="add">+</button></div>
+        <div class="seg"><div class="s on">按时间</div><div class="s">按议题</div></div>
+        <div class="timeline">
+          <div class="tl-head"><span class="d">进行中</span><span class="s">本周</span></div>
+          <div class="tl-item live">
+            <div class="rail"><span class="pt"></span><span class="line"></span></div>
+            <div class="body">
+              <div class="n">找回工作日晚上的主动权</div>
+              <div class="m">第 2 轮 · D4/7 · 还有 2 天到检查点</div>
+              <div class="acts"><button class="pri">查看实践</button><button>记录</button></div>
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="rail"><span class="pt"></span><span class="line"></span></div>
+            <div class="body">
+              <div class="n">为什么白天注意力难持续？</div>
+              <div class="m">第 1 轮 · 记录 3 · 阅读有候选</div>
+              <div class="acts"><button class="pri">进入议题</button></div>
+            </div>
+          </div>
+          <div class="tl-head"><span class="d">更早</span><span class="s">已沉淀</span></div>
+          <div class="tl-item">
+            <div class="rail"><span class="pt"></span><span class="line"></span></div>
+            <div class="body">
+              <div class="n">把行动缩小到 15 分钟</div>
+              <div class="m">已验证方法 · 来源：下班后议题</div>
+              <div class="acts"><button class="pri">查看方法</button><button>转为习惯</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>怎么选：</b>看哪个一眼像「能操作的 app」而不是「能看的数据面板」。A 分区网格感最强；B 最轻、靠行承载；C 每条对象卡最自包含、操作最显式；D 主角+列表有层级；E 时间感最强、偏回顾叙事。注意所有范式现在都有明确按钮和添加入口，没有纯展示的面板堆砌了。
+  </div>
+</div>
+<script>
+  (function(){
+    var root=document.documentElement;
+    var saved=localStorage.getItem('rhythm-theme');
+    if(saved){root.setAttribute('data-theme',saved);}
+    document.querySelectorAll('.theme-switch button').forEach(function(b){
+      b.addEventListener('click',function(){
+        var t=b.dataset.t;
+        root.setAttribute('data-theme',t);
+        localStorage.setItem('rhythm-theme',t);
+        document.querySelectorAll('.theme-switch button').forEach(function(x){x.classList.toggle('on',x.dataset.t===t)});
+      });
+      if(b.dataset.t===root.getAttribute('data-theme'))b.classList.add('on');
+    });
+  })();
+</script>
+
+</body>
+</html>

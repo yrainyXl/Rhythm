@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="cool">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" />
+<title>Rhythm · 计划（A 关系脉络）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+SC:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ===== 计划页 A · 关系脉络 =====
+     打破一列等宽卡片：顶部是「方向 → 议题 → 实践」的纵向分支脉络图（连线+节点，非卡片），
+     点选任一实践节点，下方"聚焦区"联动显示该实践的本轮详情。
+     习惯收到最底部一条极简横条。 */
+  [data-theme="cool"]{
+    --void:11 16 25; --card:20 27 39; --card-inset:11 16 25;
+    --glow:143 180 220; --glow-soft:rgba(143,180,220,.15);
+    --border:rgba(150,175,205,.10); --border-strong:rgba(150,175,205,.18);
+    --text-1:rgba(222,228,236,.92); --text-2:rgba(210,218,228,.55); --text-3:rgba(200,210,222,.32); --text-4:rgba(200,210,222,.18);
+    --success:rgba(120,190,160,.9); --success-soft:rgba(120,190,160,.12);
+    --warn:rgba(220,180,130,.9); --warn-soft:rgba(220,180,130,.12);
+    --danger:rgba(220,140,140,.9);
+    --bg-radial:rgba(30,44,66,.5); --bg-1:#0B1019; --bg-2:#0D1420; --bg-3:#090D14;
+    --card-alpha:.8; --practice-grad:rgba(143,180,220,.07);
+  }
+  [data-theme="day"]{
+    --void:246 244 239; --card:255 255 255; --card-inset:240 237 231;
+    --glow:74 118 168; --glow-soft:rgba(74,118,168,.12);
+    --border:rgba(60,70,90,.12); --border-strong:rgba(60,70,90,.22);
+    --text-1:rgba(38,44,54,.94); --text-2:rgba(60,70,84,.66); --text-3:rgba(70,80,96,.48); --text-4:rgba(70,80,96,.28);
+    --success:rgba(60,150,110,.95); --success-soft:rgba(60,150,110,.12);
+    --warn:rgba(190,140,70,.95); --warn-soft:rgba(190,140,70,.12);
+    --danger:rgba(200,90,90,.95);
+    --bg-radial:rgba(120,150,190,.18); --bg-1:#F6F4EF; --bg-2:#EFEDE6; --bg-3:#F2F0EA;
+    --card-alpha:.9; --practice-grad:rgba(74,118,168,.08);
+  }
+  [data-theme="celadon"]{
+    --void:239 244 242; --card:255 255 255; --card-inset:233 240 237;
+    --glow:70 150 130; --glow-soft:rgba(70,150,130,.12);
+    --border:rgba(50,80,72,.12); --border-strong:rgba(50,80,72,.22);
+    --text-1:rgba(32,46,42,.94); --text-2:rgba(52,72,66,.64); --text-3:rgba(60,84,76,.46); --text-4:rgba(60,84,76,.26);
+    --success:rgba(60,155,115,.95); --success-soft:rgba(60,155,115,.13);
+    --warn:rgba(200,150,80,.95); --warn-soft:rgba(200,150,80,.13);
+    --danger:rgba(205,110,100,.95);
+    --bg-radial:rgba(120,180,165,.22); --bg-1:#EFF4F2; --bg-2:#E8F0EC; --bg-3:#F1F5F3;
+    --card-alpha:.92; --practice-grad:rgba(70,150,130,.09);
+  }
+  [data-theme="apricot"]{
+    --void:249 243 235; --card:255 253 250; --card-inset:243 235 225;
+    --glow:198 132 84; --glow-soft:rgba(198,132,84,.13);
+    --border:rgba(90,66,44,.12); --border-strong:rgba(90,66,44,.22);
+    --text-1:rgba(52,40,30,.94); --text-2:rgba(80,62,46,.64); --text-3:rgba(96,74,56,.46); --text-4:rgba(96,74,56,.26);
+    --success:rgba(90,150,95,.95); --success-soft:rgba(90,150,95,.13);
+    --warn:rgba(200,140,60,.95); --warn-soft:rgba(200,140,60,.13);
+    --danger:rgba(205,105,90,.95);
+    --bg-radial:rgba(230,175,120,.26); --bg-1:#F9F3EB; --bg-2:#F4EADD; --bg-3:#FBF5EE;
+    --card-alpha:.92; --practice-grad:rgba(198,132,84,.1);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;color:var(--text-1);
+    background:radial-gradient(120% 80% at 50% -10%, var(--bg-radial) 0%, transparent 55%),linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+    background-attachment:fixed; min-height:100dvh; overscroll-behavior:none; -webkit-font-smoothing:antialiased;}
+  .r-title{font-family:'Noto Serif SC',STSong,'PingFang SC','Microsoft YaHei',serif;font-weight:500;letter-spacing:.04em;color:var(--text-1)}
+  .app{max-width:512px;margin:0 auto;min-height:100dvh}
+  .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(1rem + env(safe-area-inset-top)) 1.25rem .9rem;backdrop-filter:blur(12px);background:rgb(var(--void) / .7);border-bottom:1px solid var(--border)}
+  .topbar .brand{font-family:'Noto Serif SC',serif;font-weight:500;letter-spacing:.05em;font-size:.95rem}
+  .topbar .brand small{display:block;font-family:'Inter',sans-serif;font-weight:400;letter-spacing:.14em;text-transform:uppercase;font-size:.6rem;color:var(--text-3);margin-top:2px}
+  .avatar{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;color:rgb(var(--glow));background:var(--glow-soft);border:1px solid var(--border-strong)}
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:512px;z-index:20;backdrop-filter:blur(12px);background:rgb(var(--void) / .82);border-top:1px solid var(--border)}
+  .tabbar .row{display:flex;justify-content:space-around;padding:.6rem .5rem calc(.6rem + env(safe-area-inset-bottom))}
+  .tabbar a{display:flex;flex-direction:column;align-items:center;gap:.25rem;padding:.3rem .7rem;text-decoration:none}
+  .tabbar a svg{width:19px;height:19px;stroke:var(--text-3);stroke-width:1.5;fill:none}
+  .tabbar a span{font-size:.62rem;letter-spacing:.05em;color:var(--text-3)}
+  .tabbar a.on svg{stroke:rgb(var(--glow));stroke-width:2}
+  .tabbar a.on span{color:rgb(var(--glow))}
+  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:rgba(150,175,205,.15);border-radius:3px}
+
+  main{padding:1rem 0 calc(6.5rem + env(safe-area-inset-bottom))}
+
+  /* —— 关系脉络图（非卡片，靠连线+缩进层级表达 方向→议题→实践） —— */
+  .graph{padding:.5rem 1.25rem 1.25rem;position:relative}
+  .g-level{position:relative}
+
+  /* 方向：根节点，衬线大字，左侧粗竖脉 */
+  .g-dir{padding-left:1.4rem;position:relative;margin-bottom:.2rem}
+  .g-dir::before{content:"";position:absolute;left:5px;top:1.5rem;bottom:-.6rem;width:2px;background:rgb(var(--glow) / .35)}
+  .g-dir .knot{position:absolute;left:0;top:.35rem;width:12px;height:12px;border-radius:50%;background:rgb(var(--glow));box-shadow:0 0 0 4px rgb(var(--glow) / .15)}
+  .g-dir .tag{font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .g-dir h1{font-family:'Noto Serif SC',serif;font-weight:400;font-size:1.15rem;line-height:1.45;letter-spacing:.02em;margin:.25rem 0 0}
+
+  /* 议题：二级分支，缩进 + 折线连到方向脉 */
+  .g-issue{position:relative;padding-left:2.6rem;margin-top:.9rem}
+  .g-issue::before{content:"";position:absolute;left:5px;top:-.5rem;height:1.35rem;width:1.1rem;border-left:2px solid rgb(var(--glow) / .22);border-bottom:2px solid rgb(var(--glow) / .22);border-bottom-left-radius:8px}
+  .g-issue .ihead{display:flex;align-items:baseline;gap:.5rem}
+  .g-issue .q{font-family:'Noto Serif SC',serif;font-size:.92rem;line-height:1.4;color:var(--text-1);letter-spacing:.01em}
+  .g-issue .icount{font-size:.6rem;color:var(--text-3);white-space:nowrap}
+
+  /* 实践：三级叶节点，可点选；再缩进，短折线连到议题 */
+  .g-prac{position:relative;padding-left:1.5rem;margin-top:.55rem}
+  .g-prac::before{content:"";position:absolute;left:-1.1rem;top:-.35rem;height:1.05rem;width:1rem;border-left:1.5px solid var(--border-strong);border-bottom:1.5px solid var(--border-strong);border-bottom-left-radius:6px}
+  .g-node{display:flex;align-items:center;gap:.55rem;padding:.5rem .7rem;border-radius:.7rem;border:1px solid var(--border);background:rgb(var(--card-inset) / .35);cursor:pointer;transition:all .2s}
+  .g-node:hover{border-color:var(--border-strong)}
+  .g-node.sel{border-color:rgb(var(--glow) / .45);background:rgb(var(--glow) / .1)}
+  .g-node .pip{width:7px;height:7px;border-radius:50%;flex:none}
+  .g-node .pip.live{background:rgb(var(--glow));box-shadow:0 0 0 3px rgb(var(--glow) / .18)}
+  .g-node .pip.paused{background:var(--warn)}
+  .g-node .pip.idle{background:var(--text-4)}
+  .g-node .nm{flex:1;font-size:.8rem;font-weight:500;letter-spacing:.01em}
+  .g-node .rd{font-size:.58rem;color:var(--text-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .g-node.sel .rd{color:rgb(var(--glow))}
+  /* 无实践的议题：候选办法提示 + 发起入口 */
+  .g-none{padding-left:1.5rem;margin-top:.5rem;position:relative}
+  .g-none::before{content:"";position:absolute;left:-1.1rem;top:-.35rem;height:1.05rem;width:1rem;border-left:1.5px dashed var(--border-strong);border-bottom:1.5px dashed var(--border-strong);border-bottom-left-radius:6px}
+  .g-none .txt{font-size:.68rem;color:var(--text-3);letter-spacing:.02em}
+  .g-none .cand{color:var(--warn)}
+  .g-none .start{color:rgb(var(--glow));cursor:pointer}
+  /* 新建议题：脉络底部的虚线追加 */
+  .g-add{padding-left:1.4rem;margin-top:1rem;font-size:.72rem;color:var(--text-3);cursor:pointer;display:flex;align-items:center;gap:.5rem}
+  .g-add .p{width:16px;height:16px;border-radius:50%;border:1px dashed var(--border-strong);display:grid;place-items:center;color:rgb(var(--glow));font-size:.7rem}
+
+  /* —— 聚焦区：选中实践的本轮详情（横向面板，非纵向卡片堆） —— */
+  .focus{margin:.4rem 1.25rem 0;border-radius:1rem;border:1px solid rgb(var(--glow) / .24);
+    background:linear-gradient(180deg,var(--practice-grad),rgb(var(--card) / .84));overflow:hidden}
+  .focus .fhead{padding:.9rem 1rem;border-bottom:1px solid var(--border)}
+  .focus .fhead .fk{font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:rgb(var(--glow))}
+  .focus .fhead h3{font-family:'Noto Serif SC',serif;font-weight:500;font-size:1.05rem;margin:.3rem 0 0;letter-spacing:.02em}
+  /* 轮次轨迹：横向节点链 */
+  .ftrack{display:flex;align-items:center;gap:.3rem;padding:.8rem 1rem;overflow-x:auto;border-bottom:1px solid var(--border)}
+  .ftrack .r{display:flex;align-items:center;gap:.35rem;padding:.3rem .55rem;border-radius:999px;border:1px solid var(--border);font-size:.6rem;color:var(--text-2);white-space:nowrap}
+  .ftrack .r .n{width:5px;height:5px;border-radius:50%;background:var(--text-3)}
+  .ftrack .r.done .n{background:var(--success)}
+  .ftrack .r.live{color:rgb(var(--glow));border-color:rgb(var(--glow) / .35);background:rgb(var(--glow) / .1)}
+  .ftrack .r.live .n{background:rgb(var(--glow))}
+  .ftrack .r.next{border-style:dashed;color:var(--text-3)}
+  .ftrack .arr{color:var(--text-4);font-size:.65rem}
+  /* 本轮要点：两列横铺，非堆叠 */
+  .fgrid{display:grid;grid-template-columns:1fr 1fr;gap:.1rem 0;padding:.5rem 0}
+  .fgrid .cell{padding:.6rem 1rem}
+  .fgrid .cell .k{font-size:.58rem;letter-spacing:.05em;color:var(--text-3);margin-bottom:.25rem}
+  .fgrid .cell .v{font-size:.76rem;line-height:1.45;color:var(--text-1)}
+  .fgrid .cell .v em{font-style:normal;color:rgb(var(--glow))}
+  .fgrid .cell.wide{grid-column:1 / -1}
+  /* 最近摘要行 + 操作行 */
+  .ffoot{padding:.75rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+  .frecents{display:flex;align-items:center;gap:.3rem}
+  .frecents .l{font-size:.58rem;color:var(--text-3);margin-right:.2rem}
+  .frecents i{width:15px;height:15px;border-radius:4px;display:inline-grid;place-items:center;font-size:.48rem;font-style:normal}
+  .frecents i.d{background:var(--success-soft);color:var(--success)}
+  .frecents i.p{background:var(--warn-soft);color:var(--warn)}
+  .frecents i.n{background:rgb(var(--danger) / .14);color:var(--danger)}
+  .frecents i.f{background:rgb(var(--card-inset) / .5);color:var(--text-4)}
+  .fact{display:flex;gap:.4rem}
+  .fact button{appearance:none;cursor:pointer;font-family:inherit;font-size:.68rem;padding:.4rem .7rem;border-radius:.6rem;border:1px solid var(--border-strong);background:none;color:var(--text-2)}
+  .fact button.pri{border-color:rgb(var(--glow) / .35);background:rgb(var(--glow) / .1);color:rgb(var(--glow))}
+
+  /* —— 习惯：最底部极简横条，明显区别于上方 —— */
+  .habits-bar{margin:1.5rem 1.25rem 0;padding-top:1rem;border-top:1px solid var(--border)}
+  .habits-bar .hb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem}
+  .habits-bar .hb-head .l{font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--text-3)}
+  .habits-bar .hb-head .r{font-size:.72rem;color:rgb(var(--glow));cursor:pointer}
+  .hb-chips{display:flex;gap:.5rem;flex-wrap:wrap}
+  .hb-chip{display:flex;align-items:center;gap:.4rem;padding:.4rem .7rem;border-radius:999px;border:1px solid var(--border);background:rgb(var(--card-inset) / .3);font-size:.72rem}
+  .hb-chip .st{width:6px;height:6px;border-radius:50%;background:var(--success)}
+  .hb-chip.off{color:var(--text-3)}
+  .hb-chip.off .st{background:var(--text-4)}
+  .hb-chip small{font-size:.55rem;color:var(--text-3);letter-spacing:.02em}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">计划<small>PLAN · 脉络</small></div>
+    <div class="avatar">许</div>
+  </header>
+
+  <main>
+
+    <!-- 关系脉络图：方向 → 议题 → 实践 -->
+    <div class="graph">
+      <div class="g-dir">
+        <span class="knot"></span>
+        <div class="tag">长期方向</div>
+        <h1>让工作日晚上重新由自己主动支配</h1>
+      </div>
+
+      <!-- 议题 1（含进行中主实践，默认选中） -->
+      <div class="g-issue">
+        <div class="ihead"><span class="q">为什么下班后总被娱乐带走？</span><span class="icount">记录 6</span></div>
+        <div class="g-prac">
+          <div class="g-node sel"><span class="pip live"></span><span class="nm">找回工作日晚上的主动权</span><span class="rd">R2 · D4/7</span></div>
+        </div>
+      </div>
+
+      <!-- 议题 2 -->
+      <div class="g-issue">
+        <div class="ihead"><span class="q">为什么白天注意力难以持续？</span><span class="icount">记录 3</span></div>
+        <div class="g-prac">
+          <div class="g-node"><span class="pip live"></span><span class="nm">用阅读笔记调整专注方式</span><span class="rd">R1 · D2</span></div>
+        </div>
+        <div class="g-none"><span class="txt"><span class="cand">阅读有 1 条候选办法</span> · <span class="start">再发起一次实践</span></span></div>
+      </div>
+
+      <!-- 议题 3（无实践） -->
+      <div class="g-issue">
+        <div class="ihead"><span class="q">是不是我把休息也当成了任务？</span><span class="icount">记录 2</span></div>
+        <div class="g-none"><span class="txt">尚无实践 · <span class="cand">AI 提出了一个观察</span> · <span class="start">发起实践</span></span></div>
+      </div>
+
+      <!-- 暂停的实践挂在议题 1 下（示意多实践） -->
+      <div class="g-issue">
+        <div class="ihead"><span class="q">睡前总忍不住把手机带进卧室</span><span class="icount">记录 4</span></div>
+        <div class="g-prac">
+          <div class="g-node"><span class="pip paused"></span><span class="nm">睡前不带手机进卧室</span><span class="rd">已暂停</span></div>
+        </div>
+      </div>
+
+      <div class="g-add"><span class="p">+</span>新建议题</div>
+    </div>
+
+    <!-- 聚焦区：选中实践的本轮详情 -->
+    <div class="focus">
+      <div class="fhead">
+        <div class="fk">聚焦 · 当前实践</div>
+        <h3>找回工作日晚上的主动权</h3>
+      </div>
+      <div class="ftrack">
+        <span class="r done"><span class="n"></span>第 1 轮 已结束</span>
+        <span class="arr">→</span>
+        <span class="r live"><span class="n"></span>第 2 轮 · 第 4/7 天</span>
+        <span class="arr">→</span>
+        <span class="r next"><span class="n"></span>检查点</span>
+      </div>
+      <div class="fgrid">
+        <div class="cell wide"><div class="k">本轮唯一变量</div><div class="v">在确定一件事的基础上，<em>额外约定娱乐结束时间</em></div></div>
+        <div class="cell"><div class="k">观察周期</div><div class="v">7 天（现第 4 天，非完成率）</div></div>
+        <div class="cell"><div class="k">下次检查点</div><div class="v">还有 2 天 · 7/18</div></div>
+      </div>
+      <div class="ffoot">
+        <div class="frecents"><span class="l">最近</span><i class="d">完</i><i class="p">半</i><i class="d">完</i><i class="n">无</i><i class="f"></i><i class="f"></i><i class="f"></i></div>
+        <div class="fact"><button class="pri">查看实践</button><button>调整本轮</button><button>阶段检查</button></div>
+      </div>
+    </div>
+
+    <!-- 习惯：底部极简横条 -->
+    <div class="habits-bar">
+      <div class="hb-head"><span class="l">日常习惯</span><span class="r">管理</span></div>
+      <div class="hb-chips">
+        <span class="hb-chip"><span class="st"></span>阅读 20 分钟 <small>由实践转化</small></span>
+        <span class="hb-chip"><span class="st"></span>按时服药</span>
+        <span class="hb-chip off"><span class="st"></span>睡前拉伸 <small>已暂停</small></span>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="row">
+      <a href="today-themes.html"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>今天</span></a>
+      <a class="on" href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg><span>计划</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-4 3 3 5-7"/></svg><span>记录</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 1-2-2z"/><path d="M20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 0 2-2z"/></svg><span>阅读</span></a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>我的</span></a>
+    </div>
+  </nav>
+</div>
+
+<script>
+  // 点选实践节点联动聚焦区（原型示意，仅切换选中态与标题）
+  var data={
+    '找回工作日晚上的主动权':{k:'聚焦 · 当前实践'},
+    '用阅读笔记调整专注方式':{k:'聚焦 · 进行中实践'},
+    '睡前不带手机进卧室':{k:'聚焦 · 已暂停实践'}
+  };
+  document.querySelectorAll('.g-node').forEach(function(n){
+    n.addEventListener('click',function(){
+      document.querySelectorAll('.g-node').forEach(function(x){x.classList.remove('sel')});
+      n.classList.add('sel');
+      var nm=n.querySelector('.nm').textContent;
+      document.querySelector('.focus h3').textContent=nm;
+      if(data[nm])document.querySelector('.focus .fk').textContent=data[nm].k;
+    });
+  });
+</script>
+</body>
+</html>

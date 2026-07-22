@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@cloudbase/js-sdk": "latest",
+    "@cloudbase/node-sdk": "latest",
     "@hookform/resolvers": "^3.3.0",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.43.0",

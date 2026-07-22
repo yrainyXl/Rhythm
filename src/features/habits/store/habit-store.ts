@@ -1,18 +1,64 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
 
-type Habit = Database['public']['Tables']['habits']['Row'] & {
-  schedules?: Database['public']['Tables']['habit_schedules']['Row'][]
+type HabitCategory = 'self_discipline' | 'learning' | 'exercise' | 'sleep' | 'diet' | 'life' | 'other'
+type TargetType = 'boolean' | 'duration' | 'count' | 'value'
+type RepeatType = 'daily' | 'weekdays' | 'weekends' | 'weekly' | 'custom'
+type OccurrenceStatus = 'pending' | 'done' | 'skipped' | 'missed'
+
+interface HabitSchedule {
+  id: string
+  habit_id: string
+  repeat_type: RepeatType
+  repeat_days: number[]
+  custom_dates: string[]
+  start_date: string
+  end_date: string | null
+  reminder_time: string | null
+  reminder_secondary: boolean
+  created_at: string
+  updated_at: string
 }
-type HabitOccurrence = Database['public']['Tables']['habit_occurrences']['Row']
-type HabitLog = Database['public']['Tables']['habit_logs']['Row']
 
-type HabitCategory = Database['public']['Tables']['habits']['Insert']['category']
-type TargetType = Database['public']['Tables']['habits']['Insert']['target_type']
-type RepeatType = Database['public']['Tables']['habit_schedules']['Insert']['repeat_type']
+interface Habit {
+  id: string
+  user_id: string
+  name: string
+  category: HabitCategory
+  icon: string | null
+  color: string
+  target_type: TargetType
+  target_value: number | null
+  target_unit: string | null
+  is_important: boolean
+  is_shared: boolean
+  is_enabled: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+  schedules?: HabitSchedule[]
+}
+
+export type { Habit, HabitSchedule }
+
+export interface HabitOccurrence {
+  id: string
+  user_id: string
+  habit_id: string
+  local_date: string
+  title_snapshot: string
+  target_type_snapshot: string
+  target_value_snapshot: number | null
+  target_unit_snapshot: string | null
+  status: OccurrenceStatus
+  completed_at: string | null
+  skipped_at: string | null
+  note: string | null
+  created_at: string
+  updated_at: string
+}
 
 interface HabitFormData {
   name: string
@@ -69,6 +115,9 @@ interface HabitState {
   generateOccurrences: (localDate: string) => Promise<void>
 }
 
+const toErrMsg = (e: unknown, fallback: string) =>
+  e instanceof ApiError ? (typeof e.body === 'string' ? e.body : (e.body as { error?: string })?.error ?? fallback) : fallback
+
 export const useHabitStore = create<HabitState>((set, get) => ({
   habits: [],
   occurrences: [],
@@ -79,35 +128,23 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   loadHabits: async () => {
     set({ isLoading: true, errorMessage: null })
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-
-    let query = supabase.from('habits').select('*, habit_schedules(*)').order('sort_order')
-    if (user) query = query.eq('user_id', user.id)
-
-    const { data: habits, error } = await query
-
-    if (error) {
-      set({ errorMessage: error.message, isLoading: false })
-      return
+    try {
+      const data = await apiFetch<{ habits: Habit[] }>('/api/habits')
+      set({ habits: data.habits ?? [], isLoading: false })
+    } catch (e) {
+      set({ errorMessage: toErrMsg(e, '加载失败'), isLoading: false })
     }
-
-    set({ habits: habits ?? [], isLoading: false })
   },
 
   loadTodayOccurrences: async (localDate: string) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const { data } = await supabase
-      .from('habit_occurrences')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('local_date', localDate)
-      .order('created_at')
-
-    set({ occurrences: data ?? [] })
+    try {
+      const data = await apiFetch<{ occurrences: HabitOccurrence[] }>(
+        `/api/habits/occurrences?date=${encodeURIComponent(localDate)}`,
+      )
+      set({ occurrences: data.occurrences ?? [] })
+    } catch {
+      // 静默:未登录或失败时不阻塞 UI
+    }
   },
 
   updateFormField: (field, value) => {
@@ -143,286 +180,152 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   createHabit: async () => {
     const { formData } = get()
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return false
-
     set({ isSaving: true, errorMessage: null })
-
-    // Create habit
-    const { data: habit, error: habitError } = await supabase
-      .from('habits')
-      .insert({
-        user_id: user.id,
-        name: formData.name,
-        category: formData.category,
-        icon: formData.icon,
-        color: formData.color,
-        target_type: formData.target_type,
-        target_value: formData.target_type === 'boolean' ? null : formData.target_value,
-        target_unit: formData.target_unit || null,
-        is_important: formData.is_important,
-        is_shared: formData.is_shared,
+    try {
+      await apiFetch('/api/habits', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          icon: formData.icon,
+          color: formData.color,
+          target_type: formData.target_type,
+          target_value: formData.target_type === 'boolean' ? null : formData.target_value,
+          target_unit: formData.target_unit || null,
+          is_important: formData.is_important,
+          is_shared: formData.is_shared,
+          schedule_repeat_type: formData.schedule_repeat_type,
+          schedule_repeat_days: formData.schedule_repeat_days,
+          schedule_start_date: formData.schedule_start_date,
+          schedule_reminder_time: formData.schedule_reminder_time || null,
+        }),
       })
-      .select()
-      .single()
-
-    if (habitError || !habit) {
-      set({ errorMessage: habitError?.message ?? '创建失败', isSaving: false })
+      set({ isSaving: false })
+      await get().loadHabits()
+      return true
+    } catch (e) {
+      set({ errorMessage: toErrMsg(e, '创建失败'), isSaving: false })
       return false
     }
-
-    // Create schedule
-    const { error: scheduleError } = await supabase
-      .from('habit_schedules')
-      .insert({
-        habit_id: habit.id,
-        repeat_type: formData.schedule_repeat_type,
-        repeat_days: formData.schedule_repeat_days,
-        start_date: formData.schedule_start_date,
-        reminder_time: formData.schedule_reminder_time || null,
-      })
-
-    if (scheduleError) {
-      set({ errorMessage: scheduleError.message, isSaving: false })
-      return false
-    }
-
-    set({ isSaving: false })
-    await get().loadHabits()
-    return true
   },
 
   updateHabit: async (id: string) => {
     const { formData } = get()
-    const supabase = createBrowserClient()
-
     set({ isSaving: true, errorMessage: null })
-
-    const { error: habitError } = await supabase
-      .from('habits')
-      .update({
-        name: formData.name,
-        category: formData.category,
-        icon: formData.icon,
-        color: formData.color,
-        target_type: formData.target_type,
-        target_value: formData.target_type === 'boolean' ? null : formData.target_value,
-        target_unit: formData.target_unit || null,
-        is_important: formData.is_important,
-        is_shared: formData.is_shared,
+    try {
+      await apiFetch(`/api/habits/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: formData.name,
+          category: formData.category,
+          icon: formData.icon,
+          color: formData.color,
+          target_type: formData.target_type,
+          target_value: formData.target_type === 'boolean' ? null : formData.target_value,
+          target_unit: formData.target_unit || null,
+          is_important: formData.is_important,
+          is_shared: formData.is_shared,
+          schedule_repeat_type: formData.schedule_repeat_type,
+          schedule_repeat_days: formData.schedule_repeat_days,
+          schedule_start_date: formData.schedule_start_date,
+          schedule_reminder_time: formData.schedule_reminder_time || null,
+        }),
       })
-      .eq('id', id)
-
-    if (habitError) {
-      set({ errorMessage: habitError.message, isSaving: false })
+      set({ isSaving: false })
+      await get().loadHabits()
+      return true
+    } catch (e) {
+      set({ errorMessage: toErrMsg(e, '更新失败'), isSaving: false })
       return false
     }
-
-    // Update schedule
-    const { data: existingSchedules } = await supabase
-      .from('habit_schedules')
-      .select('id')
-      .eq('habit_id', id)
-
-    if (existingSchedules && existingSchedules.length > 0) {
-      await supabase
-        .from('habit_schedules')
-        .update({
-          repeat_type: formData.schedule_repeat_type,
-          repeat_days: formData.schedule_repeat_days,
-          start_date: formData.schedule_start_date,
-          reminder_time: formData.schedule_reminder_time || null,
-        })
-        .eq('id', existingSchedules[0].id)
-    } else {
-      await supabase
-        .from('habit_schedules')
-        .insert({
-          habit_id: id,
-          repeat_type: formData.schedule_repeat_type,
-          repeat_days: formData.schedule_repeat_days,
-          start_date: formData.schedule_start_date,
-          reminder_time: formData.schedule_reminder_time || null,
-        })
-    }
-
-    set({ isSaving: false })
-    await get().loadHabits()
-    return true
   },
 
   toggleHabitEnabled: async (id: string, isEnabled: boolean) => {
-    const supabase = createBrowserClient()
-    await supabase.from('habits').update({ is_enabled: isEnabled }).eq('id', id)
+    try {
+      await apiFetch(`/api/habits/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ is_enabled: isEnabled }),
+      })
+    } catch {
+      // 静默回退:重载以反映真实状态
+    }
     await get().loadHabits()
   },
 
   deleteHabit: async (id: string) => {
-    const supabase = createBrowserClient()
-    await supabase.from('habits').update({ is_enabled: false }).eq('id', id)
+    try {
+      await apiFetch(`/api/habits/${id}`, { method: 'DELETE' })
+    } catch {
+      // 静默
+    }
     await get().loadHabits()
   },
 
   completeOccurrence: async (occurrenceId, actualValue, actualDuration, feeling, note) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const now = new Date().toISOString()
-
-    // Update occurrence status
-    await supabase
-      .from('habit_occurrences')
-      .update({
-        status: 'done',
-        completed_at: now,
-        note: note || null,
+    try {
+      await apiFetch(`/api/habits/occurrences/${occurrenceId}?action=complete`, {
+        method: 'POST',
+        body: JSON.stringify({
+          actual_value: actualValue ?? null,
+          actual_duration: actualDuration ?? null,
+          feeling: feeling ?? null,
+          note: note ?? null,
+        }),
       })
-      .eq('id', occurrenceId)
-
-    // Create detailed log
-    await supabase
-      .from('habit_logs')
-      .insert({
-        occurrence_id: occurrenceId,
-        user_id: user.id,
-        actual_value: actualValue ?? null,
-        actual_duration: actualDuration ?? null,
-        feeling: feeling ?? null,
-        note: note ?? null,
-      })
-
-    set((state) => ({
-      occurrences: state.occurrences.map((o) =>
-        o.id === occurrenceId
-          ? { ...o, status: 'done' as const, completed_at: now, note: note ?? null }
-          : o
-      ),
-    }))
+      const now = new Date().toISOString()
+      set((state) => ({
+        occurrences: state.occurrences.map((o) =>
+          o.id === occurrenceId
+            ? { ...o, status: 'done' as const, completed_at: now, note: note ?? null }
+            : o
+        ),
+      }))
+    } catch {
+      // 静默
+    }
   },
 
   skipOccurrence: async (occurrenceId) => {
-    const supabase = createBrowserClient()
-    const now = new Date().toISOString()
-
-    await supabase
-      .from('habit_occurrences')
-      .update({ status: 'skipped', skipped_at: now })
-      .eq('id', occurrenceId)
-
-    set((state) => ({
-      occurrences: state.occurrences.map((o) =>
-        o.id === occurrenceId
-          ? { ...o, status: 'skipped' as const, skipped_at: now }
-          : o
-      ),
-    }))
+    try {
+      await apiFetch(`/api/habits/occurrences/${occurrenceId}?action=skip`, { method: 'POST' })
+      const now = new Date().toISOString()
+      set((state) => ({
+        occurrences: state.occurrences.map((o) =>
+          o.id === occurrenceId
+            ? { ...o, status: 'skipped' as const, skipped_at: now }
+            : o
+        ),
+      }))
+    } catch {
+      // 静默
+    }
   },
 
   resetOccurrence: async (occurrenceId) => {
-    const supabase = createBrowserClient()
-
-    await supabase
-      .from('habit_occurrences')
-      .update({
-        status: 'pending',
-        completed_at: null,
-        skipped_at: null,
-        note: null,
-      })
-      .eq('id', occurrenceId)
-
-    await supabase
-      .from('habit_logs')
-      .delete()
-      .eq('occurrence_id', occurrenceId)
-
-    set((state) => ({
-      occurrences: state.occurrences.map((o) =>
-        o.id === occurrenceId
-          ? { ...o, status: 'pending' as const, completed_at: null, skipped_at: null, note: null }
-          : o
-      ),
-    }))
+    try {
+      await apiFetch(`/api/habits/occurrences/${occurrenceId}?action=reset`, { method: 'POST' })
+      set((state) => ({
+        occurrences: state.occurrences.map((o) =>
+          o.id === occurrenceId
+            ? { ...o, status: 'pending' as const, completed_at: null, skipped_at: null, note: null }
+            : o
+        ),
+      }))
+    } catch {
+      // 静默
+    }
   },
 
   generateOccurrences: async (localDate) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    // One query for all enabled habits + their schedules.
-    const { data: habits } = await supabase
-      .from('habits')
-      .select('*, habit_schedules(*)')
-      .eq('user_id', user.id)
-      .eq('is_enabled', true)
-
-    if (!habits || habits.length === 0) {
-      return
-    }
-
-    // One query for any occurrences that already exist for this date, so we
-    // can skip them instead of firing one request per habit.
-    const { data: existing } = await supabase
-      .from('habit_occurrences')
-      .select('habit_id')
-      .eq('user_id', user.id)
-      .eq('local_date', localDate)
-
-    const existingHabitIds = new Set((existing ?? []).map((o) => o.habit_id))
-
-    const date = new Date(localDate + 'T00:00:00')
-    const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay() // Convert Sunday=0 to 7
-
-    const toInsert = habits
-      .filter((habit) => !existingHabitIds.has(habit.id))
-      .filter((habit) => {
-        const schedule = habit.habit_schedules?.[0]
-        if (!schedule) return false
-
-        // Check if date is within the schedule window
-        if (date < new Date(schedule.start_date + 'T00:00:00')) return false
-        if (schedule.end_date && date > new Date(schedule.end_date + 'T00:00:00')) return false
-
-        switch (schedule.repeat_type) {
-          case 'daily':
-            return true
-          case 'weekdays':
-            return dayOfWeek >= 1 && dayOfWeek <= 5
-          case 'weekends':
-            return dayOfWeek >= 6
-          case 'weekly':
-            return schedule.repeat_days.includes(dayOfWeek)
-          case 'custom':
-            return schedule.custom_dates?.includes(localDate) ?? false
-          default:
-            return false
-        }
+    try {
+      await apiFetch('/api/habits/occurrences/generate', {
+        method: 'POST',
+        body: JSON.stringify({ local_date: localDate }),
       })
-      .map((habit) => ({
-        user_id: user.id,
-        habit_id: habit.id,
-        local_date: localDate,
-        title_snapshot: habit.name,
-        target_type_snapshot: habit.target_type,
-        target_value_snapshot: habit.target_value,
-        target_unit_snapshot: habit.target_unit,
-        status: 'pending' as const,
-      }))
-
-    if (toInsert.length > 0) {
-      // upsert with ignoreDuplicates makes this idempotent: concurrent calls
-      // (e.g. React StrictMode double-invoke) that both try to seed the same
-      // occurrence no longer collide. onConflict must match the table's actual
-      // unique constraint: unique(user_id, habit_id, local_date).
-      await supabase
-        .from('habit_occurrences')
-        .upsert(toInsert, { onConflict: 'user_id,habit_id,local_date', ignoreDuplicates: true })
+    } catch {
+      // 静默
     }
-
-    // Reload occurrences (single query)
+    // 生成后重载当日打卡
     await get().loadTodayOccurrences(localDate)
   },
 }))

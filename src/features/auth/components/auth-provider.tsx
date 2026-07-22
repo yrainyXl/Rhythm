@@ -28,8 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    // v3 onAuthStateChange 同步返回 { data: { subscription: { unsubscribe } } },
-    // 返回的 unsubscribe 是真正的清理函数。
+    // v3 onAuthStateChange 回调收到事件名(如 INITIAL_SESSION/SIGNED_OUT),
+    // wrapper 内部会主动 getLoginState 取当前用户后再回调。
     const unsubscribe = onAuthStateChange(cloudbase, (user) => {
       if (!active) return
       setUser(user)

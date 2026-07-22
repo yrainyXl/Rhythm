@@ -58,9 +58,15 @@ export function onAuthStateChange(
   callback: (user: CloudbaseUser | null) => void,
 ) {
   const auth = client.auth()
-  // v3 onAuthStateChange 同步返回 { data: { subscription: { unsubscribe } } }
-  const result = auth.onAuthStateChange((loginState: { user?: CloudbaseUser | null } | null) => {
-    callback(loginState?.user ?? null)
+  // v3 onAuthStateChange 回调参数是事件名字符串(如 "INITIAL_SESSION" /
+  // "SIGNED_IN" / "SIGNED_OUT"),不是 loginState 对象。需主动 getLoginState 取当前用户。
+  const result = auth.onAuthStateChange((_event: string) => {
+    void auth
+      .getLoginState()
+      .then((state: { user?: CloudbaseUser | null } | null) =>
+        callback(state?.user ?? null),
+      )
+      .catch(() => callback(null))
   })
   const unsubscribe = result?.data?.subscription?.unsubscribe
   return typeof unsubscribe === 'function' ? (unsubscribe as () => void) : undefined

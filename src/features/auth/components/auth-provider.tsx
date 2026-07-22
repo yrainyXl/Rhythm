@@ -1,46 +1,34 @@
 'use client'
 
 import { useEffect } from 'react'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { createCloudbaseClient } from '@/lib/cloudbase/client'
+import { onAuthStateChanged } from '@/lib/cloudbase/client'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setLoading, refreshProfile } = useAuthStore()
+  const { setUser, setLoading } = useAuthStore()
 
   useEffect(() => {
-    const supabase = createBrowserClient()
+    const cloudbase = createCloudbaseClient()
 
     const initializeAuth = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        setUser(session.user)
-        await refreshProfile()
+      const auth = cloudbase.auth({ persistence: 'local' })
+      const user = await auth.currentUser
+      if (user) {
+        setUser(user)
       }
-
       setLoading(false)
     }
 
     initializeAuth()
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        setUser(session.user)
-        await refreshProfile()
-      } else {
-        setUser(null)
-      }
+    const unsubscribe = onAuthStateChanged(cloudbase, (user) => {
+      setUser(user)
       setLoading(false)
     })
 
-    return () => {
-      subscription.unsubscribe()
-    }
-  }, [setUser, setLoading, refreshProfile])
+    return unsubscribe
+  }, [setUser, setLoading])
 
   return <>{children}</>
 }

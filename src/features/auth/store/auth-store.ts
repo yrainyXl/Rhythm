@@ -1,19 +1,13 @@
 import { create } from 'zustand'
-import { createBrowserClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/database.types'
-
-type Profile = Database['public']['Tables']['profiles']['Row']
+import cloudbase from '@cloudbase/js-sdk'
+import { createCloudbaseClient } from '@/lib/cloudbase/client'
+import { signInWithEmailAndPassword, signOut } from '@/lib/cloudbase/client'
 
 interface AuthState {
-  user: User | null
-  profile: Profile | null
+  user: cloudbase.auth.IUser | null
   isLoading: boolean
-  isProfileLoading: boolean
-  setUser: (user: User | null) => void
-  setProfile: (profile: Profile | null) => void
+  setUser: (user: cloudbase.auth.IUser | null) => void
   setLoading: (isLoading: boolean) => void
-  refreshProfile: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string) => Promise<{ error: string | null }>
@@ -22,67 +16,44 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  profile: null,
   isLoading: true,
-  isProfileLoading: false,
 
   setUser: (user) => set({ user }),
-  setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
 
-  refreshProfile: async () => {
-    const { user } = get()
-    if (!user) {
-      set({ profile: null })
-      return
-    }
-
-    set({ isProfileLoading: true })
-    const supabase = createBrowserClient()
-    const { data } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single()
-
-    set({ profile: data ?? null, isProfileLoading: false })
-  },
-
   signInWithEmail: async (email: string, password: string) => {
-    const supabase = createBrowserClient()
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error: error?.message ?? null }
+    try {
+      const cloudbaseClient = createCloudbaseClient()
+      await signInWithEmailAndPassword(cloudbaseClient, email, password)
+      const auth = cloudbaseClient.auth({ persistence: 'local' })
+      const user = await auth.currentUser
+      set({ user })
+      return { error: null }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : '登录失败' }
+    }
   },
 
-  signInWithMagicLink: async (email: string) => {
-    const supabase = createBrowserClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    return { error: error?.message ?? null }
+  signInWithMagicLink: async () => {
+    // Cloudbase does not support magic link login out of the box
+    return { error: '暂不支持免密码登录' }
   },
 
   signUp: async (email: string, password: string) => {
-    const supabase = createBrowserClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    return { error: error?.message ?? null }
+    try {
+      const cloudbaseClient = createCloudbaseClient()
+      const auth = cloudbaseClient.auth({ persistence: 'local' })
+      // In cloudbase, signUpWithEmailAndPassword is the correct method
+      await auth.signUpWithEmailAndPassword(email, password)
+      return { error: null }
+    } catch (err: unknown) {
+      return { error: err instanceof Error ? err.message : '注册失败' }
+    }
   },
 
   signOut: async () => {
-    const supabase = createBrowserClient()
-    await supabase.auth.signOut()
-    set({ user: null, profile: null })
+    const cloudbaseClient = createCloudbaseClient()
+    await signOut(cloudbaseClient)
+    set({ user: null })
   },
 }))

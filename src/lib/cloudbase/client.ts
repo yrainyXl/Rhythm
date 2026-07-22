@@ -5,7 +5,7 @@ export type { cloudbase }
 let cloudbaseClient: ReturnType<typeof cloudbase.init> | null = null
 
 // Client only needs the public env id, which Next.js inlines at build time.
-// Do NOT import the shared env.ts here — it pulls in Zod and server-only secrets.
+// Do NOT import the shared env.ts here - it pulls in Zod and server-only secrets.
 const CLOUDBASE_ENV_ID = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID
 
 export function createCloudbaseClient() {
@@ -26,33 +26,42 @@ export function createCloudbaseClient() {
   return cloudbaseClient
 }
 
-export async function getCurrentUser(client: ReturnType<typeof cloudbase.init>) {
-  const auth = client.auth({ persistence: 'local' })
-  return auth.currentUser
+type CloudbaseApp = ReturnType<typeof cloudbase.init>
+type CloudbaseAuth = ReturnType<CloudbaseApp['auth']>
+type CloudbaseUser = NonNullable<
+  NonNullable<Awaited<ReturnType<CloudbaseAuth['getLoginState']>>>['user']
+>
+
+export async function getCurrentUser(client: CloudbaseApp): Promise<CloudbaseUser | null> {
+  const auth = client.auth()
+  const state = await auth.getLoginState()
+  return state?.user ?? null
 }
 
-export async function signInWithEmailAndPassword(
-  client: ReturnType<typeof cloudbase.init>,
-  email: string,
+export async function signInWithPassword(
+  client: CloudbaseApp,
+  username: string,
   password: string,
 ) {
-  const auth = client.auth({ persistence: 'local' })
-  return auth.signInWithEmailAndPassword(email, password)
+  const auth = client.auth()
+  // v3: 返回 { data, error },不抛异常
+  return auth.signInWithPassword({ username, password })
 }
 
-export async function signOut(client: ReturnType<typeof cloudbase.init>) {
-  const auth = client.auth({ persistence: 'local' })
+export async function signOut(client: CloudbaseApp) {
+  const auth = client.auth()
   return auth.signOut()
 }
 
-export function onAuthStateChanged(
-  client: ReturnType<typeof cloudbase.init>,
-  callback: (user: cloudbase.auth.IUser | null) => void,
+export function onAuthStateChange(
+  client: CloudbaseApp,
+  callback: (user: CloudbaseUser | null) => void,
 ) {
-  const auth = client.auth({ persistence: 'local' })
-  // SDK 类型声明 onLoginStateChanged 返回 void,但运行时返回 unsubscribe 函数。
-  const result = auth.onLoginStateChanged((loginState: cloudbase.auth.ILoginState | null) => {
-    callback(loginState?.user || null)
+  const auth = client.auth()
+  // v3 onAuthStateChange 同步返回 { data: { subscription: { unsubscribe } } }
+  const result = auth.onAuthStateChange((loginState: { user?: CloudbaseUser | null } | null) => {
+    callback(loginState?.user ?? null)
   })
-  return typeof result === 'function' ? (result as () => void) : undefined
+  const unsubscribe = result?.data?.subscription?.unsubscribe
+  return typeof unsubscribe === 'function' ? (unsubscribe as () => void) : undefined
 }

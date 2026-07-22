@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react'
 import { createCloudbaseClient } from '@/lib/cloudbase/client'
-import { onAuthStateChanged } from '@/lib/cloudbase/client'
+import { onAuthStateChange } from '@/lib/cloudbase/client'
+import { getCurrentUser } from '@/lib/cloudbase/client'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -14,8 +15,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
-        const auth = cloudbase.auth({ persistence: 'local' })
-        const user = await auth.currentUser
+        const user = await getCurrentUser(cloudbase)
         if (active && user) {
           setUser(user)
         }
@@ -28,9 +28,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    // @cloudbase/js-sdk 的 onLoginStateChanged 运行时返回 Promise(非函数),
-    // 不能直接作为 useEffect cleanup 返回,否则 React 调用 destroy 时报错。
-    const unsubscribe = onAuthStateChanged(cloudbase, (user) => {
+    // v3 onAuthStateChange 同步返回 { data: { subscription: { unsubscribe } } },
+    // 返回的 unsubscribe 是真正的清理函数。
+    const unsubscribe = onAuthStateChange(cloudbase, (user) => {
       if (!active) return
       setUser(user)
       setLoading(false)

@@ -1,7 +1,6 @@
 import { create } from 'zustand'
-import cloudbase from '@cloudbase/js-sdk'
-import { createCloudbaseClient } from '@/lib/cloudbase/client'
-import { signInWithEmailAndPassword, signOut } from '@/lib/cloudbase/client'
+import { createCloudbaseClient, signInWithPassword, signOut } from '@/lib/cloudbase/client'
+import { getCurrentUser } from '@/lib/cloudbase/client'
 
 interface Profile {
   id: string
@@ -15,11 +14,19 @@ interface Profile {
   updated_at?: string
 }
 
+// v3 SDK 的 IUser 类型在此处不便直接导入(类型链绕),
+// 用最小可用结构承接,实际字段由 SDK 返回。
+type CloudbaseUser = {
+  uid?: string
+  username?: string
+  email?: string
+}
+
 interface AuthState {
-  user: cloudbase.auth.IUser | null
+  user: CloudbaseUser | null
   profile: Profile | null
   isLoading: boolean
-  setUser: (user: cloudbase.auth.IUser | null) => void
+  setUser: (user: CloudbaseUser | null) => void
   setProfile: (profile: Profile | null) => void
   setLoading: (isLoading: boolean) => void
   refreshProfile: () => Promise<void>
@@ -29,7 +36,7 @@ interface AuthState {
   signOut: () => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profile: null,
   isLoading: true,
@@ -45,10 +52,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signInWithEmail: async (email: string, password: string) => {
     try {
       const cloudbaseClient = createCloudbaseClient()
-      await signInWithEmailAndPassword(cloudbaseClient, email, password)
-      const auth = cloudbaseClient.auth({ persistence: 'local' })
-      const user = await auth.currentUser
-      set({ user })
+      // v3 走「用户名密码登录」,用户名即邮箱。返回 { data, error },不抛异常。
+      const { error } = await signInWithPassword(cloudbaseClient, email, password)
+      if (error) {
+        return { error: error instanceof Error ? error.message : '登录失败' }
+      }
+      const user = await getCurrentUser(cloudbaseClient)
+      set({ user: user as CloudbaseUser | null })
       return { error: null }
     } catch (err: unknown) {
       return { error: err instanceof Error ? err.message : '登录失败' }
@@ -61,15 +71,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async (email: string, password: string) => {
-    try {
-      const cloudbaseClient = createCloudbaseClient()
-      const auth = cloudbaseClient.auth({ persistence: 'local' })
-      // In cloudbase, signUpWithEmailAndPassword is the correct method
-      await auth.signUpWithEmailAndPassword(email, password)
-      return { error: null }
-    } catch (err: unknown) {
-      return { error: err instanceof Error ? err.message : '注册失败' }
-    }
+    // 用户名密码登录场景下,账号由 CloudBase 控制台创建;
+    // SDK 未提供「用户名密码」对应的注册入口,暂不支持前端注册
+    void email
+    void password
+    return { error: '请在 CloudBase 控制台创建账号后登录' }
   },
 
   signOut: async () => {

@@ -37,7 +37,7 @@ export function BookshelfRow() {
           key={b.id}
           href={`/reading/${b.id}`}
           className="flex-none w-[102px] snap-start no-underline text-inherit cursor-pointer">
-          <div className="w-full aspect-[3/2] rounded-lg relative overflow-hidden"
+          <div className="w-full aspect-[2/3] rounded-lg relative overflow-hidden"
             style={{
               background: getBookBg(b),
               backgroundSize: 'cover',
@@ -62,7 +62,7 @@ export function BookshelfRow() {
       <Link
         href="/reading"
         className="flex-none w-[102px] snap-start cursor-pointer no-underline text-inherit">
-        <div className="w-full aspect-[3/2] rounded-lg grid place-items-center border-2 border-dashed border-rhythm-border-strong bg-rhythm-card/40">
+        <div className="w-full aspect-[2/3] rounded-lg grid place-items-center border-2 border-dashed border-rhythm-border-strong bg-rhythm-card/40">
           <span className="text-2xl text-rhythm-text-muted">+</span>
         </div>
         <div className="text-[0.62rem] text-rhythm-text-muted mt-1.5 tracking-tight">添加书籍</div>

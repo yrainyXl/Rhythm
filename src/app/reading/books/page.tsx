@@ -65,7 +65,7 @@ export default function AllBooksPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 px-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-7 px-5 sm:px-8">
           {allBooks.map((b) => (
             <Link
               key={b.id}

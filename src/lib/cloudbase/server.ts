@@ -48,7 +48,7 @@ export async function getUserIdFromCloudbase(ctx: {
   }
 
   const ticket = await auth.getAuthContext(context)
-  if (!ticket?.openid) {
+  if (!ticket?.openId) {
     return null
   }
   // 查询 app_users 映射: cloudbase_uid = openId → id
@@ -57,7 +57,7 @@ export async function getUserIdFromCloudbase(ctx: {
   try {
     const res = await client.query(
       'SELECT id FROM public.app_users WHERE cloudbase_uid = $1',
-      [ticket.openid],
+      [ticket.openId],
     )
     if (res.rows.length === 0) {
       return null

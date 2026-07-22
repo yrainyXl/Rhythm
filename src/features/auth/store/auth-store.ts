@@ -3,11 +3,26 @@ import cloudbase from '@cloudbase/js-sdk'
 import { createCloudbaseClient } from '@/lib/cloudbase/client'
 import { signInWithEmailAndPassword, signOut } from '@/lib/cloudbase/client'
 
+interface Profile {
+  id: string
+  username?: string
+  nickname?: string
+  avatar_url?: string
+  timezone?: string
+  preferred_wake_time?: string
+  preferred_sleep_time?: string
+  created_at?: string
+  updated_at?: string
+}
+
 interface AuthState {
   user: cloudbase.auth.IUser | null
+  profile: Profile | null
   isLoading: boolean
   setUser: (user: cloudbase.auth.IUser | null) => void
+  setProfile: (profile: Profile | null) => void
   setLoading: (isLoading: boolean) => void
+  refreshProfile: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>
   signInWithMagicLink: (email: string) => Promise<{ error: string | null }>
   signUp: (email: string, password: string) => Promise<{ error: string | null }>
@@ -16,10 +31,16 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
+  profile: null,
   isLoading: true,
 
   setUser: (user) => set({ user }),
+  setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
+
+  refreshProfile: async () => {
+    // Will be implemented in PostgreSQL migration phase
+  },
 
   signInWithEmail: async (email: string, password: string) => {
     try {

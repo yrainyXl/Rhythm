@@ -1,7 +1,7 @@
 import '@/app/globals.css'
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
-import { AuthProviderClient } from '@/features/auth/components/auth-provider-client'
+import { AuthProvider } from '@/features/auth/components/auth-provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -40,7 +40,7 @@ export default function RootLayout({
         />
       </head>
       <body className={`${inter.className} min-h-screen`}>
-        <AuthProviderClient>{children}</AuthProviderClient>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   )

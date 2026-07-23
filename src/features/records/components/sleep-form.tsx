@@ -54,13 +54,7 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
       return
     }
 
-    const clientModule = await import('@/lib/supabase/client')
-    const supabase = clientModule.createBrowserClient()
-    const user = await clientModule.getCurrentUser(supabase)
-    if (!user) return
-
     const result = await saveSleepRecord({
-      user_id: user.id,
       sleep_date: sleepDate,
       sleep_time: sleepTime,
       wake_date: wakeDate,

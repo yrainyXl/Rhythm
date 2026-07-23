@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useExerciseStore } from '@/features/records/store/exercise-store'
+import type { SetFeeling } from '@/features/records/store/exercise-store'
 
 const categoryOptions = [
   { value: 'running', label: '跑步', icon: '🏃' },
@@ -100,7 +101,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
     if (!customName.trim()) return
     const template = await createTemplate({
       name: customName,
-      category: customCategory as ExerciseFormProps[''],
+      category: customCategory as string,
       is_rehab: false,
     })
     if (template) {

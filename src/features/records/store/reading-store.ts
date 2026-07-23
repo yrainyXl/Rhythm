@@ -1,18 +1,75 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+import { apiFetch } from '@/lib/cloudbase/api-client'
 
-export type ReadingBook = Database['public']['Tables']['reading_books']['Row']
-type ReadingSession = Database['public']['Tables']['reading_sessions']['Row']
-type ReadingHighlight = Database['public']['Tables']['reading_highlights']['Row']
 type BookStatus = 'reading' | 'finished' | 'paused' | 'dropped'
 type BookSource = 'manual' | 'weixin_read' | 'kindle' | 'other'
 
-export type HighlightWithBook = ReadingHighlight & {
-  reading_books: Pick<ReadingBook, 'title' | 'author' | 'cover_url' | 'status'> | null
+export interface ReadingBook {
+  id: string
+  user_id: string
+  title: string
+  author: string | null
+  isbn: string | null
+  total_pages: number | null
+  current_page: number
+  status: BookStatus
+  source: string
+  source_book_id: string | null
+  cover_url: string | null
+  rating: number | null
+  is_shared: boolean
+  started_at: string | null
+  finished_at: string | null
+  created_at: string
+  updated_at: string
 }
+
+interface ReadingSession {
+  id: string
+  book_id: string
+  user_id: string
+  read_date: string
+  duration_minutes: number
+  pages_read: number | null
+  start_page: number | null
+  end_page: number | null
+  highlights: string | null
+  note: string | null
+  created_at: string
+  book_title?: string
+}
+
+interface ReadingHighlight {
+  id: string
+  user_id: string
+  book_id: string
+  source: string
+  source_bookmark_id: string | null
+  kind: string
+  mark_text: string | null
+  thought: string | null
+  chapter_title: string | null
+  chapter_uid: number | null
+  color_style: number | null
+  highlighted_at: string | null
+  created_at: string
+  // API join 平铺字段
+  title?: string
+  author?: string | null
+  cover_url?: string | null
+  status?: BookStatus
+  // 兼容消费方(旧 supabase 用嵌套 reading_books)
+  reading_books?: {
+    title: string
+    author: string | null
+    cover_url: string | null
+    status: BookStatus
+  } | null
+}
+
+export type HighlightWithBook = ReadingHighlight
 
 export type SyncResult = { books: number; highlights: number; thoughts: number }
 
@@ -74,63 +131,41 @@ export const useReadingStore = create<ReadingState>((set) => ({
   lastSyncResult: null,
 
   loadBooks: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const { data } = await supabase
-      .from('reading_books')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-
-    set({ books: data ?? [] })
+    try {
+      const { books } = await apiFetch<{ books: ReadingBook[] }>('/api/reading/books')
+      set({ books: books ?? [] })
+    } catch {
+      // 保持空
+    }
   },
 
   loadRecentSessions: async (limit = 10) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const { data } = await supabase
-      .from('reading_sessions')
-      .select('*, reading_books!inner(title)')
-      .eq('user_id', user.id)
-      .order('read_date', { ascending: false })
-      .limit(limit)
-
-    set({ recentSessions: data ?? [] })
+    try {
+      const { sessions } = await apiFetch<{ sessions: ReadingSession[] }>(
+        `/api/reading/sessions?limit=${limit}`,
+      )
+      set({ recentSessions: sessions ?? [] })
+    } catch {
+      // 保持空
+    }
   },
 
   loadHighlights: async () => {
     set({ isLoadingHighlights: true })
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
+    try {
+      const { highlights } = await apiFetch<{ highlights: HighlightWithBook[] }>(
+        '/api/reading/highlights',
+      )
+      set({ highlights: highlights ?? [], isLoadingHighlights: false })
+    } catch {
       set({ isLoadingHighlights: false })
-      return
     }
-
-    const { data } = await supabase
-      .from('reading_highlights')
-      .select('*, reading_books!inner(title, author, cover_url)')
-      .eq('user_id', user.id)
-      .order('book_id', { ascending: true })
-      .order('chapter_uid', { ascending: true, nullsFirst: true })
-      .order('highlighted_at', { ascending: true, nullsFirst: true })
-
-    set({ highlights: (data ?? []) as HighlightWithBook[], isLoadingHighlights: false })
   },
 
   syncWeread: async () => {
     set({ isSyncing: true, syncError: null })
     try {
-      const res = await fetch('/api/weread/sync', { method: 'POST' })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) {
-        set({ isSyncing: false, syncError: body?.error ?? `同步失败 (HTTP ${res.status})` })
-        return
-      }
+      const body = await apiFetch<SyncResult>('/api/weread/sync', { method: 'POST' })
       set({
         isSyncing: false,
         lastSyncResult: { books: body.books, highlights: body.highlights, thoughts: body.thoughts },
@@ -143,151 +178,114 @@ export const useReadingStore = create<ReadingState>((set) => ({
   },
 
   addBook: async (data) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return null
-
     set({ isSaving: true })
-    const { data: book, error } = await supabase
-      .from('reading_books')
-      .insert({
-        user_id: user.id,
-        title: data.title,
-        author: data.author ?? null,
-        total_pages: data.total_pages ?? null,
-        source: data.source ?? 'manual',
-        status: 'reading',
+    try {
+      const { book } = await apiFetch<{ book: ReadingBook }>('/api/reading/books', {
+        method: 'POST',
+        body: JSON.stringify({
+          title: data.title,
+          author: data.author ?? null,
+          total_pages: data.total_pages ?? null,
+          source: data.source ?? 'manual',
+          status: 'reading',
+        }),
       })
-      .select()
-      .single()
-
-    set({ isSaving: false })
-    if (!error) await useReadingStore.getState().loadBooks()
-    return book ?? null
+      set({ isSaving: false })
+      await useReadingStore.getState().loadBooks()
+      return book ?? null
+    } catch {
+      set({ isSaving: false })
+      return null
+    }
   },
 
   updateBookStatus: async (bookId, status) => {
-    const supabase = createBrowserClient()
-    const now = status === 'finished' ? new Date().toISOString().split('T')[0] : null
-
-    await supabase
-      .from('reading_books')
-      .update({
-        status,
-        finished_at: now,
+    try {
+      await apiFetch(`/api/reading/books/${bookId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
       })
-      .eq('id', bookId)
-
-    await useReadingStore.getState().loadBooks()
+      await useReadingStore.getState().loadBooks()
+    } catch {
+      // 忽略
+    }
   },
 
   recordSession: async (data) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     set({ isSaving: true })
-
-    const { error } = await supabase.from('reading_sessions').insert({
-      book_id: data.book_id,
-      user_id: user.id,
-      read_date: new Date().toISOString().split('T')[0],
-      duration_minutes: data.duration_minutes,
-      pages_read: data.pages_read ?? null,
-      note: data.note ?? null,
-    })
-
-    if (!error && data.pages_read) {
-      // Read current book to get current_page
-      const { data: book } = await supabase
-        .from('reading_books')
-        .select('current_page')
-        .eq('id', data.book_id)
-        .single()
-
-      if (book) {
-        await supabase
-          .from('reading_books')
-          .update({ current_page: (book.current_page ?? 0) + data.pages_read })
-          .eq('id', data.book_id)
-      }
+    try {
+      await apiFetch('/api/reading/sessions', {
+        method: 'POST',
+        body: JSON.stringify({
+          book_id: data.book_id,
+          duration_minutes: data.duration_minutes,
+          pages_read: data.pages_read ?? null,
+          note: data.note ?? null,
+        }),
+      })
+      set({ isSaving: false })
+      await useReadingStore.getState().loadBooks()
+      return { error: null }
+    } catch (e) {
+      set({ isSaving: false })
+      return { error: e instanceof Error ? e.message : '保存失败' }
     }
-
-    set({ isSaving: false })
-    if (!error) await useReadingStore.getState().loadBooks()
-    return { error: error?.message ?? null }
   },
 
   runAnalysis: async () => {
     set({ isLoadingAnalysis: true })
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
-      set({ isLoadingAnalysis: false })
-      return
-    }
-
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - 30)
     const startStr = startDate.toISOString().split('T')[0]
 
-    // Fetch sessions and books in parallel (independent queries)
-    const [sessionsRes, booksRes] = await Promise.all([
-      supabase
-        .from('reading_sessions')
-        .select('*, reading_books!inner(title)')
-        .eq('user_id', user.id)
-        .gte('read_date', startStr)
-        .order('read_date', { ascending: false }),
-      supabase
-        .from('reading_books')
-        .select('*')
-        .eq('user_id', user.id),
-    ])
+    try {
+      const [sessionsRes, booksRes] = await Promise.all([
+        apiFetch<{ sessions: ReadingSession[] }>('/api/reading/sessions?limit=500'),
+        apiFetch<{ books: ReadingBook[] }>('/api/reading/books'),
+      ])
+      const allBooks = booksRes.books ?? []
+      const allSessions = (sessionsRes.sessions ?? []).filter((s) => s.read_date >= startStr)
 
-    const allBooks = booksRes.data ?? []
-    const allSessions = (sessionsRes.data ?? []) as (ReadingSession & { reading_books: { title: string } })[]
+      const readingBooks = allBooks.filter((b) => b.status === 'reading').length
+      const finishedBooks = allBooks.filter((b) => b.status === 'finished').length
+      const totalSessions = allSessions.length
+      const totalDuration = allSessions.reduce((sum, s) => sum + s.duration_minutes, 0)
+      const totalPages = allSessions.reduce((sum, s) => sum + (s.pages_read ?? 0), 0)
 
-    const readingBooks = allBooks.filter((b) => b.status === 'reading').length
-    const finishedBooks = allBooks.filter((b) => b.status === 'finished').length
-    const totalSessions = allSessions.length
-    const totalDuration = allSessions.reduce((sum, s) => sum + s.duration_minutes, 0)
-    const totalPages = allSessions.reduce((sum, s) => sum + (s.pages_read ?? 0), 0)
+      const weeklyMap: Record<string, { duration: number; pages: number }> = {}
+      allSessions.forEach((s) => {
+        const d = new Date(s.read_date + 'T00:00')
+        const weekStart = new Date(d)
+        weekStart.setDate(d.getDate() - d.getDay() + 1)
+        const weekKey = weekStart.toISOString().split('T')[0]
+        if (!weeklyMap[weekKey]) weeklyMap[weekKey] = { duration: 0, pages: 0 }
+        weeklyMap[weekKey].duration += s.duration_minutes
+        weeklyMap[weekKey].pages += s.pages_read ?? 0
+      })
+      const weeklyTrend = Object.entries(weeklyMap)
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([week, data]) => ({ week, ...data }))
 
-    // Weekly trend
-    const weeklyMap: Record<string, { duration: number; pages: number }> = {}
-    allSessions.forEach((s) => {
-      const d = new Date(s.read_date + 'T00:00')
-      const weekStart = new Date(d)
-      weekStart.setDate(d.getDate() - d.getDay() + 1)
-      const weekKey = weekStart.toISOString().split('T')[0]
-      if (!weeklyMap[weekKey]) weeklyMap[weekKey] = { duration: 0, pages: 0 }
-      weeklyMap[weekKey].duration += s.duration_minutes
-      weeklyMap[weekKey].pages += s.pages_read ?? 0
-    })
+      const recentSessions = allSessions.slice(0, 10).map((s) => ({
+        ...s,
+        book_title: s.book_title ?? '未知书籍',
+      }))
 
-    const weeklyTrend = Object.entries(weeklyMap)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([week, data]) => ({ week, ...data }))
-
-    // Recent sessions with book titles
-    const recentSessions = allSessions.slice(0, 10).map((s) => ({
-      ...s,
-      book_title: s.reading_books?.title ?? '未知书籍',
-    }))
-
-    set({
-      analysis: {
-        totalBooks: allBooks.length,
-        readingBooks,
-        finishedBooks,
-        totalSessions,
-        totalDuration,
-        totalPages,
-        weeklyTrend,
-        recentSessions,
-      },
-      isLoadingAnalysis: false,
-    })
+      set({
+        analysis: {
+          totalBooks: allBooks.length,
+          readingBooks,
+          finishedBooks,
+          totalSessions,
+          totalDuration,
+          totalPages,
+          weeklyTrend,
+          recentSessions,
+        },
+        isLoadingAnalysis: false,
+      })
+    } catch {
+      set({ isLoadingAnalysis: false })
+    }
   },
 }))

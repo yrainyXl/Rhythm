@@ -1,15 +1,59 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
 
-type Couple = Database['public']['Tables']['couples']['Row']
-type CoupleMember = Database['public']['Tables']['couple_members']['Row']
-type CoupleInvite = Database['public']['Tables']['couple_invites']['Row']
-type SharedPermission = Database['public']['Tables']['shared_permissions']['Row']
-type EncouragementMessage = Database['public']['Tables']['encouragement_messages']['Row']
-type SharedPlanSuggestion = Database['public']['Tables']['shared_plan_suggestions']['Row']
+interface Couple {
+  id: string
+  status: string
+  created_at: string
+  updated_at: string
+}
+
+interface CoupleInvite {
+  id: string
+  inviter_id: string
+  invite_code: string
+  status: string
+  expires_at: string
+  created_at: string
+  updated_at: string
+}
+
+interface SharedPermission {
+  id: string
+  user_id: string
+  data_type: string
+  share_level: string
+  is_enabled: boolean
+  created_at: string
+  updated_at: string
+}
+
+interface EncouragementMessage {
+  id: string
+  couple_id: string
+  sender_id: string
+  content: string
+  message_type: string
+  created_at: string
+}
+
+interface SharedPlanSuggestion {
+  id: string
+  couple_id: string
+  sender_id: string
+  receiver_id: string
+  title: string
+  description: string | null
+  suggested_date: string | null
+  suggested_time: string | null
+  suggestion_type: string
+  status: string
+  receiver_note: string | null
+  created_at: string
+  updated_at: string
+}
 
 interface CoupleState {
   couple: Couple | null
@@ -30,8 +74,15 @@ interface CoupleState {
   updatePermission: (dataType: string, shareLevel: string, isEnabled: boolean) => Promise<void>
   sendEncouragement: (type: string, content: string) => Promise<void>
   loadEncouragement: () => Promise<void>
+  loadSuggestions: () => Promise<void>
   sendSuggestion: (receiverId: string, title: string, description: string) => Promise<void>
   respondToSuggestion: (suggestionId: string, status: string) => Promise<void>
+}
+
+function errMsg(e: unknown): string {
+  if (e instanceof ApiError) return e.message
+  if (e instanceof Error) return e.message
+  return '操作失败'
 }
 
 export const useCoupleStore = create<CoupleState>((set) => ({
@@ -45,270 +96,167 @@ export const useCoupleStore = create<CoupleState>((set) => ({
   errorMessage: null,
 
   loadCouple: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    // Find my couple membership
-    const { data: myMembership } = await supabase
-      .from('couple_members')
-      .select('*')
-      .eq('user_id', user.id)
-      .single()
-
-    if (!myMembership) {
-      // Check my invites
-      const { data: invites } = await supabase
-        .from('couple_invites')
-        .select('*')
-        .eq('inviter_id', user.id)
-        .eq('status', 'pending')
-        .limit(1)
-
-      set({ myInvite: invites?.[0] ?? null, couple: null, partner: null })
-      return
+    try {
+      const data = await apiFetch<{ couple: Couple | null; partner: { id: string; nickname: string | null } | null; myInvite: CoupleInvite | null }>(
+        '/api/couple',
+      )
+      set({ couple: data.couple ?? null, partner: data.partner ?? null, myInvite: data.myInvite ?? null })
+    } catch {
+      // 保持空
     }
-
-    // Get couple
-    const { data: couple } = await supabase
-      .from('couples')
-      .select('*')
-      .eq('id', myMembership.couple_id)
-      .single()
-
-    // Get partner
-    const { data: members } = await supabase
-      .from('couple_members')
-      .select('*, profiles!inner(nickname)')
-      .eq('couple_id', myMembership.couple_id)
-
-    const partnerMember = members?.find((m: any) => m.user_id !== user.id)
-    const partner = partnerMember
-      ? { id: partnerMember.user_id, nickname: (partnerMember as any).profiles?.nickname ?? null }
-      : null
-
-    set({ couple: couple ?? null, partner, myInvite: null })
   },
 
   createInvite: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return null
-
     set({ isSaving: true, errorMessage: null })
-
-    // Generate 6-character code
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase()
-
-    const expiresAt = new Date()
-    expiresAt.setHours(expiresAt.getHours() + 48)
-
-    const { data, error } = await supabase
-      .from('couple_invites')
-      .insert({
-        inviter_id: user.id,
-        invite_code: code,
-        expires_at: expiresAt.toISOString(),
+    try {
+      const { invite } = await apiFetch<{ invite: CoupleInvite }>('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'create_invite' }),
       })
-      .select()
-      .single()
-
-    set({ isSaving: false })
-    if (error) {
-      set({ errorMessage: error.message })
+      set({ isSaving: false, myInvite: invite ?? null })
+      return invite?.invite_code ?? null
+    } catch (e) {
+      set({ isSaving: false, errorMessage: errMsg(e) })
       return null
     }
-
-    set({ myInvite: data })
-    return data?.invite_code ?? null
   },
 
   acceptInvite: async (code) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     set({ isSaving: true, errorMessage: null })
-
-    // Find invite
-    const { data: invite } = await supabase
-      .from('couple_invites')
-      .select('*')
-      .eq('invite_code', code.toUpperCase())
-      .eq('status', 'pending')
-      .single()
-
-    if (!invite) {
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'accept_invite', invite_code: code }),
+      })
       set({ isSaving: false })
-      return { error: '邀请码无效或已过期' }
-    }
-
-    if (new Date(invite.expires_at) < new Date()) {
+      await useCoupleStore.getState().loadCouple()
+      return { error: null }
+    } catch (e) {
       set({ isSaving: false })
-      return { error: '邀请码已过期' }
+      return { error: errMsg(e) }
     }
-
-    // Create couple
-    const { data: couple, error: coupleError } = await supabase
-      .from('couples')
-      .insert({})
-      .select()
-      .single()
-
-    if (coupleError) {
-      set({ isSaving: false })
-      return { error: coupleError.message }
-    }
-
-    // Add both members
-    const { error: memberError1 } = await supabase
-      .from('couple_members')
-      .insert({ couple_id: couple.id, user_id: invite.inviter_id })
-
-    const { error: memberError2 } = await supabase
-      .from('couple_members')
-      .insert({ couple_id: couple.id, user_id: user.id })
-
-    if (memberError1 || memberError2) {
-      set({ isSaving: false })
-      return { error: '添加成员失败' }
-    }
-
-    // Mark invite as accepted
-    await supabase
-      .from('couple_invites')
-      .update({ status: 'accepted' })
-      .eq('id', invite.id)
-
-    set({ isSaving: false })
-    await useCoupleStore.getState().loadCouple()
-    return { error: null }
   },
 
   cancelInvite: async () => {
-    const { myInvite } = useCoupleStore.getState()
-    if (!myInvite) return
-
-    const supabase = createBrowserClient()
-    await supabase
-      .from('couple_invites')
-      .update({ status: 'cancelled' })
-      .eq('id', myInvite.id)
-
-    set({ myInvite: null })
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'cancel_invite' }),
+      })
+      set({ myInvite: null })
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
   },
 
   disbandCouple: async () => {
-    const { couple } = useCoupleStore.getState()
-    if (!couple) return
-
-    const supabase = createBrowserClient()
-    await supabase.from('couples').update({ status: 'disbanded' }).eq('id', couple.id)
-    set({ couple: null, partner: null })
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'disband' }),
+      })
+      set({ couple: null, partner: null })
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
   },
 
   loadPermissions: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const { data } = await supabase
-      .from('shared_permissions')
-      .select('*')
-      .eq('user_id', user.id)
-
-    set({ permissions: data ?? [] })
+    try {
+      const { permissions } = await apiFetch<{ permissions: SharedPermission[] }>(
+        '/api/couple',
+        { method: 'POST', body: JSON.stringify({ action: 'load_permissions' }) },
+      )
+      set({ permissions: permissions ?? [] })
+    } catch {
+      // 保持空
+    }
   },
 
   updatePermission: async (dataType, shareLevel, isEnabled) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('shared_permissions').upsert({
-      user_id: user.id,
-      data_type: dataType,
-      share_level: shareLevel,
-      is_enabled: isEnabled,
-    })
-
-    await useCoupleStore.getState().loadPermissions()
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'update_permission',
+          data_type: dataType,
+          share_level: shareLevel,
+          is_enabled: isEnabled,
+        }),
+      })
+      await useCoupleStore.getState().loadPermissions()
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
   },
 
   sendEncouragement: async (type, content) => {
-    const { couple } = useCoupleStore.getState()
-    if (!couple) return
-
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
     set({ isSaving: true })
-    await supabase.from('encouragement_messages').insert({
-      couple_id: couple.id,
-      sender_id: user.id,
-      content,
-      message_type: type as any,
-    })
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({ action: 'send_encouragement', message_type: type, content }),
+      })
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
     set({ isSaving: false })
   },
 
   loadEncouragement: async () => {
-    const { couple } = useCoupleStore.getState()
-    if (!couple) return
+    try {
+      const { encouragement } = await apiFetch<{ encouragement: EncouragementMessage[] }>(
+        '/api/couple',
+        { method: 'POST', body: JSON.stringify({ action: 'load_encouragement' }) },
+      )
+      set({ encouragement: encouragement ?? [] })
+    } catch {
+      // 保持空
+    }
+  },
 
-    const supabase = createBrowserClient()
-    const { data } = await supabase
-      .from('encouragement_messages')
-      .select('*')
-      .eq('couple_id', couple.id)
-      .order('created_at', { ascending: false })
-      .limit(20)
-
-    set({ encouragement: data ?? [] })
+  loadSuggestions: async () => {
+    try {
+      const { suggestions } = await apiFetch<{ suggestions: SharedPlanSuggestion[] }>(
+        '/api/couple',
+        { method: 'POST', body: JSON.stringify({ action: 'load_suggestions' }) },
+      )
+      set({ suggestions: suggestions ?? [] })
+    } catch {
+      // 保持空
+    }
   },
 
   sendSuggestion: async (receiverId, title, description) => {
-    const { couple } = useCoupleStore.getState()
-    if (!couple) return
-
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
     set({ isSaving: true })
-    await supabase.from('shared_plan_suggestions').insert({
-      couple_id: couple.id,
-      sender_id: user.id,
-      receiver_id: receiverId,
-      title,
-      description,
-    })
+    try {
+      await apiFetch('/api/couple', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'send_suggestion',
+          receiver_id: receiverId,
+          title,
+          description,
+        }),
+      })
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
     set({ isSaving: false })
   },
 
   respondToSuggestion: async (suggestionId, status) => {
-    const supabase = createBrowserClient()
-
-    await supabase
-      .from('shared_plan_suggestions')
-      .update({ status })
-      .eq('id', suggestionId)
-
-    // Reload suggestions
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    const { couple } = useCoupleStore.getState()
-    if (!couple) return
-
-    const { data } = await supabase
-      .from('shared_plan_suggestions')
-      .select('*')
-      .eq('couple_id', couple.id)
-      .order('created_at', { ascending: false })
-      .limit(10)
-
-    set({ suggestions: data ?? [] })
+    try {
+      const { suggestions } = await apiFetch<{ suggestions: SharedPlanSuggestion[] }>(
+        '/api/couple',
+        {
+          method: 'POST',
+          body: JSON.stringify({ action: 'respond_suggestion', suggestion_id: suggestionId, status }),
+        },
+      )
+      set({ suggestions: suggestions ?? [] })
+    } catch (e) {
+      set({ errorMessage: errMsg(e) })
+    }
   },
 }))

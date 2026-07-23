@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/cloudbase/client'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const { setUser, setLoading } = useAuthStore()
+  const { setUser, setLoading, refreshProfile } = useAuthStore()
 
   useEffect(() => {
     const cloudbase = createCloudbaseClient()
@@ -18,6 +18,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const user = await getCurrentUser(cloudbase)
         if (active && user) {
           setUser(user)
+          // 会话有效:拉取/建立 profile(首次登录自动建 app_users + profiles)
+          void refreshProfile()
         }
       } finally {
         if (active) {
@@ -34,6 +36,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!active) return
       setUser(user)
       setLoading(false)
+      if (user) {
+        void refreshProfile()
+      }
     })
 
     return () => {

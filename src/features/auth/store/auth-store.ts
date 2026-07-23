@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { createCloudbaseClient, signInWithPassword, signOut } from '@/lib/cloudbase/client'
 import { getCurrentUser } from '@/lib/cloudbase/client'
+import { apiFetch } from '@/lib/cloudbase/api-client'
 
 interface Profile {
   id: string
@@ -10,6 +11,7 @@ interface Profile {
   timezone?: string
   preferred_wake_time?: string
   preferred_sleep_time?: string
+  work_days?: number[]
   created_at?: string
   updated_at?: string
 }
@@ -46,7 +48,15 @@ export const useAuthStore = create<AuthState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   refreshProfile: async () => {
-    // Will be implemented in PostgreSQL migration phase
+    try {
+      const { user } = await apiFetch<{ user: Profile | null }>('/api/auth/refresh', {
+        method: 'POST',
+      })
+      set({ profile: user ?? null })
+    } catch {
+      // 未登录或 token 失效,保持 profile=null
+      set({ profile: null })
+    }
   },
 
   signInWithEmail: async (email: string, password: string) => {
@@ -59,6 +69,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       const user = await getCurrentUser(cloudbaseClient)
       set({ user: user as CloudbaseUser | null })
+      // 登录成功后拉取/建立 profile(首次登录会自动建 app_users + profiles)
+      void useAuthStore.getState().refreshProfile()
       return { error: null }
     } catch (err: unknown) {
       return { error: err instanceof Error ? err.message : '登录失败' }

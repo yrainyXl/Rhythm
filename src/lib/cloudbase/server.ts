@@ -1,5 +1,13 @@
-import { Pool } from 'pg'
+import { Pool, types } from 'pg'
 import { cloudbaseEnv } from './env'
+
+// pg 默认把 PostgreSQL date/timestamp 解析成 JS Date 对象,JSON.stringify 后
+// 变成 UTC ISO 字符串(如 "2026-07-22T16:00:00.000Z"),导致前端按本地日期
+// 对比时偏移一天。改成返回原始字符串,date 列就是 "2026-07-22"。
+// OID: 1082=date, 1114=timestamp, 1184=timestamptz
+types.setTypeParser(1082, (v: string) => v)
+types.setTypeParser(1114, (v: string) => v)
+types.setTypeParser(1184, (v: string) => v)
 
 // Import cloudbase dynamically because webpack/Next.js static analysis
 // will error on dynamic code evaluation inside @cloudbase/node-sdk

@@ -53,10 +53,8 @@ npm run dev
 │   │   ├── habits/            # 习惯管理
 │   │   ├── today/             # 今日页
 │   │   ├── records/           # 睡眠/运动记录
-│   │   ├── reflection/        # 每日复盘
-│   │   └── couple/            # 情侣功能
+│   │   └── reflection/        # 每日复盘
 │   └── lib/                    # 工具函数和配置
-│       └── supabase/          # Supabase 客户端
 ├── supabase/
 │   └── migrations/             # 数据库迁移文件
 └── public/                     # 静态资源

@@ -892,7 +892,6 @@ const doc = new Document({
           new TableRow({ children: [cell("今天", { width: 2000 }), cell("/today", { width: 2400 }), cell("日期 + 进度条、今日待办（进行中/已完成）、快捷入口（记录睡眠/记录运动/复盘）", { width: 4626 })] }),
           new TableRow({ children: [cell("计划", { width: 2000 }), cell("/habits", { width: 2400 }), cell("习惯管理（创建/编辑/启用/停用）", { width: 4626 })] }),
           new TableRow({ children: [cell("记录", { width: 2000 }), cell("/records", { width: 2400 }), cell("5 个子标签：睡眠 / 运动 / 阅读 / 复盘 / 周报", { width: 4626 })] }),
-          new TableRow({ children: [cell("我们", { width: 2000 }), cell("/couple", { width: 2400 }), cell("情侣连接（邀请/绑定/共享权限/鼓励）", { width: 4626 })] }),
           new TableRow({ children: [cell("我的", { width: 2000 }), cell("/me", { width: 2400 }), cell("个人资料编辑、目标管理、通知设置、退出登录", { width: 4626 })] }),
         ]
       }),

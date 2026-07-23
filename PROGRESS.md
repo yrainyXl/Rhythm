@@ -124,7 +124,6 @@ src/app/today/page.tsx
 src/app/habits/page.tsx
 src/app/records/page.tsx
 src/app/me/page.tsx
-src/app/couple/page.tsx
 src/app/auth/callback/route.ts
 src/app/api/profile/route.ts
 
@@ -136,7 +135,6 @@ features/records/store/sleep-store.ts, exercise-store.ts, reading-store.ts, goal
 features/records/components/sleep-form.tsx, sleep-analysis.tsx, exercise-form.tsx, exercise-analysis.tsx, reading-view.tsx, reflection-view.tsx, weekly-report.tsx, records-page-client.tsx, goal-view.tsx (9 component files)
 features/notifications/use-notification.ts, notification-prompt.tsx (2 files)
 features/ai/insight-engine.ts (1 file)
-features/couple/store/couple-store.ts, components/couple-page-client.tsx (2 files)
 
 **总计：约 48 个源文件**
 

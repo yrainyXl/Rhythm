@@ -8,8 +8,7 @@ const requiredTables = [
   'app_users', 'profiles', 'habits', 'habit_schedules', 'habit_occurrences', 'habit_logs',
   'sleep_records', 'exercise_templates', 'exercise_records', 'exercise_set_logs',
   'reading_books', 'reading_sessions', 'reading_highlights', 'daily_reflections', 'goals',
-  'goal_key_results', 'goal_milestones', 'couples', 'couple_members', 'couple_invites',
-  'shared_permissions', 'shared_plan_suggestions', 'encouragement_messages',
+  'goal_key_results', 'goal_milestones',
   'notification_settings', 'notification_logs', 'pattern_insights', 'topics', 'directions',
   'practices', 'practice_rounds', 'practice_logs', 'methods', 'weekly_reviews', 'ai_recommendations',
 ]

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
 import { GoalView } from '@/features/records/components/goal-view'
 import { useThemeStore } from '@/features/app/store/theme-store'
 import { Sun, Moon } from 'lucide-react'
@@ -27,22 +27,21 @@ export default function MePage() {
     setIsSaving(true)
     setSaveMessage(null)
 
-    const supabase = createBrowserClient()
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      email: user.email ?? '',
-      nickname: nickname || null,
-      timezone,
-      preferred_wake_time: wakeTime || null,
-      preferred_sleep_time: sleepTime || null,
-    })
-
-    if (error) {
-      setSaveMessage('保存失败: ' + error.message)
-    } else {
+    try {
+      await apiFetch('/api/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          nickname: nickname || null,
+          timezone,
+          preferred_wake_time: wakeTime || null,
+          preferred_sleep_time: sleepTime || null,
+        }),
+      })
       await refreshProfile()
       setSaveMessage('保存成功')
       setIsEditing(false)
+    } catch (e) {
+      setSaveMessage('保存失败: ' + (e instanceof ApiError ? e.message : '请重试'))
     }
     setIsSaving(false)
   }

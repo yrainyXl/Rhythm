@@ -60,7 +60,7 @@ interface ReadingHighlight {
   author?: string | null
   cover_url?: string | null
   status?: BookStatus
-  // 兼容消费方(旧 supabase 用嵌套 reading_books)
+  // API join 返回嵌套 reading_books(书名/作者/封面/状态),消费方读 first.reading_books.title
   reading_books?: {
     title: string
     author: string | null

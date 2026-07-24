@@ -9,39 +9,34 @@ types.setTypeParser(1082, (v: string) => v)
 types.setTypeParser(1114, (v: string) => v)
 types.setTypeParser(1184, (v: string) => v)
 
-// Import cloudbase dynamically because webpack/Next.js static analysis
-// will error on dynamic code evaluation inside @cloudbase/node-sdk
-// even though we explicitly use nodejs runtime in middleware
-let cloudbaseModule: any = null
-function getCloudbase() {
-  if (!cloudbaseModule) {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    cloudbaseModule = require('@cloudbase/node-sdk')
+// 进程级单例 Pool:复用连接,避免每个请求重复创建+销毁。
+// (DB-P0-01) 之前 withUser 与 getUserIdFromCloudbase 各建一个 Pool 并 end,
+// 高并发下连接数波动且开销大。
+let poolInstance: Pool | null = null
+
+export function getPgPool(): Pool {
+  if (!poolInstance) {
+    poolInstance = new Pool({
+      host: cloudbaseEnv.TENCENTDB_HOST,
+      port: cloudbaseEnv.TENCENTDB_PORT,
+      user: cloudbaseEnv.TENCENTDB_USER,
+      password: cloudbaseEnv.TENCENTDB_PASSWORD,
+      database: cloudbaseEnv.TENCENTDB_DATABASE,
+      ssl: cloudbaseEnv.TENCENTDB_SSL
+        ? { rejectUnauthorized: false }
+        : false,
+      // (DB-P0-03) 连接超时 5s,避免数据库不可达时请求永久挂起
+      connectionTimeoutMillis: 5000,
+      // 单实例最大连接数,TencentDB 连接额度有限
+      max: 5,
+    })
   }
-  // require returns the module directly in CommonJS
-  return cloudbaseModule.default || cloudbaseModule
+  return poolInstance
 }
 
-export function createCloudbaseServer() {
-  const cloudbase = getCloudbase()
-  return cloudbase.init({
-    env: cloudbaseEnv.NEXT_PUBLIC_CLOUDBASE_ENV_ID,
-    secretId: cloudbaseEnv.CLOUDBASE_SECRET_ID,
-    secretKey: cloudbaseEnv.CLOUDBASE_SECRET_KEY,
-  })
-}
-
-export function createPgPool() {
-  return new Pool({
-    host: cloudbaseEnv.TENCENTDB_HOST,
-    port: cloudbaseEnv.TENCENTDB_PORT,
-    user: cloudbaseEnv.TENCENTDB_USER,
-    password: cloudbaseEnv.TENCENTDB_PASSWORD,
-    database: cloudbaseEnv.TENCENTDB_DATABASE,
-    ssl: cloudbaseEnv.TENCENTDB_SSL
-      ? { rejectUnauthorized: false }
-      : false,
-  })
+// 旧 API 名保留兼容(返回单例,不再每次新建)
+export function createPgPool(): Pool {
+  return getPgPool()
 }
 
 interface CloudbaseUserInfo {
@@ -96,6 +91,7 @@ function extractAccessToken(request: Request): string | null {
 /**
  * 查询 cloudbase uid 对应的 app_users.id。只读,不建用户。
  * 用于业务 Route Handler 鉴权--调业务接口不应有建用户副作用。
+ * (DB-P0-02) 复用进程级 Pool,不再每次请求建池+end。
  */
 export async function getUserIdFromCloudbase(ctx: {
   request: Request
@@ -108,7 +104,7 @@ export async function getUserIdFromCloudbase(ctx: {
   if (!info) {
     return null
   }
-  const pool = createPgPool()
+  const pool = getPgPool()
   const client = await pool.connect()
   try {
     const res = await client.query(
@@ -121,13 +117,13 @@ export async function getUserIdFromCloudbase(ctx: {
     return res.rows[0].id
   } finally {
     client.release()
-    await pool.end()
   }
 }
 
 /**
  * 登录后调:确保 app_users + profiles 有记录,首次登录自动建立。
  * 幂等(ON CONFLICT),返回 app_users.id。供 /api/auth/refresh 用。
+ * (DB-P0-02) 复用进程级 Pool。
  */
 export async function ensureAppUser(accessToken: string): Promise<string | null> {
   const info = await fetchCloudbaseUserInfo(accessToken)
@@ -136,7 +132,7 @@ export async function ensureAppUser(accessToken: string): Promise<string | null>
   }
   // email 缺失时兜底(uid@cloudbase),满足 NOT NULL + UNIQUE
   const email = info.email ?? `${info.uid}@cloudbase`
-  const pool = createPgPool()
+  const pool = getPgPool()
   const client = await pool.connect()
   try {
     await client.query('BEGIN')
@@ -163,6 +159,5 @@ export async function ensureAppUser(accessToken: string): Promise<string | null>
     }
   } finally {
     client.release()
-    await pool.end()
   }
 }

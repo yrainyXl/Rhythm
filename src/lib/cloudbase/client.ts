@@ -18,11 +18,6 @@ export function createCloudbaseClient() {
   cloudbaseClient = cloudbase.init({
     env: CLOUDBASE_ENV_ID,
   })
-  // Expose to window for debugging token
-  if (typeof window !== 'undefined') {
-    ;(window as unknown as { __CLOUDBASE_CLIENT: unknown }).__CLOUDBASE_CLIENT =
-      cloudbaseClient
-  }
   return cloudbaseClient
 }
 

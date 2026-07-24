@@ -18,18 +18,24 @@ export async function GET(request: NextRequest) {
     const goalId = new URL(request.url).searchParams.get('id')
 
     if (goalId) {
+      // (SEC-P0-03) 所有子资源查询都校验 user_id,goal 不属于当前用户返回 404
+      // (不泄露资源存在性)
       const [goalRes, krRes, msRes] = await Promise.all([
         db.query(`SELECT * FROM public.goals WHERE id = $1 AND user_id = $2`, [goalId, userId]),
         db.query(
-          `SELECT * FROM public.goal_key_results WHERE goal_id = $1 ORDER BY created_at`,
-          [goalId],
+          `SELECT * FROM public.goal_key_results WHERE goal_id = $1 AND user_id = $2 ORDER BY created_at`,
+          [goalId, userId],
         ),
-        db.query(`SELECT * FROM public.goal_milestones WHERE goal_id = $1 ORDER BY created_at`, [
-          goalId,
-        ]),
+        db.query(
+          `SELECT * FROM public.goal_milestones WHERE goal_id = $1 AND user_id = $2 ORDER BY created_at`,
+          [goalId, userId],
+        ),
       ])
+      if (!goalRes.rows[0]) {
+        return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      }
       return NextResponse.json({
-        goal: goalRes.rows[0] ?? null,
+        goal: goalRes.rows[0],
         keyResults: krRes.rows,
         milestones: msRes.rows,
       })

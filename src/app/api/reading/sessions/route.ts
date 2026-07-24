@@ -41,42 +41,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'book_id 和 duration_minutes 必填' }, { status: 400 })
     }
 
-    const { createPgPool } = await import('@/lib/cloudbase/server')
-    const pool = createPgPool()
-    const client = await pool.connect()
-    try {
-      await client.query('BEGIN')
-      try {
-        await client.query(
-          `INSERT INTO public.reading_sessions
-             (book_id, user_id, read_date, duration_minutes, pages_read, note)
-           VALUES ($1,$2,$3,$4,$5,$6)`,
-          [
-            body.book_id,
-            userId,
-            new Date().toISOString().split('T')[0],
-            body.duration_minutes,
-            body.pages_read ?? null,
-            body.note ?? null,
-          ],
+    // (DB-P0-05) insert session + update current_page 用事务
+    return db.transaction(async (tx) => {
+      await tx.query(
+        `INSERT INTO public.reading_sessions
+           (book_id, user_id, read_date, duration_minutes, pages_read, note)
+         VALUES ($1,$2,$3,$4,$5,$6)`,
+        [
+          body.book_id,
+          userId,
+          new Date().toISOString().split('T')[0],
+          body.duration_minutes,
+          body.pages_read ?? null,
+          body.note ?? null,
+        ],
+      )
+      if (body.pages_read && body.pages_read > 0) {
+        await tx.query(
+          `UPDATE public.reading_books
+           SET current_page = COALESCE(current_page, 0) + $1
+           WHERE id = $2 AND user_id = $3`,
+          [body.pages_read, body.book_id, userId],
         )
-        if (body.pages_read && body.pages_read > 0) {
-          await client.query(
-            `UPDATE public.reading_books
-             SET current_page = COALESCE(current_page, 0) + $1
-             WHERE id = $2 AND user_id = $3`,
-            [body.pages_read, body.book_id, userId],
-          )
-        }
-        await client.query('COMMIT')
-        return NextResponse.json({ success: true }, { status: 201 })
-      } catch (e) {
-        await client.query('ROLLBACK')
-        throw e
       }
-    } finally {
-      client.release()
-      await pool.end()
-    }
+      return NextResponse.json({ success: true }, { status: 201 })
+    })
   })
 }

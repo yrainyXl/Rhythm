@@ -68,26 +68,29 @@ export async function POST(request: NextRequest) {
     }
 
     const assumption = body.assumption?.trim() || null
-    const practiceRes = await db.query<PracticeRow>(
-      `INSERT INTO practices (user_id, title, topic_id, assumption)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [userId, title, body.topicId ?? null, assumption],
-    )
-    const practice = practiceRes.rows[0]
-
     const today = new Date().toISOString().slice(0, 10)
     const end = new Date()
     end.setDate(end.getDate() + body.periodDays - 1)
     const endDate = end.toISOString().slice(0, 10)
 
-    const roundRes = await db.query<RoundRow>(
-      `INSERT INTO practice_rounds (user_id, practice_id, round_number, start_date, end_date, assumption)
-       VALUES ($1, $2, 1, $3, $4, $5) RETURNING *`,
-      [userId, practice.id, today, endDate, assumption],
-    )
-    return NextResponse.json(
-      { ...practice, latestRound: roundRes.rows[0] ?? null },
-      { status: 201 },
-    )
+    // (DB-P0-05) practice + 首轮两表写入用事务,失败回滚不留孤儿实践
+    return db.transaction(async (tx) => {
+      const practiceRes = await tx.query<PracticeRow>(
+        `INSERT INTO practices (user_id, title, topic_id, assumption)
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [userId, title, body.topicId ?? null, assumption],
+      )
+      const practice = practiceRes.rows[0]
+
+      const roundRes = await tx.query<RoundRow>(
+        `INSERT INTO practice_rounds (user_id, practice_id, round_number, start_date, end_date, assumption)
+         VALUES ($1, $2, 1, $3, $4, $5) RETURNING *`,
+        [userId, practice.id, today, endDate, assumption],
+      )
+      return NextResponse.json(
+        { ...practice, latestRound: roundRes.rows[0] ?? null },
+        { status: 201 },
+      )
+    })
   })
 }

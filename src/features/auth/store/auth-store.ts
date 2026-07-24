@@ -69,8 +69,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       const user = await getCurrentUser(cloudbaseClient)
       set({ user: user as CloudbaseUser | null })
-      // 登录成功后拉取/建立 profile(首次登录会自动建 app_users + profiles)
-      void useAuthStore.getState().refreshProfile()
+      // (AUTH-P0-02) 登录成功后 await ensureAppUser 建立 app_users/profiles,
+      // 确保建好才进业务页(否则首屏业务 API 会 401)
+      await useAuthStore.getState().refreshProfile()
       return { error: null }
     } catch (err: unknown) {
       return { error: err instanceof Error ? err.message : '登录失败' }
@@ -93,6 +94,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     const cloudbaseClient = createCloudbaseClient()
     await signOut(cloudbaseClient)
-    set({ user: null })
+    // (AUTH-P0-07) 清用户态、profile 与本地凭据
+    set({ user: null, profile: null, isLoading: false })
+    try {
+      const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID
+      if (envId && typeof window !== 'undefined') {
+        window.localStorage.removeItem(`credentials_${envId}`)
+        window.localStorage.removeItem(`user_info_${envId}`)
+      }
+    } catch {
+      // 忽略
+    }
   },
 }))

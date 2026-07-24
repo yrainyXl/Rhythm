@@ -41,13 +41,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
+    // (AUTH-P0-04) PWA 从后台恢复 / 浏览器前进后退回到页面时,重新确认登录态。
+    // iOS 主屏 PWA 后台 30 分钟后 token 可能已过期,getLoginState 会校验并触发刷新。
+    const handleResume = () => {
+      if (document.visibilityState !== 'visible') return
+      void (async () => {
+        const user = await getCurrentUser(cloudbase)
+        if (!active) return
+        if (user) {
+          setUser(user)
+          void refreshProfile()
+        } else {
+          setUser(null)
+        }
+      })()
+    }
+    const onPageshow = (e: PageTransitionEvent) => {
+      // persisted=true 表示从 bfcache 恢复(后退/前进)
+      if (e.persisted) handleResume()
+    }
+    document.addEventListener('visibilitychange', handleResume)
+    window.addEventListener('pageshow', onPageshow)
+
     return () => {
       active = false
+      document.removeEventListener('visibilitychange', handleResume)
+      window.removeEventListener('pageshow', onPageshow)
       if (typeof unsubscribe === 'function') {
         ;(unsubscribe as () => void)()
       }
     }
-  }, [setUser, setLoading])
+  }, [setUser, setLoading, refreshProfile])
 
   return <>{children}</>
 }

@@ -59,10 +59,14 @@ async function refreshAccessToken(): Promise<void> {
 }
 
 async function safeJson(res: Response): Promise<unknown> {
+  // 先一次性读成文本(body 流只能读一次),再尝试 JSON.parse。
+  // 避免先 res.json() 失败后又 res.text() 导致 "body stream already read"。
+  const text = await res.text()
+  if (!text) return null
   try {
-    return await res.json()
+    return JSON.parse(text)
   } catch {
-    return await res.text()
+    return text
   }
 }
 

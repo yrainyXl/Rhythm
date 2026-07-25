@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { createPgPool, ensureAppUser } from '@/lib/cloudbase/server'
+import { getPgPool, ensureAppUser } from '@/lib/cloudbase/server'
 
 export const dynamic = 'force-dynamic'
 
 /**
  * 登录后/会话恢复时调:确保 app_users + profiles 已建立(首次登录自动建),
  * 返回当前 profile 供前端 hydrate。
+ * (DB-P0-01) 复用进程级 Pool,不再 pool.end()。
  */
 export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ user: null }, { status: 401 })
   }
 
-  const pool = createPgPool()
+  const pool = getPgPool()
   const client = await pool.connect()
   try {
     const res = await client.query(
@@ -31,6 +32,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ user: res.rows[0] ?? null })
   } finally {
     client.release()
-    await pool.end()
   }
 }

@@ -1,14 +1,21 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import test from 'node:test'
 
-const schema = readFileSync(new URL('../database/tencentdb/001_init_rhythm_schema.sql', import.meta.url), 'utf8')
+// 拼接 database/tencentdb/ 下所有 migration 脚本(001/002/...),按文件名顺序
+const schemaDir = new URL('../database/tencentdb/', import.meta.url)
+const schema = readdirSync(schemaDir)
+  .filter((f) => f.endsWith('.sql'))
+  .sort()
+  .map((f) => readFileSync(new URL(f, schemaDir), 'utf8'))
+  .join('\n')
 
 const requiredTables = [
   'app_users', 'profiles', 'habits', 'habit_schedules', 'habit_occurrences', 'habit_logs',
   'sleep_records', 'exercise_templates', 'exercise_records', 'exercise_set_logs',
   'reading_books', 'reading_sessions', 'reading_highlights', 'daily_reflections', 'goals',
   'goal_key_results', 'goal_milestones',
+  'daily_arrangements',
   'notification_settings', 'notification_logs', 'pattern_insights', 'topics', 'directions',
   'practices', 'practice_rounds', 'practice_logs', 'methods', 'weekly_reviews', 'ai_recommendations',
 ]

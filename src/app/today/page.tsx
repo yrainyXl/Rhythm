@@ -40,7 +40,7 @@ export default function TodayPage() {
         <DayHead dateText={dateText} tonightHtml={tonightHtml} completed={completed} total={total} />
 
         <section>
-          <SectionHeader label="今日安排" actionLabel="添加安排" />
+          <SectionHeader label="今日安排" />
           <ArrangementsBand />
         </section>
 

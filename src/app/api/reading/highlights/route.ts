@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /** GET /api/reading/highlights - 列出当前用户的划线/想法(含书名作者封面),按 book/chapter/time 排序。 */
 export async function GET(request: NextRequest) {

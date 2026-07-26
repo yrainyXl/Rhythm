@@ -104,6 +104,13 @@ interface PracticeState {
   endPractice: (id: string) => Promise<void>
   deletePractice: (id: string) => Promise<void>
 
+  // 详情 + 多轮
+  detailPractice: (Practice & { rounds: (PracticeRound & { log_count: number })[] }) | null
+  isLoadingDetail: boolean
+  loadDetail: (id: string) => Promise<void>
+  createRound: (practiceId: string, input: { assumption?: string; periodDays: number; conclusion?: string | null }) => Promise<{ error: string | null }>
+  endRound: (roundId: string, conclusion?: string | null) => Promise<void>
+
   methods: MethodRow[]
   isLoadingMethods: boolean
 
@@ -140,6 +147,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   isLoadingMethods: true,
   logsByRound: {},
   isLoadingLogs: false,
+  detailPractice: null,
+  isLoadingDetail: false,
 
   loadPractices: async () => {
     try {
@@ -258,6 +267,48 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     try {
       await apiFetch(`/api/practice/practices/${id}`, { method: 'DELETE' })
       set({ practices: get().practices.filter((p) => p.id !== id) })
+    } catch {}
+  },
+
+  loadDetail: async (id) => {
+    set({ isLoadingDetail: true })
+    try {
+      const data = await apiFetch<{ practice: Practice; rounds: (PracticeRound & { log_count: number })[] }>(
+        `/api/practice/practices/${id}`,
+      )
+      set({
+        detailPractice: data.practice ? { ...data.practice, rounds: data.rounds ?? [] } : null,
+        isLoadingDetail: false,
+      })
+    } catch {
+      set({ detailPractice: null, isLoadingDetail: false })
+    }
+  },
+
+  createRound: async (practiceId, input) => {
+    try {
+      await apiFetch(`/api/practice/practices/${practiceId}/rounds`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+      await get().loadDetail(practiceId)
+      await get().loadPractices()
+      return { error: null }
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '创建轮次失败' }
+    }
+  },
+
+  endRound: async (roundId, conclusion) => {
+    try {
+      await apiFetch(`/api/practice/rounds/${roundId}?action=end`, {
+        method: 'PATCH',
+        body: JSON.stringify({ conclusion: conclusion ?? null }),
+      })
+      const { detailPractice } = get()
+      if (detailPractice) {
+        await get().loadDetail(detailPractice.id)
+      }
     } catch {}
   },
 

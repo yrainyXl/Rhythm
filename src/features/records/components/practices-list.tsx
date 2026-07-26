@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
 import { TabPlaceholder } from '@/features/records/components/tab-placeholder'
@@ -53,31 +54,35 @@ export function PracticesList() {
         const r = p.latestRound
         return (
           <div key={p.id} className="r-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
-                active ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
-              }`}>
-                {active ? '进行中' : '已完成'}
-              </span>
-              {r && (
-                <span className="text-[0.62rem] text-rhythm-text-muted">
-                  {formatRange(r.start_date, r.end_date)}
+            <Link href={`/habits/practices/${p.id}`} className="block">
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
+                  active ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
+                }`}>
+                  {active ? '进行中' : '已完成'}
                 </span>
+                {r && (
+                  <span className="text-[0.62rem] text-rhythm-text-muted">
+                    {formatRange(r.start_date, r.end_date)}
+                  </span>
+                )}
+              </div>
+              <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1">{p.title}</h3>
+              {p.assumption && (
+                <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
+                  {p.assumption}
+                </p>
               )}
-            </div>
-            <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1">{p.title}</h3>
-            {p.assumption && (
-              <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
-                {p.assumption}
-              </p>
-            )}
-            <div className="flex items-center justify-between mt-2">
-              {r && (
-                <div className="text-[0.68rem] text-rhythm-text-muted">
-                  第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
-                </div>
-              )}
-              <div className="flex gap-1 ml-auto">
+              <div className="flex items-center justify-between mt-2">
+                {r && (
+                  <div className="text-[0.68rem] text-rhythm-text-muted">
+                    第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
+                  </div>
+                )}
+                <span className="text-[0.62rem] text-rhythm-text-faint ml-auto">查看详情 ›</span>
+              </div>
+            </Link>
+            <div className="flex gap-1 justify-end mt-2 pt-2 border-t border-rhythm-border/60">
                 {active && confirmEnd === p.id ? (
                   <>
                     <button
@@ -133,7 +138,6 @@ export function PracticesList() {
                   </>
                 )}
               </div>
-            </div>
           </div>
         )
       })}

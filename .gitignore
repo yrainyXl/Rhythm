@@ -43,3 +43,8 @@ next-env.d.ts
 .agents/
 .claude/skills/
 skills-lock.json
+
+# 临时目录
+*.omx/
+.claude/worktrees/
+.understand-anything/

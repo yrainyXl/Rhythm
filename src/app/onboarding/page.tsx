@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createBrowserClient } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/cloudbase/api-client'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
 type Step = 'welcome' | 'timezone' | 'sleep-schedule' | 'done'
@@ -22,19 +22,20 @@ export default function OnboardingPage() {
     if (!user) return
     setIsLoading(true)
 
-    const supabase = createBrowserClient()
-    const { error } = await supabase.from('profiles').upsert({
-      id: user.id,
-      email: user.email ?? '',
-      nickname: nickname || null,
-      timezone,
-      preferred_wake_time: wakeTime || null,
-      preferred_sleep_time: sleepTime || null,
-    })
-
-    if (!error) {
+    try {
+      await apiFetch('/api/profile', {
+        method: 'POST',
+        body: JSON.stringify({
+          nickname: nickname || null,
+          timezone,
+          preferred_wake_time: wakeTime || null,
+          preferred_sleep_time: sleepTime || null,
+        }),
+      })
       await refreshProfile()
       router.push('/today')
+    } catch {
+      // 保存失败:停留在当前页(apiFetch 已抛出 ApiError)
     }
     setIsLoading(false)
   }

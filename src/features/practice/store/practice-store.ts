@@ -1,21 +1,84 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
 
-type Topic = Database['public']['Tables']['topics']['Row']
-type Direction = Database['public']['Tables']['directions']['Row']
-type Practice = Database['public']['Tables']['practices']['Row']
-type PracticeRound = Database['public']['Tables']['practice_rounds']['Row']
-type MethodRow = Database['public']['Tables']['methods']['Row']
+type TopicStatus = 'active' | 'archived'
+type PracticeStatus = 'active' | 'ended'
+type RoundStatus = 'active' | 'ended'
 type MethodStatus = 'confirmed' | 'validating' | 'archived'
-type PracticeLog = Database['public']['Tables']['practice_logs']['Row']
 type LogStatus = 'done' | 'partial' | 'skipped'
+
+interface Topic {
+  id: string
+  user_id: string
+  question: string
+  status: TopicStatus
+  created_at: string
+  updated_at: string
+}
+interface Direction {
+  id: string
+  user_id: string
+  title: string
+  description: string | null
+  status: string
+  created_at: string
+  updated_at: string
+}
+export interface Practice {
+  id: string
+  user_id: string
+  topic_id: string | null
+  title: string
+  assumption: string | null
+  status: PracticeStatus
+  created_at: string
+  updated_at: string
+}
+export interface PracticeRound {
+  id: string
+  user_id: string
+  practice_id: string
+  round_number: number
+  start_date: string
+  end_date: string
+  assumption: string | null
+  conclusion: string | null
+  review_reality: string | null
+  review_effect: string | null
+  review_adjustment: string | null
+  status: RoundStatus
+  created_at: string
+  updated_at: string
+}
+interface MethodRow {
+  id: string
+  user_id: string
+  title: string
+  condition: string | null
+  source_round_id: string | null
+  status: MethodStatus
+  created_at: string
+  updated_at: string
+}
+interface PracticeLog {
+  id: string
+  user_id: string
+  round_id: string
+  local_date: string
+  status: LogStatus
+  note: string | null
+  created_at: string
+  updated_at: string
+}
 
 export interface PracticeWithLatestRound extends Practice {
   latestRound: PracticeRound | null
 }
+
+const toErr = (e: unknown, fallback: string) =>
+  e instanceof ApiError ? (typeof e.body === 'string' ? e.body : (e.body as { error?: string })?.error ?? fallback) : fallback
 
 interface PracticeState {
   practices: PracticeWithLatestRound[]
@@ -28,6 +91,9 @@ interface PracticeState {
   loadPractices: () => Promise<void>
   loadTopics: () => Promise<void>
   loadDirections: () => Promise<void>
+  createTopic: (question: string) => Promise<{ error: string | null }>
+  archiveTopic: (id: string) => Promise<void>
+  deleteTopic: (id: string) => Promise<void>
   createDirection: (title: string, description: string | null) => Promise<{ error: string | null }>
   archiveDirection: (id: string) => Promise<void>
   deleteDirection: (id: string) => Promise<void>
@@ -40,6 +106,23 @@ interface PracticeState {
   }) => Promise<{ error: string | null }>
   endPractice: (id: string) => Promise<void>
   deletePractice: (id: string) => Promise<void>
+
+  // 详情 + 多轮
+  detailPractice: (Practice & { rounds: (PracticeRound & { log_count: number })[] }) | null
+  isLoadingDetail: boolean
+  loadDetail: (id: string) => Promise<void>
+  createRound: (practiceId: string, input: { assumption?: string; periodDays: number; conclusion?: string | null }) => Promise<{ error: string | null }>
+  endRound: (roundId: string, input?: {
+    conclusion?: string | null
+    reviewReality?: string | null
+    reviewEffect?: string | null
+    reviewAdjustment?: string | null
+  }) => Promise<void>
+  saveReview: (roundId: string, input: {
+    reviewReality?: string | null
+    reviewEffect?: string | null
+    reviewAdjustment?: string | null
+  }) => Promise<{ error: string | null }>
 
   methods: MethodRow[]
   isLoadingMethods: boolean
@@ -66,23 +149,6 @@ interface PracticeState {
   deleteLog: (id: string) => Promise<void>
 }
 
-function daysFromNow(days: number): string {
-  const d = new Date()
-  d.setDate(d.getDate() + days - 1)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
-function todayIso(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
-}
-
 export const usePracticeStore = create<PracticeState>((set, get) => ({
   practices: [],
   topics: [],
@@ -94,381 +160,278 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   isLoadingMethods: true,
   logsByRound: {},
   isLoadingLogs: false,
+  detailPractice: null,
+  isLoadingDetail: false,
 
   loadPractices: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
-      set({ isLoadingPractices: false })
-      return
-    }
-
-    const { data: practices } = await supabase
-      .from('practices')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-
-    if (!practices) {
+    try {
+      const data = await apiFetch<{ practices: PracticeWithLatestRound[] }>('/api/practice/practices')
+      set({ practices: data.practices ?? [], isLoadingPractices: false })
+    } catch {
       set({ practices: [], isLoadingPractices: false })
-      return
     }
-
-    const { data: rounds } = await supabase
-      .from('practice_rounds')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('round_number', { ascending: false })
-
-    const roundsByPractice = new Map<string, PracticeRound>()
-    for (const r of rounds ?? []) {
-      if (!roundsByPractice.has(r.practice_id)) {
-        roundsByPractice.set(r.practice_id, r)
-      }
-    }
-
-    const withRounds: PracticeWithLatestRound[] = practices.map((p) => ({
-      ...p,
-      latestRound: roundsByPractice.get(p.id) ?? null,
-    }))
-
-    set({ practices: withRounds, isLoadingPractices: false })
   },
 
   loadTopics: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
+    try {
+      const data = await apiFetch<{ topics: Topic[] }>('/api/practice/topics')
+      set({ topics: data.topics ?? [], isLoadingTopics: false })
+    } catch {
       set({ isLoadingTopics: false })
-      return
     }
-
-    const { data } = await supabase
-      .from('topics')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-
-    set({ topics: data ?? [], isLoadingTopics: false })
   },
 
   createTopic: async (question) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     const trimmed = question.trim()
     if (!trimmed) return { error: '议题不能为空' }
-
-    const { data, error } = await supabase
-      .from('topics')
-      .insert({ user_id: user.id, question: trimmed })
-      .select()
-      .single()
-
-    if (error) return { error: error.message }
-    if (data) {
+    try {
+      const data = await apiFetch<Topic>('/api/practice/topics', {
+        method: 'POST',
+        body: JSON.stringify({ question: trimmed }),
+      })
       set({ topics: [data, ...get().topics] })
+      return { error: null }
+    } catch (e) {
+      return { error: toErr(e, '创建失败') }
     }
-    return { error: null }
   },
 
   archiveTopic: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('topics').update({ status: 'archived' }).eq('id', id).eq('user_id', user.id)
-    set({ topics: get().topics.filter((t) => t.id !== id) })
+    try {
+      await apiFetch(`/api/practice/topics/${id}`, { method: 'PATCH', body: JSON.stringify({}) })
+      set({ topics: get().topics.filter((t) => t.id !== id) })
+    } catch {}
   },
 
   deleteTopic: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('topics').delete().eq('id', id).eq('user_id', user.id)
-    set({ topics: get().topics.filter((t) => t.id !== id) })
+    try {
+      await apiFetch(`/api/practice/topics/${id}`, { method: 'DELETE' })
+      set({ topics: get().topics.filter((t) => t.id !== id) })
+    } catch {}
   },
 
   loadDirections: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
+    try {
+      const data = await apiFetch<{ directions: Direction[] }>('/api/practice/directions')
+      set({ directions: data.directions ?? [], isLoadingDirections: false })
+    } catch {
       set({ isLoadingDirections: false })
-      return
     }
-
-    const { data } = await supabase
-      .from('directions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-
-    set({ directions: data ?? [], isLoadingDirections: false })
   },
 
   createDirection: async (title, description) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     const trimmed = title.trim()
     if (!trimmed) return { error: '方向标题不能为空' }
-
-    const { data, error } = await supabase
-      .from('directions')
-      .insert({
-        user_id: user.id,
-        title: trimmed,
-        description: description?.trim() || null
+    try {
+      const data = await apiFetch<Direction>('/api/practice/directions', {
+        method: 'POST',
+        body: JSON.stringify({ title: trimmed, description: description?.trim() || null }),
       })
-      .select()
-      .single()
-
-    if (error) return { error: error.message }
-    if (data) {
       set({ directions: [data, ...get().directions] })
+      return { error: null }
+    } catch (e) {
+      return { error: toErr(e, '创建失败') }
     }
-    return { error: null }
   },
 
   archiveDirection: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('directions').update({ status: 'archived' }).eq('id', id).eq('user_id', user.id)
-    set({ directions: get().directions.filter((d) => d.id !== id) })
+    try {
+      await apiFetch(`/api/practice/directions/${id}`, { method: 'PATCH', body: JSON.stringify({}) })
+      set({ directions: get().directions.filter((d) => d.id !== id) })
+    } catch {}
   },
 
   deleteDirection: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('directions').delete().eq('id', id).eq('user_id', user.id)
-    set({ directions: get().directions.filter((d) => d.id !== id) })
+    try {
+      await apiFetch(`/api/practice/directions/${id}`, { method: 'DELETE' })
+      set({ directions: get().directions.filter((d) => d.id !== id) })
+    } catch {}
   },
 
   createPractice: async ({ title, topicId, assumption, periodDays }) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     const t = title.trim()
     if (!t) return { error: '实践名不能为空' }
     if (periodDays < 3 || periodDays > 60) return { error: '周期必须在 3–60 天之间' }
-
-    const { data: practice, error: pErr } = await supabase
-      .from('practices')
-      .insert({
-        user_id: user.id,
-        title: t,
-        topic_id: topicId,
-        assumption: assumption.trim() || null,
+    try {
+      const data = await apiFetch<PracticeWithLatestRound>('/api/practice/practices', {
+        method: 'POST',
+        body: JSON.stringify({ title: t, topicId, assumption: assumption.trim(), periodDays }),
       })
-      .select()
-      .single()
-
-    if (pErr || !practice) return { error: pErr?.message ?? '创建失败' }
-
-    const { data: round, error: rErr } = await supabase
-      .from('practice_rounds')
-      .insert({
-        user_id: user.id,
-        practice_id: practice.id,
-        round_number: 1,
-        start_date: todayIso(),
-        end_date: daysFromNow(periodDays),
-        assumption: assumption.trim() || null,
-      })
-      .select()
-      .single()
-
-    if (rErr) return { error: rErr.message }
-
-    const withRound: PracticeWithLatestRound = { ...practice, latestRound: round ?? null }
-    set({ practices: [withRound, ...get().practices] })
-    return { error: null }
+      set({ practices: [data, ...get().practices] })
+      return { error: null }
+    } catch (e) {
+      return { error: toErr(e, '创建失败') }
+    }
   },
 
   endPractice: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('practices').update({ status: 'ended' }).eq('id', id).eq('user_id', user.id)
-    const { data: latestRound } = await supabase
-      .from('practice_rounds')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('practice_id', id)
-      .order('round_number', { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (latestRound && latestRound.status === 'active') {
-      await supabase.from('practice_rounds').update({ status: 'ended' }).eq('id', latestRound.id)
-    }
-    const practices = get().practices.map((p) =>
-      p.id === id
-        ? { ...p, status: 'ended' as const, latestRound: p.latestRound ? { ...p.latestRound, status: 'ended' as const } : null }
-        : p,
-    )
-    set({ practices })
+    try {
+      await apiFetch(`/api/practice/practices/${id}?action=end`, { method: 'PATCH', body: JSON.stringify({}) })
+      const practices = get().practices.map((p) =>
+        p.id === id
+          ? { ...p, status: 'ended' as const, latestRound: p.latestRound ? { ...p.latestRound, status: 'ended' as const } : null }
+          : p,
+      )
+      set({ practices })
+    } catch {}
   },
 
   deletePractice: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
+    try {
+      await apiFetch(`/api/practice/practices/${id}`, { method: 'DELETE' })
+      set({ practices: get().practices.filter((p) => p.id !== id) })
+    } catch {}
+  },
 
-    await supabase.from('practices').delete().eq('id', id).eq('user_id', user.id)
-    set({ practices: get().practices.filter((p) => p.id !== id) })
+  loadDetail: async (id) => {
+    set({ isLoadingDetail: true })
+    try {
+      const data = await apiFetch<{ practice: Practice; rounds: (PracticeRound & { log_count: number })[] }>(
+        `/api/practice/practices/${id}`,
+      )
+      set({
+        detailPractice: data.practice ? { ...data.practice, rounds: data.rounds ?? [] } : null,
+        isLoadingDetail: false,
+      })
+    } catch {
+      set({ detailPractice: null, isLoadingDetail: false })
+    }
+  },
+
+  createRound: async (practiceId, input) => {
+    try {
+      await apiFetch(`/api/practice/practices/${practiceId}/rounds`, {
+        method: 'POST',
+        body: JSON.stringify(input),
+      })
+      await get().loadDetail(practiceId)
+      await get().loadPractices()
+      return { error: null }
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '创建轮次失败' }
+    }
+  },
+
+  endRound: async (roundId, input) => {
+    try {
+      await apiFetch(`/api/practice/rounds/${roundId}?action=end`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          conclusion: input?.conclusion ?? null,
+          reviewReality: input?.reviewReality ?? null,
+          reviewEffect: input?.reviewEffect ?? null,
+          reviewAdjustment: input?.reviewAdjustment ?? null,
+        }),
+      })
+      const { detailPractice } = get()
+      if (detailPractice) {
+        await get().loadDetail(detailPractice.id)
+      }
+      // 刷新列表缓存:本轮结束后 latestRound.status 变 ended,今天/计划页需据此隐藏
+      await get().loadPractices()
+    } catch {}
+  },
+
+  saveReview: async (roundId, input) => {
+    try {
+      await apiFetch(`/api/practice/rounds/${roundId}?action=review`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          reviewReality: input.reviewReality ?? null,
+          reviewEffect: input.reviewEffect ?? null,
+          reviewAdjustment: input.reviewAdjustment ?? null,
+        }),
+      })
+      const { detailPractice } = get()
+      if (detailPractice) {
+        await get().loadDetail(detailPractice.id)
+      }
+      return { error: null }
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '保存复盘失败' }
+    }
   },
 
   loadMethods: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
+    try {
+      const data = await apiFetch<{ methods: MethodRow[] }>('/api/practice/methods')
+      set({ methods: data.methods ?? [], isLoadingMethods: false })
+    } catch {
       set({ isLoadingMethods: false })
-      return
     }
-
-    const { data } = await supabase
-      .from('methods')
-      .select('*')
-      .eq('user_id', user.id)
-      .neq('status', 'archived')
-      .order('created_at', { ascending: false })
-
-    set({ methods: data ?? [], isLoadingMethods: false })
   },
 
   createMethod: async ({ title, condition, status }) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
     const t = title.trim()
     if (!t) return { error: '方法标题不能为空' }
-
-    const { data, error } = await supabase
-      .from('methods')
-      .insert({
-        user_id: user.id,
-        title: t,
-        condition: condition.trim() || null,
-        status,
+    try {
+      const data = await apiFetch<MethodRow>('/api/practice/methods', {
+        method: 'POST',
+        body: JSON.stringify({ title: t, condition: condition.trim() || '', status }),
       })
-      .select()
-      .single()
-
-    if (error) return { error: error.message }
-    if (data) {
       set({ methods: [data, ...get().methods] })
+      return { error: null }
+    } catch (e) {
+      return { error: toErr(e, '创建失败') }
     }
-    return { error: null }
   },
 
   updateMethodStatus: async (id, status) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('methods').update({ status }).eq('id', id).eq('user_id', user.id)
-    if (status === 'archived') {
-      set({ methods: get().methods.filter((m) => m.id !== id) })
-    } else {
-      set({ methods: get().methods.map((m) => (m.id === id ? { ...m, status } : m)) })
-    }
+    try {
+      await apiFetch(`/api/practice/methods/${id}`, { method: 'PATCH', body: JSON.stringify({ status }) })
+      if (status === 'archived') {
+        set({ methods: get().methods.filter((m) => m.id !== id) })
+      } else {
+        set({ methods: get().methods.map((m) => (m.id === id ? { ...m, status } : m)) })
+      }
+    } catch {}
   },
 
   deleteMethod: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('methods').delete().eq('id', id).eq('user_id', user.id)
-    set({ methods: get().methods.filter((m) => m.id !== id) })
+    try {
+      await apiFetch(`/api/practice/methods/${id}`, { method: 'DELETE' })
+      set({ methods: get().methods.filter((m) => m.id !== id) })
+    } catch {}
   },
 
   loadLogsForRound: async (roundId) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
     set({ isLoadingLogs: true })
-    const { data } = await supabase
-      .from('practice_logs')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('round_id', roundId)
-      .order('local_date', { ascending: false })
-
-    set({
-      logsByRound: { ...get().logsByRound, [roundId]: data ?? [] },
-      isLoadingLogs: false,
-    })
+    try {
+      const data = await apiFetch<{ logs: PracticeLog[] }>(`/api/practice/rounds/${roundId}/logs`)
+      set({ logsByRound: { ...get().logsByRound, [roundId]: data.logs ?? [] }, isLoadingLogs: false })
+    } catch {
+      set({ isLoadingLogs: false })
+    }
   },
 
   upsertLog: async ({ roundId, localDate, status, note }) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return { error: 'Not authenticated' }
-
-    const existing = (get().logsByRound[roundId] ?? []).find((l) => l.local_date === localDate)
-
-    if (existing) {
-      const { data, error } = await supabase
-        .from('practice_logs')
-        .update({ status, note: note?.trim() || null })
-        .eq('id', existing.id)
-        .eq('user_id', user.id)
-        .select()
-        .single()
-
-      if (error) return { error: error.message }
-      if (data) {
-        const list = (get().logsByRound[roundId] ?? []).map((l) => (l.id === existing.id ? data : l))
-        set({ logsByRound: { ...get().logsByRound, [roundId]: list } })
-      }
-      return { error: null }
-    }
-
-    const { data, error } = await supabase
-      .from('practice_logs')
-      .insert({
-        user_id: user.id,
-        round_id: roundId,
-        local_date: localDate,
-        status,
-        note: note?.trim() || null,
+    try {
+      const data = await apiFetch<PracticeLog>(`/api/practice/rounds/${roundId}/logs`, {
+        method: 'POST',
+        body: JSON.stringify({ localDate, status, note: note?.trim() || null }),
       })
-      .select()
-      .single()
-
-    if (error) return { error: error.message }
-    if (data) {
-      const list = [data, ...(get().logsByRound[roundId] ?? [])]
-      set({ logsByRound: { ...get().logsByRound, [roundId]: list } })
+      const list = get().logsByRound[roundId] ?? []
+      const existingIdx = list.findIndex((l) => l.local_date === localDate)
+      const newList =
+        existingIdx >= 0
+          ? list.map((l) => (l.id === data.id ? data : l))
+          : [data, ...list]
+      set({ logsByRound: { ...get().logsByRound, [roundId]: newList } })
+      return { error: null }
+    } catch (e) {
+      return { error: toErr(e, '保存失败') }
     }
-    return { error: null }
   },
 
   deleteLog: async (id) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-
-    await supabase.from('practice_logs').delete().eq('id', id).eq('user_id', user.id)
-    const map = get().logsByRound
-    const newMap: Record<string, PracticeLog[]> = {}
-    for (const [k, list] of Object.entries(map)) {
-      newMap[k] = list.filter((l) => l.id !== id)
-    }
-    set({ logsByRound: newMap })
+    try {
+      await apiFetch(`/api/practice/logs/${id}`, { method: 'DELETE' })
+      const map = get().logsByRound
+      const newMap: Record<string, PracticeLog[]> = {}
+      for (const [k, list] of Object.entries(map)) {
+        newMap[k] = list.filter((l) => l.id !== id)
+      }
+      set({ logsByRound: newMap })
+    } catch {}
   },
 }))

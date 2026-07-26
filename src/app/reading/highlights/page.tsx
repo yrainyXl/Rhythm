@@ -20,7 +20,7 @@ function getBookBg(bookStatus: string, coverUrl: string | null | undefined): str
 }
 
 export default function AllHighlightsPage() {
-  const { highlights, loadHighlights } = useReadingStore()
+  const { highlights, loadHighlights, syncWeread, isSyncing, syncError, lastSyncResult } = useReadingStore()
 
   useEffect(() => {
     loadHighlights()
@@ -55,6 +55,34 @@ export default function AllHighlightsPage() {
           <p className="text-xs text-rhythm-text-muted mt-1">
             共 {highlights.length} 条划线笔记 · {books.length} 本书
           </p>
+        </div>
+
+        {/* 微信读书同步 */}
+        <div className="r-card p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="r-title text-sm">微信读书词条</p>
+              <p className="text-xs text-rhythm-text-muted mt-0.5">
+                同步在读书籍的划线与想法
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => syncWeread()}
+              disabled={isSyncing}
+              className="r-btn-primary px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap"
+            >
+              {isSyncing ? '同步中...' : '从微信读书同步'}
+            </button>
+          </div>
+
+          {lastSyncResult && !syncError && (
+            <p className="text-xs text-rhythm-success mt-3">
+              已同步 {lastSyncResult.books} 本书 · {lastSyncResult.highlights} 条划线 ·{' '}
+              {lastSyncResult.thoughts} 条想法
+            </p>
+          )}
+          {syncError && <p className="text-xs text-rhythm-danger mt-3">{syncError}</p>}
         </div>
 
         <div className="space-y-2">

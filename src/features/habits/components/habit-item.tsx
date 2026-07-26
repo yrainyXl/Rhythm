@@ -2,9 +2,7 @@
 
 import { useState } from 'react'
 import { Check, Plus, SkipForward } from 'lucide-react'
-import type { Database } from '@/lib/supabase/database.types'
-
-type HabitOccurrence = Database['public']['Tables']['habit_occurrences']['Row']
+import type { HabitOccurrence } from '@/features/habits/store/habit-store'
 
 interface HabitItemProps {
   occurrence: HabitOccurrence

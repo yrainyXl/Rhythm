@@ -1,38 +1,50 @@
-import { createRouteHandlerSupabaseClient } from '@/lib/supabase/route-handler'
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
+import { withUser } from '@/lib/cloudbase/db'
 
+export const runtime = 'nodejs'
+
+interface ProfileBody {
+  nickname?: string | null
+  timezone?: string | null
+  preferred_wake_time?: string | null
+  preferred_sleep_time?: string | null
+  work_days?: number[] | null
+}
+
+/** POST /api/profile - 保存当前用户资料(首次写入 / 后续更新)。 */
 export async function POST(request: NextRequest) {
-  const supabase = createRouteHandlerSupabaseClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  return withUser(request, async (_userId, db) => {
+    const body = (await request.json().catch(() => null)) as ProfileBody | null
+    if (!body) {
+      return NextResponse.json({ error: 'Invalid body' }, { status: 400 })
+    }
 
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+    const setClauses: string[] = []
+    const params: unknown[] = []
+    const push = (col: string, val: unknown) => {
+      params.push(val)
+      setClauses.push(`${col} = $${params.length}`)
+    }
 
-  const body = await request.json()
-  const { nickname, timezone, preferred_wake_time, preferred_sleep_time, work_days } = body
+    if (body.nickname !== undefined) push('nickname', body.nickname || null)
+    if (body.timezone !== undefined) push('timezone', body.timezone || 'Asia/Shanghai')
+    if (body.preferred_wake_time !== undefined)
+      push('preferred_wake_time', body.preferred_wake_time || null)
+    if (body.preferred_sleep_time !== undefined)
+      push('preferred_sleep_time', body.preferred_sleep_time || null)
+    if (body.work_days !== undefined) push('work_days', body.work_days ?? [1, 2, 3, 4, 5])
 
-  const payload: Record<string, string | number[] | null> = {
-    id: user.id,
-    email: user.email ?? '',
-    nickname: nickname || null,
-    timezone: timezone || 'Asia/Shanghai',
-    preferred_wake_time: preferred_wake_time || null,
-    preferred_sleep_time: preferred_sleep_time || null,
-  }
+    if (setClauses.length === 0) {
+      return NextResponse.json({ success: true })
+    }
 
-  if (work_days) {
-    payload.work_days = work_days
-  }
+    await db.query(
+      `UPDATE public.profiles
+       SET ${setClauses.join(', ')}
+       WHERE id = $${params.length + 1}`,
+      [...params, _userId],
+    )
 
-  const { error } = await supabase.from('profiles').upsert(payload)
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-
-  return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true })
+  })
 }

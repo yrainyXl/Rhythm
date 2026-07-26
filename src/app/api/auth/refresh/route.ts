@@ -1,38 +1,36 @@
 import { NextResponse } from 'next/server'
-import { createRouteHandlerSupabaseClient } from '@/lib/supabase/route-handler'
+import { getPgPool, ensureAppUser } from '@/lib/cloudbase/server'
 
 export const dynamic = 'force-dynamic'
 
-const SERVER_AUTH_TIMEOUT_MS = 10_000
-const NO_STORE_HEADERS = {
-  'Cache-Control': 'private, no-cache, no-store, must-revalidate, max-age=0',
-  Expires: '0',
-  Pragma: 'no-cache',
-}
+/**
+ * 登录后/会话恢复时调:确保 app_users + profiles 已建立(首次登录自动建),
+ * 返回当前 profile 供前端 hydrate。
+ * (DB-P0-01) 复用进程级 Pool,不再 pool.end()。
+ */
+export async function POST(request: Request) {
+  const authHeader = request.headers.get('authorization')
+  const accessToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+  if (!accessToken) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
 
-export async function POST() {
-  const supabase = createRouteHandlerSupabaseClient()
-  const timeout = new Promise<null>((resolve) =>
-    setTimeout(() => resolve(null), SERVER_AUTH_TIMEOUT_MS)
-  )
-  const result = await Promise.race([supabase.auth.getUser(), timeout])
+  const userId = await ensureAppUser(accessToken)
+  if (!userId) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
 
-  if (!result) {
-    return NextResponse.json(
-      { error: 'Auth refresh timed out' },
-      { status: 504, headers: NO_STORE_HEADERS }
+  const pool = getPgPool()
+  const client = await pool.connect()
+  try {
+    const res = await client.query(
+      `SELECT id, email, nickname, avatar_url, timezone,
+              preferred_wake_time, preferred_sleep_time, work_days
+       FROM public.profiles WHERE id = $1`,
+      [userId],
     )
+    return NextResponse.json({ user: res.rows[0] ?? null })
+  } finally {
+    client.release()
   }
-
-  const { data, error } = result
-  if (error || !data.user) {
-    return NextResponse.json({ user: null }, { status: 401, headers: NO_STORE_HEADERS })
-  }
-
-  return NextResponse.json(
-    { user: data.user },
-    {
-      headers: NO_STORE_HEADERS,
-    }
-  )
 }

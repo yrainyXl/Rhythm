@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
 import { TabPlaceholder } from '@/features/records/components/tab-placeholder'
@@ -11,6 +12,18 @@ function formatRange(start: string, end: string): string {
     return `${m}月${d}日`
   }
   return `${parseM(start)}–${parseM(end)}`
+}
+
+function daysBetween(start: string, end: string) {
+  const [sy, sm, sd] = start.split('-').map(Number)
+  const [ey, em, ed] = end.split('-').map(Number)
+  const startD = new Date(sy, sm - 1, sd)
+  const endD = new Date(ey, em - 1, ed)
+  const now = new Date()
+  const day = 1000 * 60 * 60 * 24
+  const total = Math.round((endD.getTime() - startD.getTime()) / day) + 1
+  const elapsed = Math.min(total, Math.max(1, Math.floor((now.getTime() - startD.getTime()) / day) + 1))
+  return { total, elapsed }
 }
 
 export function PracticesList() {
@@ -51,33 +64,41 @@ export function PracticesList() {
       {practices.map((p) => {
         const active = p.status === 'active'
         const r = p.latestRound
+        const dayInfo = r && active ? daysBetween(r.start_date, r.end_date) : null
         return (
           <div key={p.id} className="r-card p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
-                active ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
-              }`}>
-                {active ? '进行中' : '已完成'}
-              </span>
-              {r && (
-                <span className="text-[0.62rem] text-rhythm-text-muted">
-                  {formatRange(r.start_date, r.end_date)}
+            <Link href={`/habits/practices/${p.id}`} className="block">
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
+                  active ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
+                }`}>
+                  {active ? '进行中' : '已完成'}
                 </span>
+                {r && (
+                  <span className="text-[0.62rem] text-rhythm-text-muted">
+                    {formatRange(r.start_date, r.end_date)}
+                  </span>
+                )}
+              </div>
+              <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1">{p.title}</h3>
+              {p.assumption && (
+                <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
+                  {p.assumption}
+                </p>
               )}
-            </div>
-            <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1">{p.title}</h3>
-            {p.assumption && (
-              <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
-                {p.assumption}
-              </p>
-            )}
-            <div className="flex items-center justify-between mt-2">
-              {r && (
-                <div className="text-[0.68rem] text-rhythm-text-muted">
-                  第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
-                </div>
-              )}
-              <div className="flex gap-1 ml-auto">
+              <div className="flex items-center justify-between mt-2">
+                {r && (
+                  <div className="text-[0.68rem] text-rhythm-text-muted">
+                    第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
+                    {dayInfo && (
+                      <span className="ml-1.5">· 第 {dayInfo.elapsed}/{dayInfo.total} 天</span>
+                    )}
+                  </div>
+                )}
+                <span className="text-[0.62rem] text-rhythm-text-faint ml-auto">查看详情 ›</span>
+              </div>
+            </Link>
+            <div className="flex gap-1 justify-end mt-2">
                 {active && confirmEnd === p.id ? (
                   <>
                     <button
@@ -133,7 +154,6 @@ export function PracticesList() {
                   </>
                 )}
               </div>
-            </div>
           </div>
         )
       })}

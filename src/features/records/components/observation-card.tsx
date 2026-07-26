@@ -1,9 +1,12 @@
 'use client'
 
 import { useAiRecommendationStore } from '@/features/practice/store/ai-recommendation-store'
-import type { Database } from '@/lib/supabase/database.types'
 
-type Rec = Database['public']['Tables']['ai_recommendations']['Row']
+interface Rec {
+  id: string
+  title: string
+  uncertainty_note: string | null
+}
 
 export function ObservationCard({ rec }: { rec: Rec }) {
   const { updateStatus } = useAiRecommendationStore()

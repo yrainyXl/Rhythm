@@ -48,7 +48,7 @@ export default function LoginPage() {
           setError(null)
           setMode('login')
           // Show success message
-          setError('注册成功！请检查邮箱确认，然后登录。')
+          setError('注册成功！请登录。')
         }
       } else {
         // magic link

@@ -1,11 +1,24 @@
 'use client'
 
 import { create } from 'zustand'
-import { createBrowserClient, getCurrentUser } from '@/lib/supabase/client'
-import type { Database } from '@/lib/supabase/database.types'
+import { apiFetch } from '@/lib/cloudbase/api-client'
 
-type Recommendation = Database['public']['Tables']['ai_recommendations']['Row']
 type RecStatus = 'pending' | 'confirmed' | 'more_data' | 'dismissed'
+type RecKind = 'observation' | 'try' | 'method_suggest'
+
+interface Recommendation {
+  id: string
+  user_id: string
+  kind: RecKind
+  weekly_review_id: string | null
+  title: string
+  body_md: string | null
+  evidence_ref: unknown
+  uncertainty_note: string | null
+  status: RecStatus
+  created_at: string
+  updated_at: string
+}
 
 interface AiRecState {
   items: Recommendation[]
@@ -20,41 +33,35 @@ export const useAiRecommendationStore = create<AiRecState>((set, get) => ({
   isLoading: true,
 
   loadByReview: async (weeklyReviewId) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-    const { data } = await supabase
-      .from('ai_recommendations')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('weekly_review_id', weeklyReviewId)
-      .order('created_at', { ascending: true })
-    set({ items: (data ?? []) as Recommendation[], isLoading: false })
+    try {
+      const data = await apiFetch<{ items: Recommendation[] }>(
+        `/api/practice/ai-recommendations?weeklyReviewId=${encodeURIComponent(weeklyReviewId)}`,
+      )
+      set({ items: data.items ?? [], isLoading: false })
+    } catch {
+      set({ isLoading: false })
+    }
   },
 
   loadPending: async () => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) {
+    try {
+      const data = await apiFetch<{ items: Recommendation[] }>(
+        '/api/practice/ai-recommendations?status=pending',
+      )
+      set({ items: data.items ?? [], isLoading: false })
+    } catch {
       set({ isLoading: false })
-      return
     }
-    const { data } = await supabase
-      .from('ai_recommendations')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(20)
-    set({ items: (data ?? []) as Recommendation[], isLoading: false })
   },
 
   updateStatus: async (id, status) => {
-    const supabase = createBrowserClient()
-    const user = await getCurrentUser(supabase)
-    if (!user) return
-    await supabase.from('ai_recommendations').update({ status }).eq('id', id).eq('user_id', user.id)
-    const items = get().items.map((r) => (r.id === id ? { ...r, status } : r))
-    set({ items })
+    try {
+      await apiFetch(`/api/practice/ai-recommendations/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status }),
+      })
+      const items = get().items.map((r) => (r.id === id ? { ...r, status } : r))
+      set({ items })
+    } catch {}
   },
 }))

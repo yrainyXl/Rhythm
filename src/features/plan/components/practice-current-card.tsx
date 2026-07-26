@@ -102,7 +102,9 @@ export function PracticeCurrentCard() {
     loadPractices()
   }, [loadPractices])
 
-  const activePractices = practices.filter((p) => p.status === 'active')
+  const activePractices = practices.filter(
+    (p) => p.status === 'active' && p.latestRound?.status === 'active',
+  )
   const hasActive = activePractices.length > 0
   // 有进行中实践时不展示"发起新实践"占位卡,通过实践管理页统一新建
   const slides = hasActive ? activePractices.length : 1

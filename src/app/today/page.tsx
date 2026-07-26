@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useHabitStore } from '@/features/habits/store/habit-store'
 import { DayHead } from '@/features/today/components/day-head'
@@ -22,6 +23,7 @@ function formatDate(iso: string) {
 }
 
 export default function TodayPage() {
+  const router = useRouter()
   const { occurrences } = useHabitStore()
   const [todayDate] = useState(todayIsoDate)
 
@@ -45,7 +47,7 @@ export default function TodayPage() {
         </section>
 
         <section>
-          <SectionHeader label="进行中的实践" actionLabel="查看实践" />
+          <SectionHeader label="进行中的实践" actionLabel="查看实践" onAction={() => router.push('/habits/practices')} />
           <PracticeHero />
         </section>
 

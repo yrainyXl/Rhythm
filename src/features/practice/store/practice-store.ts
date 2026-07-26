@@ -26,7 +26,7 @@ interface Direction {
   created_at: string
   updated_at: string
 }
-interface Practice {
+export interface Practice {
   id: string
   user_id: string
   topic_id: string | null
@@ -36,7 +36,7 @@ interface Practice {
   created_at: string
   updated_at: string
 }
-interface PracticeRound {
+export interface PracticeRound {
   id: string
   user_id: string
   practice_id: string
@@ -45,6 +45,9 @@ interface PracticeRound {
   end_date: string
   assumption: string | null
   conclusion: string | null
+  review_reality: string | null
+  review_effect: string | null
+  review_adjustment: string | null
   status: RoundStatus
   created_at: string
   updated_at: string
@@ -109,7 +112,17 @@ interface PracticeState {
   isLoadingDetail: boolean
   loadDetail: (id: string) => Promise<void>
   createRound: (practiceId: string, input: { assumption?: string; periodDays: number; conclusion?: string | null }) => Promise<{ error: string | null }>
-  endRound: (roundId: string, conclusion?: string | null) => Promise<void>
+  endRound: (roundId: string, input?: {
+    conclusion?: string | null
+    reviewReality?: string | null
+    reviewEffect?: string | null
+    reviewAdjustment?: string | null
+  }) => Promise<void>
+  saveReview: (roundId: string, input: {
+    reviewReality?: string | null
+    reviewEffect?: string | null
+    reviewAdjustment?: string | null
+  }) => Promise<{ error: string | null }>
 
   methods: MethodRow[]
   isLoadingMethods: boolean
@@ -299,17 +312,44 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     }
   },
 
-  endRound: async (roundId, conclusion) => {
+  endRound: async (roundId, input) => {
     try {
       await apiFetch(`/api/practice/rounds/${roundId}?action=end`, {
         method: 'PATCH',
-        body: JSON.stringify({ conclusion: conclusion ?? null }),
+        body: JSON.stringify({
+          conclusion: input?.conclusion ?? null,
+          reviewReality: input?.reviewReality ?? null,
+          reviewEffect: input?.reviewEffect ?? null,
+          reviewAdjustment: input?.reviewAdjustment ?? null,
+        }),
       })
       const { detailPractice } = get()
       if (detailPractice) {
         await get().loadDetail(detailPractice.id)
       }
+      // 刷新列表缓存:本轮结束后 latestRound.status 变 ended,今天/计划页需据此隐藏
+      await get().loadPractices()
     } catch {}
+  },
+
+  saveReview: async (roundId, input) => {
+    try {
+      await apiFetch(`/api/practice/rounds/${roundId}?action=review`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          reviewReality: input.reviewReality ?? null,
+          reviewEffect: input.reviewEffect ?? null,
+          reviewAdjustment: input.reviewAdjustment ?? null,
+        }),
+      })
+      const { detailPractice } = get()
+      if (detailPractice) {
+        await get().loadDetail(detailPractice.id)
+      }
+      return { error: null }
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : '保存复盘失败' }
+    }
   },
 
   loadMethods: async () => {

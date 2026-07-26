@@ -14,6 +14,18 @@ function formatRange(start: string, end: string): string {
   return `${parseM(start)}–${parseM(end)}`
 }
 
+function daysBetween(start: string, end: string) {
+  const [sy, sm, sd] = start.split('-').map(Number)
+  const [ey, em, ed] = end.split('-').map(Number)
+  const startD = new Date(sy, sm - 1, sd)
+  const endD = new Date(ey, em - 1, ed)
+  const now = new Date()
+  const day = 1000 * 60 * 60 * 24
+  const total = Math.round((endD.getTime() - startD.getTime()) / day) + 1
+  const elapsed = Math.min(total, Math.max(1, Math.floor((now.getTime() - startD.getTime()) / day) + 1))
+  return { total, elapsed }
+}
+
 export function PracticesList() {
   const { practices, isLoadingPractices, loadPractices, endPractice, deletePractice } = usePracticeStore()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -52,6 +64,7 @@ export function PracticesList() {
       {practices.map((p) => {
         const active = p.status === 'active'
         const r = p.latestRound
+        const dayInfo = r && active ? daysBetween(r.start_date, r.end_date) : null
         return (
           <div key={p.id} className="r-card p-4">
             <Link href={`/habits/practices/${p.id}`} className="block">
@@ -77,12 +90,15 @@ export function PracticesList() {
                 {r && (
                   <div className="text-[0.68rem] text-rhythm-text-muted">
                     第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
+                    {dayInfo && (
+                      <span className="ml-1.5">· 第 {dayInfo.elapsed}/{dayInfo.total} 天</span>
+                    )}
                   </div>
                 )}
                 <span className="text-[0.62rem] text-rhythm-text-faint ml-auto">查看详情 ›</span>
               </div>
             </Link>
-            <div className="flex gap-1 justify-end mt-2 pt-2 border-t border-rhythm-border/60">
+            <div className="flex gap-1 justify-end mt-2">
                 {active && confirmEnd === p.id ? (
                   <>
                     <button

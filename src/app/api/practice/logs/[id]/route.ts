@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /** DELETE /api/practice/logs/[id] - 删除日志。 */
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {

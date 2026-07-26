@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /** GET /api/habits — 列出当前用户的习惯(含 schedules),按 sort_order 排序。 */
 export async function GET(request: NextRequest) {

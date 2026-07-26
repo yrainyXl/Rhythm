@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /** GET /api/practice/practices/[id] - 实践详情:实践 + 所有轮次(按 round_number)+ 每轮日志数。 */
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {

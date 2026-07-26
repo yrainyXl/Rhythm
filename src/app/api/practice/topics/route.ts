@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 /** GET /api/practice/topics - 列出 active 议题。 */
 export async function GET(request: NextRequest) {

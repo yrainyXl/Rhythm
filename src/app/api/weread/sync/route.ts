@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 const GATEWAY = 'https://i.weread.qq.com/api/agent/gateway'
 const SKILL_VERSION = '1.0.4'

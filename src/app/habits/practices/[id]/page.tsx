@@ -8,6 +8,7 @@ import { usePracticeStore } from '@/features/practice/store/practice-store'
 import { RoundLogPanel } from '@/features/practice/components/round-log-panel'
 import { ReviewFormSheet } from '@/features/practice/components/review-form-sheet'
 import { ReviewTimeline } from '@/features/practice/components/review-timeline'
+import { NewRoundSheet } from '@/features/practice/components/new-round-sheet'
 
 function formatRange(start: string, end: string): string {
   const parseM = (iso: string) => {
@@ -22,12 +23,10 @@ type Tab = 'detail' | 'review'
 export default function PracticeDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
-  const { detailPractice, isLoadingDetail, loadDetail, createRound, endRound, endPractice, deletePractice } =
+  const { detailPractice, isLoadingDetail, loadDetail, endRound, endPractice, deletePractice } =
     usePracticeStore()
   const [tab, setTab] = useState<Tab>('detail')
   const [showNewRound, setShowNewRound] = useState(false)
-  const [newAssumption, setNewAssumption] = useState('')
-  const [newPeriod, setNewPeriod] = useState(6)
   const [confirmEndPractice, setConfirmEndPractice] = useState(false)
   // 结束轮次复盘:有 roundId 即打开;thenNew 表示结束后接着开新一轮
   const [endReview, setEndReview] = useState<{ roundId: string; roundNumber: number; thenNew?: boolean } | null>(null)
@@ -38,18 +37,7 @@ export default function PracticeDetailPage() {
 
   const activeRound = detailPractice?.rounds.find((r) => r.status === 'active')
   const isActive = detailPractice?.status === 'active'
-
-  const handleCreateRound = async () => {
-    const r = await createRound(params.id, {
-      assumption: newAssumption.trim() || undefined,
-      periodDays: newPeriod,
-    })
-    if (!r.error) {
-      setShowNewRound(false)
-      setNewAssumption('')
-      setNewPeriod(6)
-    }
-  }
+  const nextRoundNumber = (detailPractice?.rounds.at(-1)?.round_number ?? 0) + 1
 
   // 结束本轮:打开复盘弹窗
   const onClickEndRound = (roundId: string, roundNumber: number) => {
@@ -65,10 +53,11 @@ export default function PracticeDetailPage() {
     }
   }
 
-  const onReviewSheetClose = () => {
+  const onReviewSheetClose = (result: 'submitted' | 'cancelled') => {
     const thenNew = endReview?.thenNew
     setEndReview(null)
-    if (thenNew) setShowNewRound(true)
+    // 仅在复盘已提交/跳过(轮次已结束)时才接着开新一轮;点 X 取消则中止
+    if (thenNew && result === 'submitted') setShowNewRound(true)
   }
 
   return (
@@ -200,45 +189,7 @@ export default function PracticeDetailPage() {
                   })}
                 </div>
 
-                {/* 创建下一轮表单 */}
-                {showNewRound && (
-                  <div className="r-card p-4 space-y-3">
-                    <h3 className="font-serifsc text-sm m-0">发起第 {(detailPractice.rounds.at(-1)?.round_number ?? 0) + 1} 轮</h3>
-                    <div>
-                      <label className="r-label">新假设(可选)</label>
-                      <input
-                        type="text"
-                        value={newAssumption}
-                        onChange={(e) => setNewAssumption(e.target.value)}
-                        placeholder="这一轮改变了什么…"
-                        className="r-input"
-                      />
-                    </div>
-                    <div>
-                      <label className="r-label">周期(天,3–60)</label>
-                      <input
-                        type="number"
-                        min={3}
-                        max={60}
-                        value={newPeriod}
-                        onChange={(e) => setNewPeriod(Number(e.target.value))}
-                        className="r-input"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button type="button" onClick={() => void handleCreateRound()} className="r-btn-primary flex-1">
-                        确认创建
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowNewRound(false)}
-                        className="r-btn flex-1 text-rhythm-text-muted"
-                      >
-                        取消
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {/* 创建下一轮表单已移至 NewRoundSheet 弹窗 */}
 
                 {/* 结束/删除实践 */}
                 {isActive && (
@@ -297,6 +248,14 @@ export default function PracticeDetailPage() {
         roundId={endReview?.roundId ?? ''}
         roundNumber={endReview?.roundNumber}
         mode="end"
+      />
+
+      {/* 发起新一轮弹窗 */}
+      <NewRoundSheet
+        open={showNewRound}
+        onClose={() => setShowNewRound(false)}
+        practiceId={params.id}
+        nextRoundNumber={nextRoundNumber}
       />
     </AuthGuard>
   )

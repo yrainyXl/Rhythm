@@ -5,7 +5,8 @@ import { usePracticeStore } from '@/features/practice/store/practice-store'
 
 export interface ReviewFormSheetProps {
   open: boolean
-  onClose: () => void
+  /** 关闭回调。result: 'submitted' = 提交/跳过(轮次已结束); 'cancelled' = 点 X/Esc/遮罩取消(无副作用) */
+  onClose: (result: 'submitted' | 'cancelled') => void
   roundId: string
   /** 'end' = 结束轮次并写复盘(可跳过); 'review' = 补填/编辑复盘(不改状态) */
   mode: 'end' | 'review'
@@ -49,11 +50,11 @@ export function ReviewFormSheet({
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') cancel()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
@@ -69,7 +70,7 @@ export function ReviewFormSheet({
     setError(null)
     await endRound(roundId)
     setSaving(false)
-    onClose()
+    onClose('submitted')
   }
 
   // 提交复盘
@@ -78,7 +79,7 @@ export function ReviewFormSheet({
     setError(null)
     if (mode === 'end') {
       await endRound(roundId, buildInput())
-      onClose()
+      onClose('submitted')
     } else {
       const r = await saveReview(roundId, buildInput())
       if (r.error) {
@@ -86,10 +87,12 @@ export function ReviewFormSheet({
         setSaving(false)
         return
       }
-      onClose()
+      onClose('submitted')
     }
     setSaving(false)
   }
+
+  const cancel = () => onClose('cancelled')
 
   const title = mode === 'end'
     ? `结束第 ${roundNumber ?? ''} 轮 · 复盘`
@@ -98,7 +101,7 @@ export function ReviewFormSheet({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-rhythm-void/70 backdrop-blur-sm"
-      onClick={onClose}>
+      onClick={cancel}>
       <div
         className="w-full sm:max-w-md p-5 rounded-t-2xl sm:rounded-2xl bg-rhythm-card border-t sm:border border-rhythm-border-strong max-h-[85vh] overflow-y-auto"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
@@ -108,7 +111,7 @@ export function ReviewFormSheet({
           <button
             type="button"
             aria-label="关闭"
-            onClick={onClose}
+            onClick={cancel}
             className="w-8 h-8 grid place-items-center rounded-full bg-transparent border-0 cursor-pointer text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
             <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
               <path d="M18 6L6 18M6 6l12 12" />

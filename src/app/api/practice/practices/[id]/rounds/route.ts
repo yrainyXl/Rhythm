@@ -23,16 +23,16 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     }
 
     return db.transaction(async (tx) => {
-      // 校验实践属于用户且 active
+      // (CONC) 行锁 practice,串行化并发创建请求,配合前端防连点避免建出多个 active 轮。
       const practiceRes = await tx.query(
-        `SELECT id FROM practices WHERE id = $1 AND user_id = $2 AND status = 'active'`,
+        `SELECT id FROM practices WHERE id = $1 AND user_id = $2 AND status = 'active' FOR UPDATE`,
         [params.id, userId],
       )
       if (practiceRes.rows.length === 0) {
         return NextResponse.json({ error: '实践不存在或已结束' }, { status: 404 })
       }
 
-      // 结束当前 active 轮
+      // 结束当前 active 轮(若有)
       await tx.query(
         `UPDATE practice_rounds SET status = 'ended', conclusion = COALESCE($1, conclusion)
          WHERE id = (

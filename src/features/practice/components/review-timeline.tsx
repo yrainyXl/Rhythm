@@ -101,8 +101,7 @@ export function ReviewTimeline({
 
       <ReviewFormSheet
         open={!!reviewTarget}
-        onClose={() => setReviewTarget(null)}
-        roundId={reviewTarget?.roundId ?? ''}
+        onClose={() => setReviewTarget(null)}        roundId={reviewTarget?.roundId ?? ''}
         roundNumber={reviewTarget?.roundNumber}
         mode="review"
         initial={

@@ -1,10 +1,9 @@
 import { create } from 'zustand'
-import { createCloudbaseClient, signInWithPassword, signOut } from '@/lib/cloudbase/client'
-import { getCurrentUser } from '@/lib/cloudbase/client'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
 
 interface Profile {
   id: string
+  email?: string
   username?: string
   nickname?: string
   avatar_url?: string
@@ -16,8 +15,6 @@ interface Profile {
   updated_at?: string
 }
 
-// v3 SDK 的 IUser 类型在此处不便直接导入(类型链绕),
-// 用最小可用结构承接,实际字段由 SDK 返回。
 type CloudbaseUser = {
   uid?: string
   username?: string
@@ -38,6 +35,9 @@ interface AuthState {
   signOut: () => Promise<void>
 }
 
+const toErr = (e: unknown, fallback: string) =>
+  e instanceof ApiError ? (typeof e.body === 'string' ? e.body : (e.body as { error?: string })?.error ?? fallback) : fallback
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   profile: null,
@@ -47,63 +47,43 @@ export const useAuthStore = create<AuthState>((set) => ({
   setProfile: (profile) => set({ profile }),
   setLoading: (isLoading) => set({ isLoading }),
 
+  // 会话恢复/建用户:同源 /api/auth/refresh,cookie 自动携带。
   refreshProfile: async () => {
     try {
       const { user } = await apiFetch<{ user: Profile | null }>('/api/auth/refresh', {
         method: 'POST',
       })
-      set({ profile: user ?? null })
+      set({ profile: user ?? null, user: user ? { uid: user.id, email: user.email } : null })
     } catch {
-      // 未登录或 token 失效,保持 profile=null
-      set({ profile: null })
+      set({ profile: null, user: null })
     }
   },
 
-  signInWithEmail: async (email: string, password: string) => {
+  // 同源代理登录:服务端调网关 + 写 httpOnly cookie,避开浏览器直连网关的 CORS。
+  signInWithEmail: async (email, password) => {
     try {
-      const cloudbaseClient = createCloudbaseClient()
-      // v3 走「用户名密码登录」,用户名即邮箱。返回 { data, error },不抛异常。
-      const { error } = await signInWithPassword(cloudbaseClient, email, password)
-      if (error) {
-        return { error: error instanceof Error ? error.message : '登录失败' }
-      }
-      const user = await getCurrentUser(cloudbaseClient)
-      set({ user: user as CloudbaseUser | null })
-      // (AUTH-P0-02) 登录成功后 await ensureAppUser 建立 app_users/profiles,
-      // 确保建好才进业务页(否则首屏业务 API 会 401)
-      await useAuthStore.getState().refreshProfile()
+      const { user } = await apiFetch<{ user: Profile | null }>('/api/auth/signin', {
+        method: 'POST',
+        body: JSON.stringify({ username: email, password }),
+      })
+      if (!user) return { error: '登录失败' }
+      set({ profile: user, user: { uid: user.id, email: user.email } })
       return { error: null }
-    } catch (err: unknown) {
-      return { error: err instanceof Error ? err.message : '登录失败' }
+    } catch (e) {
+      return { error: toErr(e, '登录失败') }
     }
   },
 
-  signInWithMagicLink: async () => {
-    // Cloudbase does not support magic link login out of the box
-    return { error: '暂不支持免密码登录' }
-  },
+  signInWithMagicLink: async () => ({ error: '暂不支持免密码登录' }),
 
-  signUp: async (email: string, password: string) => {
-    // 用户名密码登录场景下,账号由 CloudBase 控制台创建;
-    // SDK 未提供「用户名密码」对应的注册入口,暂不支持前端注册
-    void email
-    void password
-    return { error: '请在 CloudBase 控制台创建账号后登录' }
-  },
+  signUp: async () => ({ error: '请在 CloudBase 控制台创建账号后登录' }),
 
   signOut: async () => {
-    const cloudbaseClient = createCloudbaseClient()
-    await signOut(cloudbaseClient)
-    // (AUTH-P0-07) 清用户态、profile 与本地凭据
-    set({ user: null, profile: null, isLoading: false })
     try {
-      const envId = process.env.NEXT_PUBLIC_CLOUDBASE_ENV_ID
-      if (envId && typeof window !== 'undefined') {
-        window.localStorage.removeItem(`credentials_${envId}`)
-        window.localStorage.removeItem(`user_info_${envId}`)
-      }
+      await apiFetch('/api/auth/signout', { method: 'POST' })
     } catch {
-      // 忽略
+      // 忽略,前端仍清态
     }
+    set({ user: null, profile: null, isLoading: false })
   },
 }))

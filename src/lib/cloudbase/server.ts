@@ -1,6 +1,7 @@
 import { Pool, types } from 'pg'
 import { cloudbaseEnv } from './env'
 import { getAccessToken, getRefreshToken } from './auth-cookie'
+import { verifyAccessToken } from './jwt'
 
 // pg 默认把 PostgreSQL date/timestamp 解析成 JS Date 对象,JSON.stringify 后
 // 变成 UTC ISO 字符串(如 "2026-07-22T16:00:00.000Z"),导致前端按本地日期
@@ -107,17 +108,30 @@ async function fetchUserInfoRaw(accessToken: string): Promise<CloudbaseUser | nu
 }
 
 /**
- * 用 access_token 调网关 userinfo 换 cloudbase uid + email。
- * access_token 失效时自动用 refresh_token 续期一次(服务端,无 CORS)。
+ * 用 access_token 拿 cloudbase uid + email。
+ * 优先 JWT 本地验签(无网络往返,快);失败 fallback 网关 userinfo;
+ * access_token 过期则用 refresh_token 续期一次(服务端,无 CORS)。
  */
 async function fetchCloudbaseUserInfo(accessToken: string, request?: Request): Promise<CloudbaseUser | null> {
+  // 1. 本地 JWT 验签(快路径)
+  const verified = await verifyAccessToken(accessToken)
+  if (verified) return verified
+
+  // 2. fallback 网关 userinfo(公钥未刷新/旧 token 等)
   const info = await fetchUserInfoRaw(accessToken)
   if (info) return info
+
+  // 3. access_token 失效 -> refresh 续期
   if (request) {
     const refreshToken = getRefreshToken(request)
     if (refreshToken) {
       const refreshed = await refreshTokens(refreshToken)
-      if (refreshed) return fetchUserInfoRaw(refreshed.access_token)
+      if (refreshed) {
+        // 续期后优先验签新 token
+        const reVerified = await verifyAccessToken(refreshed.access_token)
+        if (reVerified) return reVerified
+        return fetchUserInfoRaw(refreshed.access_token)
+      }
     }
   }
   return null

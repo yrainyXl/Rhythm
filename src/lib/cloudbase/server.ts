@@ -142,10 +142,16 @@ function extractAccessToken(request: Request): string | null {
   return getAccessToken(request)
 }
 
+// 进程级 uid 缓存:cloudbase_uid -> app_users.id,带 TTL。
+// 同一函数实例内同用户的后续请求命中缓存,省掉一次 DB 查询。
+// (Vercel 跨地域 DB 往返慢,这个缓存对所有业务 API 鉴权都生效)
+const uidCache = new Map<string, { id: string; exp: number }>()
+const UID_CACHE_TTL = 10 * 60 * 1000 // 10min
+
 /**
  * 查询 cloudbase uid 对应的 app_users.id。只读,不建用户。
  * 用于业务 Route Handler 鉴权--调业务接口不应有建用户副作用。
- * (DB-P0-02) 复用进程级 Pool,不再每次请求建池+end。
+ * 命中进程级 uid 缓存时跳过 DB 查询。
  */
 export async function getUserIdFromCloudbase(ctx: {
   request: Request
@@ -158,6 +164,11 @@ export async function getUserIdFromCloudbase(ctx: {
   if (!info) {
     return null
   }
+  // 命中缓存
+  const cached = uidCache.get(info.uid)
+  if (cached && cached.exp > Date.now()) {
+    return cached.id
+  }
   const pool = getPgPool()
   const client = await pool.connect()
   try {
@@ -166,9 +177,12 @@ export async function getUserIdFromCloudbase(ctx: {
       [info.uid],
     )
     if (res.rows.length === 0) {
+      // 不缓存「不存在」:避免首次登录建用户前的竞态
       return null
     }
-    return res.rows[0].id
+    const id = res.rows[0].id
+    uidCache.set(info.uid, { id, exp: Date.now() + UID_CACHE_TTL })
+    return id
   } finally {
     client.release()
   }

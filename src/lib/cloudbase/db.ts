@@ -43,7 +43,17 @@ export async function withUser<T>(
   request: Request,
   handler: (userId: string, db: DbHandle) => Promise<T>,
 ): Promise<Response> {
-  const userId = await getUserIdFromCloudbase({ request })
+  let userId: string | null = null
+  try {
+    userId = await getUserIdFromCloudbase({ request })
+  } catch (e) {
+    // 诊断:鉴权环节抛异常(非 401),标注来源
+    const tag = e instanceof Error ? e.message.slice(0, 60) : 'auth-error'
+    return NextResponse.json(
+      { error: '鉴权异常' },
+      { status: 500, headers: { 'x-error-tag': `auth:${tag}` } },
+    )
+  }
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -67,9 +77,13 @@ export async function withUser<T>(
     const result = await handler(userId, db)
     // handler 若已返回 Response 直接透传
     return result instanceof Response ? result : (NextResponse.json(result) as unknown as Response)
-  } catch {
-    // (SEC-P0-02) 不回显原始错误(可能含 SQL/连接信息),统一返回通用提示
-    return NextResponse.json({ error: '操作失败,请重试' }, { status: 500 })
+  } catch (e) {
+    // 诊断:标注是连接/查询错误,不回显原始信息(安全)
+    const tag = e instanceof Error ? e.message.slice(0, 60) : 'query-error'
+    return NextResponse.json(
+      { error: '操作失败,请重试' },
+      { status: 500, headers: { 'x-error-tag': `db:${tag}` } },
+    )
   } finally {
     client.release()
   }

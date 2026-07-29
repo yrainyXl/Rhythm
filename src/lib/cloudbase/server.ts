@@ -153,14 +153,15 @@ const UID_CACHE_TTL = 10 * 60 * 1000 // 10min
  * 用于业务 Route Handler 鉴权--调业务接口不应有建用户副作用。
  * 命中进程级 uid 缓存时跳过 DB 查询。
  */
-export async function getUserIdFromCloudbase(ctx: {
-  request: Request
-}): Promise<string | null> {
-  const accessToken = extractAccessToken(ctx.request)
-  if (!accessToken) {
-    return null
-  }
-  const info = await fetchCloudbaseUserInfo(accessToken, ctx.request)
+/**
+ * 用 access_token 查 app_users.id。只读,不建用户,命中 uid 缓存跳过 DB。
+ * request 可选:提供时支持 access 失效自动 refresh 续期。
+ */
+export async function getUserIdByToken(
+  accessToken: string,
+  request?: Request,
+): Promise<string | null> {
+  const info = await fetchCloudbaseUserInfo(accessToken, request)
   if (!info) {
     return null
   }
@@ -186,6 +187,21 @@ export async function getUserIdFromCloudbase(ctx: {
   } finally {
     client.release()
   }
+}
+
+/**
+ * 查询 cloudbase uid 对应的 app_users.id。只读,不建用户。
+ * 用于业务 Route Handler 鉴权--调业务接口不应有建用户副作用。
+ * 命中进程级 uid 缓存时跳过 DB 查询。
+ */
+export async function getUserIdFromCloudbase(ctx: {
+  request: Request
+}): Promise<string | null> {
+  const accessToken = extractAccessToken(ctx.request)
+  if (!accessToken) {
+    return null
+  }
+  return getUserIdByToken(accessToken, ctx.request)
 }
 
 /**

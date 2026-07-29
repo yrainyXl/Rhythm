@@ -1,14 +1,14 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getPgPool, ensureAppUser, refreshTokens } from '@/lib/cloudbase/server'
+import { getPgPool, ensureAppUser, refreshTokens, getUserIdByToken } from '@/lib/cloudbase/server'
 import { getAccessToken, getRefreshToken, setAuthCookies } from '@/lib/cloudbase/auth-cookie'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 /**
- * POST /api/auth/refresh - 恢复会话/确保 app_users + profiles 已建立,返回当前 profile。
- * token 来源:httpOnly cookie(主),Authorization Bearer(过渡兼容)。
- * access_token 失效时用 refresh_token 续期并刷新 cookie。
+ * POST /api/auth/refresh - 恢复会话,返回当前 profile。
+ * 老用户走只读 getUserIdByToken(命中 uid 缓存,0 次 DB),省 ensureAppUser 的 2 次写。
+ * 仅首次登录(用户不存在)才 ensureAppUser 建用户。
  */
 export async function POST(request: NextRequest) {
   const accessToken = getAccessToken(request)
@@ -19,9 +19,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ user: null }, { status: 401 })
   }
 
-  // 有 access_token:先尝试取/建用户
+  // 有 access_token:先只读取用户(命中缓存无 DB 往返)
   if (accessToken) {
-    const userId = await ensureAppUser(accessToken)
+    let userId = await getUserIdByToken(accessToken, request)
+    if (!userId) {
+      // 用户不存在(首次登录) -> 建用户
+      userId = await ensureAppUser(accessToken)
+    }
     if (userId) {
       const profile = await fetchProfile(userId)
       return NextResponse.json({ user: profile })
@@ -37,7 +41,10 @@ export async function POST(request: NextRequest) {
   if (!refreshed) {
     return NextResponse.json({ user: null }, { status: 401 })
   }
-  const userId = await ensureAppUser(refreshed.access_token)
+  let userId = await getUserIdByToken(refreshed.access_token)
+  if (!userId) {
+    userId = await ensureAppUser(refreshed.access_token)
+  }
   if (!userId) {
     return NextResponse.json({ user: null }, { status: 401 })
   }

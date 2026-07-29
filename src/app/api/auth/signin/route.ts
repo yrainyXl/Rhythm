@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { signinWithPassword, ensureAppUser, getPgPool } from '@/lib/cloudbase/server'
+import { signinWithPassword, ensureAppUser, getPgPool, getUserIdByToken } from '@/lib/cloudbase/server'
 import { setAuthCookies } from '@/lib/cloudbase/auth-cookie'
 
 export const runtime = 'nodejs'
@@ -23,8 +23,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '邮箱或密码错误' }, { status: 401 })
     }
 
-    // 建 app_users/profiles(首次登录自动建)
-    const userId = await ensureAppUser(tokens.access_token)
+    // 老用户走只读(命中 uid 缓存 0 次 DB),仅首次登录才 ensureAppUser 建用户
+    let userId = await getUserIdByToken(tokens.access_token)
+    if (!userId) {
+      userId = await ensureAppUser(tokens.access_token)
+    }
     if (!userId) {
       return NextResponse.json(
         { error: '登录后建立用户记录失败' },

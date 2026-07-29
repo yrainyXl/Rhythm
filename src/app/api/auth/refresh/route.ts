@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { getPgPool, ensureAppUser, refreshTokens, getUserIdFromCloudbase } from '@/lib/cloudbase/server'
+import { getPgPool, ensureAppUser, refreshTokens } from '@/lib/cloudbase/server'
 import { getAccessToken, getRefreshToken, setAuthCookies } from '@/lib/cloudbase/auth-cookie'
 
 export const runtime = 'nodejs'
@@ -12,37 +12,39 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST(request: NextRequest) {
   const accessToken = getAccessToken(request)
-  if (!accessToken) {
+  const refreshToken = getRefreshToken(request)
+
+  // 既无 access 也无 refresh:确实未登录
+  if (!accessToken && !refreshToken) {
     return NextResponse.json({ user: null }, { status: 401 })
   }
 
-  // 先尝试用现有 access_token 取/建用户
-  let userId = await ensureAppUser(accessToken)
-
-  // access_token 失效 -> 用 refresh_token 续期后重试
-  if (!userId) {
-    const refreshToken = getRefreshToken(request)
-    if (!refreshToken) {
-      return NextResponse.json({ user: null }, { status: 401 })
+  // 有 access_token:先尝试取/建用户
+  if (accessToken) {
+    const userId = await ensureAppUser(accessToken)
+    if (userId) {
+      const profile = await fetchProfile(userId)
+      return NextResponse.json({ user: profile })
     }
-    const refreshed = await refreshTokens(refreshToken)
-    if (!refreshed) {
-      return NextResponse.json({ user: null }, { status: 401 })
-    }
-    userId = await ensureAppUser(refreshed.access_token)
-    if (!userId) {
-      return NextResponse.json({ user: null }, { status: 401 })
-    }
-    // 续期成功,刷新 cookie + 用新 token 取 profile
-    const res = NextResponse.json({ user: await fetchProfile(userId) })
-    setAuthCookies(res, refreshed)
-    return res
+    // access 失效,落到下面用 refresh 续期
   }
 
-  // 兼容过渡:Bearer 请求(前端未带 cookie 时)走老路径
-  // 正常 cookie 请求 userId 已拿到
-  const profile = await fetchProfile(userId)
-  return NextResponse.json({ user: profile })
+  // access 缺失或失效:用 refresh_token 续期
+  if (!refreshToken) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
+  const refreshed = await refreshTokens(refreshToken)
+  if (!refreshed) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
+  const userId = await ensureAppUser(refreshed.access_token)
+  if (!userId) {
+    return NextResponse.json({ user: null }, { status: 401 })
+  }
+  // 续期成功,刷新 cookie + 返回 profile
+  const res = NextResponse.json({ user: await fetchProfile(userId) })
+  setAuthCookies(res, refreshed)
+  return res
 }
 
 async function fetchProfile(userId: string) {

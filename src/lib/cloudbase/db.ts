@@ -63,7 +63,10 @@ export async function withUser<T>(
   let userId: string | null = null
   const authStartedAt = performance.now()
   try {
-    userId = await getUserIdFromCloudbase({ request })
+    userId = await getUserIdFromCloudbase(
+      { request },
+      (name, duration) => timings.push({ name, duration }),
+    )
   } catch (e) {
     timings.push({ name: 'auth', duration: performance.now() - authStartedAt })
     // 诊断:鉴权环节抛异常(非 401),标注来源

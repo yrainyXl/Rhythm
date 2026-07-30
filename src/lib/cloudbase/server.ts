@@ -1,7 +1,7 @@
 import { Pool, types } from 'pg'
 import { cloudbaseEnv } from './env'
 import { getAccessToken, getRefreshToken } from './auth-cookie'
-import { verifyAccessToken } from './jwt'
+import { verifyAccessToken, type AuthTimingRecorder } from './jwt'
 
 // pg 默认把 PostgreSQL date/timestamp 解析成 JS Date 对象,JSON.stringify 后
 // 变成 UTC ISO 字符串(如 "2026-07-22T16:00:00.000Z"),导致前端按本地日期
@@ -92,19 +92,27 @@ export async function refreshTokens(refreshToken: string): Promise<TokenResponse
   return data
 }
 
-async function fetchUserInfoRaw(accessToken: string): Promise<CloudbaseUser | null> {
+async function fetchUserInfoRaw(
+  accessToken: string,
+  recordTiming?: AuthTimingRecorder,
+): Promise<CloudbaseUser | null> {
+  const startedAt = performance.now()
   const envId = cloudbaseEnv.NEXT_PUBLIC_CLOUDBASE_ENV_ID
   const url = `https://${envId}.api.tcloudbasegateway.com/auth/v1/user/me`
-  const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-    cache: 'no-store',
-  })
-  if (!res.ok) return null
-  const info = (await res.json()) as CloudbaseUserInfo
-  if (!info || (info.status && info.status !== 'ACTIVE')) return null
-  const uid = info.user_id || info.sub
-  if (!uid) return null
-  return { uid, email: info.email ?? null }
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: 'no-store',
+    })
+    if (!res.ok) return null
+    const info = (await res.json()) as CloudbaseUserInfo
+    if (!info || (info.status && info.status !== 'ACTIVE')) return null
+    const uid = info.user_id || info.sub
+    if (!uid) return null
+    return { uid, email: info.email ?? null }
+  } finally {
+    recordTiming?.('userinfo', performance.now() - startedAt)
+  }
 }
 
 /**
@@ -112,25 +120,31 @@ async function fetchUserInfoRaw(accessToken: string): Promise<CloudbaseUser | nu
  * 优先 JWT 本地验签(无网络往返,快);失败 fallback 网关 userinfo;
  * access_token 过期则用 refresh_token 续期一次(服务端,无 CORS)。
  */
-async function fetchCloudbaseUserInfo(accessToken: string, request?: Request): Promise<CloudbaseUser | null> {
+async function fetchCloudbaseUserInfo(
+  accessToken: string,
+  request?: Request,
+  recordTiming?: AuthTimingRecorder,
+): Promise<CloudbaseUser | null> {
   // 1. 本地 JWT 验签(快路径)
-  const verified = await verifyAccessToken(accessToken)
+  const verified = await verifyAccessToken(accessToken, recordTiming)
   if (verified) return verified
 
   // 2. fallback 网关 userinfo(公钥未刷新/旧 token 等)
-  const info = await fetchUserInfoRaw(accessToken)
+  const info = await fetchUserInfoRaw(accessToken, recordTiming)
   if (info) return info
 
   // 3. access_token 失效 -> refresh 续期
   if (request) {
     const refreshToken = getRefreshToken(request)
     if (refreshToken) {
+      const refreshStartedAt = performance.now()
       const refreshed = await refreshTokens(refreshToken)
+      recordTiming?.('refresh-token', performance.now() - refreshStartedAt)
       if (refreshed) {
         // 续期后优先验签新 token
-        const reVerified = await verifyAccessToken(refreshed.access_token)
+        const reVerified = await verifyAccessToken(refreshed.access_token, recordTiming)
         if (reVerified) return reVerified
-        return fetchUserInfoRaw(refreshed.access_token)
+        return fetchUserInfoRaw(refreshed.access_token, recordTiming)
       }
     }
   }
@@ -160,23 +174,30 @@ const UID_CACHE_TTL = 10 * 60 * 1000 // 10min
 export async function getUserIdByToken(
   accessToken: string,
   request?: Request,
+  recordTiming?: AuthTimingRecorder,
 ): Promise<string | null> {
-  const info = await fetchCloudbaseUserInfo(accessToken, request)
+  const info = await fetchCloudbaseUserInfo(accessToken, request, recordTiming)
   if (!info) {
     return null
   }
   // 命中缓存
+  const cacheStartedAt = performance.now()
   const cached = uidCache.get(info.uid)
   if (cached && cached.exp > Date.now()) {
+    recordTiming?.('uid-cache-hit', performance.now() - cacheStartedAt)
     return cached.id
   }
   const pool = getPgPool()
+  const connectStartedAt = performance.now()
   const client = await pool.connect()
+  recordTiming?.('uid-db-connect', performance.now() - connectStartedAt)
   try {
+    const queryStartedAt = performance.now()
     const res = await client.query(
       'SELECT id FROM public.app_users WHERE cloudbase_uid = $1',
       [info.uid],
     )
+    recordTiming?.('uid-query', performance.now() - queryStartedAt)
     if (res.rows.length === 0) {
       // 不缓存「不存在」:避免首次登录建用户前的竞态
       return null
@@ -196,12 +217,12 @@ export async function getUserIdByToken(
  */
 export async function getUserIdFromCloudbase(ctx: {
   request: Request
-}): Promise<string | null> {
+}, recordTiming?: AuthTimingRecorder): Promise<string | null> {
   const accessToken = extractAccessToken(ctx.request)
   if (!accessToken) {
     return null
   }
-  return getUserIdByToken(accessToken, ctx.request)
+  return getUserIdByToken(accessToken, ctx.request, recordTiming)
 }
 
 /**

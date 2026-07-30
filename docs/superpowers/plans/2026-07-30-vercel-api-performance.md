@@ -10,6 +10,10 @@
 
 ---
 
+鉴权诊断在公共入口继续拆分为 JWKS、JWT 验签、CloudBase userinfo、
+token 续期、UID 缓存和 UID 数据库查询阶段，避免把所有跨云耗时混在
+`auth` 总时间中。
+
 ### Task 1: 通用请求去重
 
 **Files:**

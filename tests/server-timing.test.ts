@@ -48,3 +48,24 @@ test('withUser exposes a custom timing header for production diagnostics', () =>
 
   assert.match(source, /X-Rhythm-Timing/)
 })
+
+test('auth timing separates JWT, gateway fallback and user mapping stages', () => {
+  const jwtSource = readFileSync(
+    new URL('../src/lib/cloudbase/jwt.ts', import.meta.url),
+    'utf8',
+  )
+  const serverSource = readFileSync(
+    new URL('../src/lib/cloudbase/server.ts', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(jwtSource, /jwks-fetch/)
+  assert.match(jwtSource, /jwks-cache/)
+  assert.match(jwtSource, /jwt-initial/)
+  assert.match(jwtSource, /jwt-refetch/)
+  assert.match(serverSource, /userinfo/)
+  assert.match(serverSource, /refresh-token/)
+  assert.match(serverSource, /uid-cache-hit/)
+  assert.match(serverSource, /uid-db-connect/)
+  assert.match(serverSource, /uid-query/)
+})

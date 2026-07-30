@@ -28,6 +28,8 @@ interface TokenPayload {
   exp: number
 }
 
+export type AuthTimingRecorder = (name: string, duration: number) => void
+
 let jwksCache: Jwks | null = null
 let jwksExpireAt = 0
 let jwksFetchPromise: Promise<Jwks | null> | null = null
@@ -43,10 +45,21 @@ function issuer(): string {
 }
 
 /** 拉取 JWKS,进程级缓存 1h,并发单飞。force=true 跳过缓存(公钥轮换重试用)。 */
-async function getJwks(force = false): Promise<Jwks | null> {
+async function getJwks(
+  force = false,
+  recordTiming?: AuthTimingRecorder,
+): Promise<Jwks | null> {
+  const startedAt = performance.now()
   const now = Date.now()
-  if (!force && jwksCache && now < jwksExpireAt) return jwksCache
-  if (jwksFetchPromise) return jwksFetchPromise
+  if (!force && jwksCache && now < jwksExpireAt) {
+    recordTiming?.('jwks-cache', performance.now() - startedAt)
+    return jwksCache
+  }
+  if (jwksFetchPromise) {
+    const result = await jwksFetchPromise
+    recordTiming?.(force ? 'jwks-refetch' : 'jwks-fetch', performance.now() - startedAt)
+    return result
+  }
 
   jwksFetchPromise = (async () => {
     try {
@@ -62,7 +75,9 @@ async function getJwks(force = false): Promise<Jwks | null> {
       jwksFetchPromise = null
     }
   })()
-  return jwksFetchPromise
+  const result = await jwksFetchPromise
+  recordTiming?.(force ? 'jwks-refetch' : 'jwks-fetch', performance.now() - startedAt)
+  return result
 }
 
 /** JWK -> Node PublicKey(用于 jwt.verify 验签)。 */
@@ -76,7 +91,11 @@ function jwkToPublicKey(jwk: Jwk) {
  * uid = payload.sub(cloudbase uid)。
  * 失败(kid 无匹配/验签不通过/过期)返回 null,由调用方 fallback 网关 userinfo。
  */
-export async function verifyAccessToken(token: string): Promise<{ uid: string; email: string | null } | null> {
+export async function verifyAccessToken(
+  token: string,
+  recordTiming?: AuthTimingRecorder,
+): Promise<{ uid: string; email: string | null } | null> {
+  const initialStartedAt = performance.now()
   // 解 header 拿 kid(不信任 payload,未验签前)
   let kid: string | undefined
   try {
@@ -84,6 +103,7 @@ export async function verifyAccessToken(token: string): Promise<{ uid: string; e
     const header = JSON.parse(Buffer.from(headerB64, 'base64url').toString('utf8'))
     kid = header.kid
   } catch {
+    recordTiming?.('jwt-initial', performance.now() - initialStartedAt)
     return null
   }
 
@@ -105,10 +125,13 @@ export async function verifyAccessToken(token: string): Promise<{ uid: string; e
   }
 
   // 首次:用缓存的 JWKS 验
-  const result = await tryVerify(await getJwks())
+  const result = await tryVerify(await getJwks(false, recordTiming))
+  recordTiming?.('jwt-initial', performance.now() - initialStartedAt)
   if (result) return result
 
   // 失败:强制刷新 JWKS(公钥可能刚轮换)再试一次
-  const result2 = await tryVerify(await getJwks(true))
+  const refetchStartedAt = performance.now()
+  const result2 = await tryVerify(await getJwks(true, recordTiming))
+  recordTiming?.('jwt-refetch', performance.now() - refetchStartedAt)
   return result2
 }

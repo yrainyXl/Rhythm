@@ -80,6 +80,11 @@ Server-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
 X-Rhythm-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
 ```
 
+鉴权阶段进一步按实际执行路径追加 `jwks-cache`、`jwks-fetch`、
+`jwks-refetch`、`jwt-initial`、`jwt-refetch`、`userinfo`、
+`refresh-token`、`uid-cache-hit`、`uid-db-connect`、`uid-query`，
+用于区分 CloudBase 网络回退、应用用户映射和业务数据库连接耗时。
+
 数据库连接失败也由公共入口捕获并返回带 `x-error-tag=db-connect:*` 的 500，避免无诊断的原始错误。
 
 ## 错误处理

@@ -4,7 +4,7 @@
 
 **Goal:** 消除生产环境已确认的重复数据请求和串行打卡往返，并为剩余跨云耗时提供分段诊断。
 
-**Architecture:** 使用通用 single-flight 约束并发加载，阅读页统一触发 Store 加载；认证恢复增加短 TTL；今日打卡生成改为批量写入并直接返回列表；`withUser` 统一追加 `Server-Timing`。不新增依赖，不改变页面结构。
+**Architecture:** 使用通用 single-flight 约束并发加载，阅读页统一触发 Store 加载；认证恢复增加短 TTL；今日打卡生成改为批量写入并直接返回列表；`withUser` 统一追加 `Server-Timing` 和生产诊断备用头 `X-Rhythm-Timing`。不新增依赖，不改变页面结构。
 
 **Tech Stack:** Next.js 14 Route Handlers、TypeScript、Zustand、PostgreSQL、Node test runner。
 
@@ -149,4 +149,3 @@ Run: `npm run build`
 - [ ] **Step 4: 检查差异和空白错误**
 
 Run: `git diff --check`
-

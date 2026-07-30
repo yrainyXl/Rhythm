@@ -77,6 +77,7 @@
 
 ```text
 Server-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
+X-Rhythm-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
 ```
 
 数据库连接失败也由公共入口捕获并返回带 `x-error-tag=db-connect:*` 的 500，避免无诊断的原始错误。
@@ -86,7 +87,7 @@ Server-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
 - single-flight 不吞掉异常，由原 Store 保持现有降级逻辑。
 - 今日打卡批量 SQL 使用参数占位符，不拼接用户输入。
 - 数据库连接失败不暴露主机、用户名或完整错误堆栈。
-- `Server-Timing` 只包含阶段名和毫秒数。
+- `Server-Timing` 与生产诊断备用头 `X-Rhythm-Timing` 只包含阶段名和毫秒数。
 
 ## 验证
 
@@ -95,4 +96,3 @@ Server-Timing: auth;dur=..., db-connect;dur=..., handler;dur=..., total;dur=...
 - 打卡批量 SQL 为每条记录生成正确参数并保持 `ON CONFLICT`。
 - 阅读首页源代码中只有页面入口负责加载，子组件不再重复加载。
 - 全量单元测试、类型检查和生产构建通过。
-

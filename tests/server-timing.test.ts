@@ -39,3 +39,12 @@ test('withUser reports auth, connection, handler and total timings', () => {
   assert.match(source, /name:\s*'total'/)
   assert.match(source, /x-error-tag.*db-connect:/s)
 })
+
+test('withUser exposes a custom timing header for production diagnostics', () => {
+  const source = readFileSync(
+    new URL('../src/lib/cloudbase/db.ts', import.meta.url),
+    'utf8',
+  )
+
+  assert.match(source, /X-Rhythm-Timing/)
+})

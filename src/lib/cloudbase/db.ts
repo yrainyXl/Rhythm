@@ -12,10 +12,12 @@ function withServerTiming(
   entries: ServerTimingEntry[],
   startedAt: number,
 ): Response {
-  response.headers.set('Server-Timing', formatServerTiming([
+  const value = formatServerTiming([
     ...entries,
     { name: 'total', duration: performance.now() - startedAt },
-  ]))
+  ])
+  response.headers.set('Server-Timing', value)
+  response.headers.set('X-Rhythm-Timing', value)
   return response
 }
 

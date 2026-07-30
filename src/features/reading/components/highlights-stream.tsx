@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { useReadingStore } from '@/features/records/store/reading-store'
 import type { HighlightWithBook } from '@/features/records/store/reading-store'
@@ -32,11 +31,7 @@ function groupHighlightsByBook(highlights: HighlightWithBook[]): Map<string, Hig
 }
 
 export function HighlightsStream() {
-  const { highlights, loadHighlights } = useReadingStore()
-
-  useEffect(() => {
-    loadHighlights()
-  }, [loadHighlights])
+  const { highlights } = useReadingStore()
 
   if (highlights.length === 0) {
     return (

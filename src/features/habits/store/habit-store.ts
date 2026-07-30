@@ -318,14 +318,16 @@ export const useHabitStore = create<HabitState>((set, get) => ({
 
   generateOccurrences: async (localDate) => {
     try {
-      await apiFetch('/api/habits/occurrences/generate', {
-        method: 'POST',
-        body: JSON.stringify({ local_date: localDate }),
-      })
+      const data = await apiFetch<{ occurrences: HabitOccurrence[] }>(
+        '/api/habits/occurrences/generate',
+        {
+          method: 'POST',
+          body: JSON.stringify({ local_date: localDate }),
+        },
+      )
+      set({ occurrences: data.occurrences ?? [] })
     } catch {
       // 静默
     }
-    // 生成后重载当日打卡
-    await get().loadTodayOccurrences(localDate)
   },
 }))

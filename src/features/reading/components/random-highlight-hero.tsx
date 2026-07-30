@@ -6,13 +6,9 @@ import { useReadingStore } from '@/features/records/store/reading-store'
 const MIN_HEIGHT_CLASS = 'h-[240px]'
 
 export function RandomHighlightHero() {
-  const { highlights, loadHighlights } = useReadingStore()
+  const { highlights } = useReadingStore()
   const [seed, setSeed] = useState(0)
   const [showFull, setShowFull] = useState(false)
-
-  useEffect(() => {
-    loadHighlights()
-  }, [loadHighlights])
 
   useEffect(() => {
     if (!showFull) return

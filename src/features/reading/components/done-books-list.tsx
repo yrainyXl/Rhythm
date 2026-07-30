@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { useReadingStore } from '@/features/records/store/reading-store'
 import type { ReadingBook } from '@/features/records/store/reading-store'
@@ -12,11 +11,7 @@ const STATUS_LABEL: Record<string, { label: string; className: string }> = {
 }
 
 export function DoneBooksList() {
-  const { books, loadBooks } = useReadingStore()
-
-  useEffect(() => {
-    loadBooks()
-  }, [loadBooks])
+  const { books } = useReadingStore()
 
   // Show finished and paused books on homepage
   const doneBooks = books.filter(b => b.status === 'finished' || b.status === 'paused' || b.status === 'dropped').slice(0, 6)

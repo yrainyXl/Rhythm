@@ -1,7 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { AuthGuard } from '@/features/app/components/auth-guard'
+import { useReadingStore } from '@/features/records/store/reading-store'
 import { RandomHighlightHero } from '@/features/reading/components/random-highlight-hero'
 import { ReadingStatsBar } from '@/features/reading/components/reading-stats-bar'
 import { BookshelfRow } from '@/features/reading/components/bookshelf-row'
@@ -36,38 +38,54 @@ function SectionTitle({ label, action }: { label: string; action?: string }) {
   )
 }
 
+function ReadingContent() {
+  const { loadBooks, loadHighlights, runAnalysis } = useReadingStore()
+
+  useEffect(() => {
+    void Promise.all([
+      loadBooks(),
+      loadHighlights(),
+      runAnalysis(),
+    ])
+  }, [loadBooks, loadHighlights, runAnalysis])
+
+  return (
+    <div className="p-5 space-y-5">
+      <RandomHighlightHero />
+      <ReadingStatsBar />
+
+      <section>
+        <SectionTitle label="在读" action="全部书架 →" />
+        <BookshelfRow />
+      </section>
+
+      <section>
+        <SectionTitle label="词条 · 按书" action="全部 →" />
+        <HighlightsStream />
+      </section>
+
+      <section>
+        <SectionTitle label="AI · 跨书主题" />
+        <ThemesRow />
+      </section>
+
+      <section>
+        <SectionTitle label="想试试 · AI 推荐" />
+        <TryRecommendation />
+      </section>
+
+      <section>
+        <SectionTitle label="已读 · 暂停" action="14 本 →" />
+        <DoneBooksList />
+      </section>
+    </div>
+  )
+}
+
 export default function ReadingPage() {
   return (
     <AuthGuard>
-      <div className="p-5 space-y-5">
-        <RandomHighlightHero />
-        <ReadingStatsBar />
-
-        <section>
-          <SectionTitle label="在读" action="全部书架 →" />
-          <BookshelfRow />
-        </section>
-
-        <section>
-          <SectionTitle label="词条 · 按书" action="全部 →" />
-          <HighlightsStream />
-        </section>
-
-        <section>
-          <SectionTitle label="AI · 跨书主题" />
-          <ThemesRow />
-        </section>
-
-        <section>
-          <SectionTitle label="想试试 · AI 推荐" />
-          <TryRecommendation />
-        </section>
-
-        <section>
-          <SectionTitle label="已读 · 暂停" action="14 本 →" />
-          <DoneBooksList />
-        </section>
-      </div>
+      <ReadingContent />
     </AuthGuard>
   )
 }

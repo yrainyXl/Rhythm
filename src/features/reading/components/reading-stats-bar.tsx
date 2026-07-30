@@ -1,14 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
 import { useReadingStore } from '@/features/records/store/reading-store'
 
 export function ReadingStatsBar() {
-  const { analysis, runAnalysis, isLoadingAnalysis } = useReadingStore()
-
-  useEffect(() => {
-    runAnalysis()
-  }, [runAnalysis])
+  const { analysis, isLoadingAnalysis } = useReadingStore()
 
   if (isLoadingAnalysis || !analysis) {
     return (

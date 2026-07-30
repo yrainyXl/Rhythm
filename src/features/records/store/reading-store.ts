@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { apiFetch } from '@/lib/cloudbase/api-client'
+import { createSingleFlight } from '@/lib/async/single-flight'
 
 type BookStatus = 'reading' | 'finished' | 'paused' | 'dropped'
 type BookSource = 'manual' | 'weixin_read' | 'kindle' | 'other'
@@ -117,7 +118,10 @@ interface ReadingState {
   runAnalysis: () => Promise<void>
 }
 
-export const useReadingStore = create<ReadingState>((set) => ({
+const booksFlight = createSingleFlight<ReadingBook[]>()
+const highlightsFlight = createSingleFlight<HighlightWithBook[]>()
+
+export const useReadingStore = create<ReadingState>((set, get) => ({
   books: [],
   currentBook: null,
   recentSessions: [],
@@ -132,8 +136,12 @@ export const useReadingStore = create<ReadingState>((set) => ({
 
   loadBooks: async () => {
     try {
-      const { books } = await apiFetch<{ books: ReadingBook[] }>('/api/reading/books')
-      set({ books: books ?? [] })
+      await booksFlight.run(async () => {
+        const { books } = await apiFetch<{ books: ReadingBook[] }>('/api/reading/books')
+        const nextBooks = books ?? []
+        set({ books: nextBooks })
+        return nextBooks
+      })
     } catch {
       // 保持空
     }
@@ -153,10 +161,15 @@ export const useReadingStore = create<ReadingState>((set) => ({
   loadHighlights: async () => {
     set({ isLoadingHighlights: true })
     try {
-      const { highlights } = await apiFetch<{ highlights: HighlightWithBook[] }>(
-        '/api/reading/highlights',
-      )
-      set({ highlights: highlights ?? [], isLoadingHighlights: false })
+      await highlightsFlight.run(async () => {
+        const { highlights } = await apiFetch<{ highlights: HighlightWithBook[] }>(
+          '/api/reading/highlights',
+        )
+        const nextHighlights = highlights ?? []
+        set({ highlights: nextHighlights, isLoadingHighlights: false })
+        return nextHighlights
+      })
+      set({ isLoadingHighlights: false })
     } catch {
       set({ isLoadingHighlights: false })
     }
@@ -239,11 +252,11 @@ export const useReadingStore = create<ReadingState>((set) => ({
     const startStr = startDate.toISOString().split('T')[0]
 
     try {
-      const [sessionsRes, booksRes] = await Promise.all([
+      const [sessionsRes] = await Promise.all([
         apiFetch<{ sessions: ReadingSession[] }>('/api/reading/sessions?limit=500'),
-        apiFetch<{ books: ReadingBook[] }>('/api/reading/books'),
+        get().loadBooks(),
       ])
-      const allBooks = booksRes.books ?? []
+      const allBooks = get().books
       const allSessions = (sessionsRes.sessions ?? []).filter((s) => s.read_date >= startStr)
 
       const readingBooks = allBooks.filter((b) => b.status === 'reading').length

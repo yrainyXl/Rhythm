@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/cloudbase/db'
+import { buildOccurrenceBatchInsert } from '@/features/habits/server/occurrence-batch'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -38,21 +39,11 @@ export async function POST(request: NextRequest) {
        WHERE h.user_id = $1 AND h.is_enabled = true`,
       [userId],
     )
-    if (habitsRes.rows.length === 0) {
-      return NextResponse.json({ generated: 0 })
-    }
-
-    const existing = await db.query<{ habit_id: string }>(
-      'SELECT habit_id FROM habit_occurrences WHERE user_id = $1 AND local_date = $2',
-      [userId, localDate],
-    )
-    const existingIds = new Set(existing.rows.map((r) => r.habit_id))
 
     const date = new Date(localDate + 'T00:00:00')
     const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay()
 
     const matches = (h: HabitWithSchedule): boolean => {
-      if (existingIds.has(h.id)) return false
       const schedule = h.schedules[0]
       if (!schedule) return false
       if (date < new Date(schedule.start_date + 'T00:00:00')) return false
@@ -74,25 +65,33 @@ export async function POST(request: NextRequest) {
     }
 
     const toInsert = habitsRes.rows.filter(matches)
-    if (toInsert.length === 0) {
-      return NextResponse.json({ generated: 0 })
-    }
+    const batch = buildOccurrenceBatchInsert(
+      userId,
+      localDate,
+      toInsert.map((habit) => ({
+        habitId: habit.id,
+        title: habit.name,
+        targetType: habit.target_type,
+        targetValue: habit.target_value,
+        targetUnit: habit.target_unit,
+      })),
+    )
 
     let inserted = 0
-    for (const h of toInsert) {
-      const r = await db.query(
-        `INSERT INTO habit_occurrences
-           (user_id, habit_id, local_date, title_snapshot,
-            target_type_snapshot, target_value_snapshot, target_unit_snapshot)
-         VALUES ($1,$2,$3,$4,$5,$6,$7)
-         ON CONFLICT (user_id, habit_id, local_date) DO NOTHING`,
-        [
-          userId, h.id, localDate, h.name,
-          h.target_type, h.target_value, h.target_unit,
-        ],
-      )
-      inserted += r.rowCount
+    if (batch) {
+      const insertRes = await db.query(batch.text, batch.params)
+      inserted = insertRes.rowCount
     }
-    return NextResponse.json({ generated: inserted })
+
+    const occurrencesRes = await db.query(
+      `SELECT * FROM habit_occurrences
+       WHERE user_id = $1 AND local_date = $2
+       ORDER BY created_at`,
+      [userId, localDate],
+    )
+    return NextResponse.json({
+      generated: inserted,
+      occurrences: occurrencesRes.rows,
+    })
   })
 }

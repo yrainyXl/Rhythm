@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect } from 'react'
 import Link from 'next/link'
 import { useReadingStore } from '@/features/records/store/reading-store'
 import type { ReadingBook } from '@/features/records/store/reading-store'
@@ -21,11 +20,7 @@ function getBookBg(book: ReadingBook): string {
 }
 
 export function BookshelfRow() {
-  const { books, loadBooks } = useReadingStore()
-
-  useEffect(() => {
-    loadBooks()
-  }, [loadBooks])
+  const { books } = useReadingStore()
 
   // Only show reading books on the homepage row
   const readingBooks = books.filter(b => b.status === 'reading').slice(0, 5)

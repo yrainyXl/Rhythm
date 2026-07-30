@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
+import { createTimedSingleFlight } from '@/lib/async/single-flight'
 
 interface Profile {
   id: string
@@ -14,6 +15,9 @@ interface Profile {
   created_at?: string
   updated_at?: string
 }
+
+const refreshProfileFlight = createTimedSingleFlight<Profile | null>({ ttlMs: 30_000 })
+let authGeneration = 0
 
 type CloudbaseUser = {
   uid?: string
@@ -49,12 +53,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   // 会话恢复/建用户:同源 /api/auth/refresh,cookie 自动携带。
   refreshProfile: async () => {
+    const generation = authGeneration
     try {
-      const { user } = await apiFetch<{ user: Profile | null }>('/api/auth/refresh', {
-        method: 'POST',
+      const user = await refreshProfileFlight.run(async () => {
+        const result = await apiFetch<{ user: Profile | null }>('/api/auth/refresh', {
+          method: 'POST',
+        })
+        return result.user ?? null
       })
+      if (generation !== authGeneration) return
       set({ profile: user ?? null, user: user ? { uid: user.id, email: user.email } : null })
     } catch {
+      if (generation !== authGeneration) return
       set({ profile: null, user: null })
     }
   },
@@ -67,6 +77,8 @@ export const useAuthStore = create<AuthState>((set) => ({
         body: JSON.stringify({ username: email, password }),
       })
       if (!user) return { error: '登录失败' }
+      authGeneration += 1
+      refreshProfileFlight.set(user)
       set({ profile: user, user: { uid: user.id, email: user.email } })
       return { error: null }
     } catch (e) {
@@ -79,6 +91,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   signUp: async () => ({ error: '请在 CloudBase 控制台创建账号后登录' }),
 
   signOut: async () => {
+    authGeneration += 1
+    refreshProfileFlight.clear()
     try {
       await apiFetch('/api/auth/signout', { method: 'POST' })
     } catch {

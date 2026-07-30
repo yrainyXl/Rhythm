@@ -29,6 +29,8 @@ export function getPgPool(): Pool {
         : false,
       // (DB-P0-03) 连接超时 5s,避免数据库不可达时请求永久挂起
       connectionTimeoutMillis: 5000,
+      // 页面切换通常超过 pg 默认 10s 空闲回收时间；保留 60s 复用跨云连接
+      idleTimeoutMillis: 60_000,
       // 单实例最大连接数,TencentDB 连接额度有限
       max: 5,
     })

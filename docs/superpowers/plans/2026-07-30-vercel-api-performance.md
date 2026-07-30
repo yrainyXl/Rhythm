@@ -133,7 +133,37 @@ Run: `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/server-ti
 
 Run: `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/server-timing.test.ts`
 
-### Task 6: 全量验证
+### Task 6: 延长数据库连接复用窗口
+
+**Files:**
+- Modify: `src/lib/cloudbase/server.ts`
+- Test: `tests/db-pool-config.test.ts`
+
+- [ ] **Step 1: 写连接池配置失败测试**
+
+```ts
+assert.match(source, /idleTimeoutMillis:\s*60_000/)
+```
+
+- [ ] **Step 2: 运行测试并确认失败**
+
+Run: `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/db-pool-config.test.ts`
+
+Expected: FAIL，因为当前使用 `pg` 默认 10 秒空闲回收时间。
+
+- [ ] **Step 3: 设置 60 秒空闲回收时间**
+
+```ts
+idleTimeoutMillis: 60_000,
+```
+
+- [ ] **Step 4: 运行测试并确认通过**
+
+Run: `node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test tests/db-pool-config.test.ts`
+
+Expected: PASS。
+
+### Task 7: 全量验证
 
 **Files:**
 - Modify: `docs/superpowers/plans/2026-07-30-vercel-api-performance.md`

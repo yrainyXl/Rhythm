@@ -1,20 +1,31 @@
 # 开发进度文档
 
-## 总体状态：全部代码开发完成 ✅
+## 总体状态：核心功能开发完成 ✅
+
+> 架构变更说明：项目已从 **Supabase（Auth + PostgreSQL + RLS）整体迁移到 CloudBase（腾讯云）+ TencentDB PostgreSQL 直连**。情侣（couple）功能已移除。本文档已与当前代码对齐。
+
+### 技术栈
+
+- Next.js 14 (App Router) + TypeScript strict mode + Tailwind CSS
+- 后端：CloudBase（鉴权网关）+ TencentDB PostgreSQL 直连（连接池复用 + 事务）
+- 浏览器侧不直连网关：登录走同源 `/api/auth/signin` 服务端代理，token 存 httpOnly cookie
+- 状态管理：Zustand ｜ 表单：React Hook Form + Zod ｜ 图表：Recharts
 
 ### 已开发完成的功能模块
 
-#### ✅ 项目初始化 + Supabase 配置
+#### ✅ 项目初始化 + CloudBase 配置
 - Next.js 14 (App Router) + TypeScript strict mode + Tailwind CSS
-- Supabase 客户端（浏览器端、服务端、路由处理器）
-- profiles 表迁移 + RLS 策略
+- CloudBase 浏览器端 client、服务端 server、route-handler、db 连接池
+- env 配置（Zod 校验）、JWT 本地验签、auth cookie（httpOnly）
+- TencentDB schema 迁移（`database/tencentdb/`）
 
 #### ✅ 登录和个人资料
-- 邮箱登录/注册/Magic Link
-- 中间件路由保护
-- Zustand auth 状态管理
-- 初次登录引导（昵称 + 时区 + 作息时间）
-- 个人资料编辑
+- 用户名/密码登录（服务端代理，绕开浏览器直连网关的 CORS）
+- token 存 httpOnly cookie（access + refresh），浏览器 JS 不可读
+- 中间件路由保护（本地 JWT 解析，跳过网关 userinfo）
+- Zustand auth 状态管理（带 timed single flight 防抖）
+- 初次登录引导、个人资料编辑
+- PWA 后台恢复 / pageshow / visibilitychange 自动重确认登录态
 
 #### ✅ 通用习惯系统
 - 动态创建习惯（名称、分类、目标类型）
@@ -30,19 +41,15 @@
 - 日期展示 + 进度条
 - 待办习惯列表 + 已完成习惯列表
 - 快捷入口：记录睡眠、记录运动、复盘
-- 加载状态动画
 
-#### ✅ 睡眠专项（深度）
+#### ✅ 睡眠专项
 - 入睡/起床日期时间选择（跨天支持）
 - 自动计算睡眠时长
 - 3 档质量评估
-- 睡前活动多选标记（看手机、看书、运动等 14 种）
-- 备注支持
-- 数据分析：平均时长、质量评分、质量分布、常见睡前活动
-- 模式发现：睡前玩手机 vs 不玩的睡眠对比
-- 近 7 天趋势
+- 睡前活动多选标记
+- 备注、数据分析、模式发现、近 7 天趋势
 
-#### ✅ 运动/康复专项（深度）
+#### ✅ 运动/康复专项
 - 运动模板库（可自定义）
 - 9 种运动分类
 - 时长、距离、强度（轻/中/高）、体感评分
@@ -55,92 +62,76 @@
 - 在读状态自动更新页数进度
 - 在读/读完/暂停 状态管理
 - 月度分析：在读/读完统计、每周阅读趋势
+- 微信读书同步入口（服务端代理）
 
 #### ✅ 每日复盘
 - 3 档心情评分
-- 今天最满意的事
-- 今天最需要改进的
+- 今天最满意的事 / 最需要改进的
 - 明天最重要的一件事
 - 自由备注
 
 #### ✅ 周报
 - 习惯完成率 + 上周对比
-- 完成最多的习惯 / 最容易跳过的习惯
+- 完成最多 / 最容易跳过的习惯
 - 平均睡眠时长和质量
 - 运动次数和总时长
-- 阅读时长
-- 心情评分
+- 阅读时长、心情评分
 - 自然语言总结（本地规则生成，预留 AI 接口）
 
-#### ✅ 目标拆解系统
+#### ✅ 目标拆解系统（plan 模块）
 - 设定目标（分类 + 截止日期）
 - 关键结果（KR，可量化目标 + 进度追踪）
 - 里程碑（小步骤，勾选完成）
 - 目标完成/放弃管理
 
+#### ✅ 实践闭环（practice 模块）
+- 议题（topics）→ 方向（directions）→ 方法（methods）→ 实践（practices）→ 轮次（rounds）→ 日志（logs）
+- 多轮创建、创建轮次防连点、复盘交互、新一轮弹窗
+- 实践详情页、今日安排（daily_arrangements）
+- 今日想法捕获（captures）
+- AI 推荐（practice/ai-recommendations）+ 每周复盘（weekly-reviews）
+
 #### ✅ 浏览器通知提醒
 - Notification API 封装
-- 浏览器通知权限请求（延迟 5 秒弹出提示）
+- 浏览器通知权限请求
 - 每分钟检查到点提醒
 - 已完成习惯不再重复提醒
 - 提醒抽象层，后续可替换为原生推送
 
 #### ✅ AI 接口架构
 - 本地规则引擎（无需 API Key）
-- 睡眠模式发现（睡前活动与睡眠质量关联）
-- 习惯模式发现（长期跳过、周几容易松懈）
+- 睡眠/习惯模式发现
 - 周报自然语言生成（本地版本）
 - 下周建议生成
 - LLM 模式预留（配置 API Key 后切换）
 - 统一接口：configureAI() / detectPatterns() / generateWeeklyNarrative()
 
-#### ✅ 情侣连接与共享
-- 创建邀请码（6 位大写字母数字）
-- 输入邀请码绑定
-- 邀请码有效期 48 小时
-- 解除情侣关系（二次确认）
-- 共享权限设置（按数据类型 + 展示粒度）
-- 鼓励消息发送（快捷短语 + 自定义）
-- 中性表达，不做负面监督
+### 性能优化（近期）
+- JWT 本地验签，跳过网关 userinfo，业务 API 提速 ~40%
+- 进程级 uid 缓存，业务 API 鉴权省一次 DB 查询
+- signin 老用户走只读（getUserIdByToken 命中缓存 0 次 DB），仅首次登录 ensureAppUser
+- practices 合并查询 + refresh 复用 uid 缓存，减少 DB 往返
+- 数据库连接池复用时间延长
+- 生产性能诊断头（withUser / signin 自定义 timing header）
 
-### 完整文件清单
+### 数据库迁移
 
-**根目录配置 (8 个):**
-package.json, tsconfig.json, next.config.mjs, tailwind.config.js, postcss.config.js, .env.example, .gitignore
+当前 schema 在 `database/tencentdb/`（按编号顺序执行）：
+1. `001_init_rhythm_schema.sql`
+2. `002_arrangements.sql`
+3. `003_practice_reviews.sql`
+4. `004_captures.sql`
+5. `005_practice_rounds_active_unique.sql`
 
-**数据库迁移 (2 个):**
-supabase/migrations/20240101000000_create_profiles.sql
-supabase/migrations/20240101000001_complete_schema.sql
+> `supabase/migrations/` 为迁移前的历史归档，当前架构已不依赖。
 
-**核心库 (5 个):**
-src/lib/supabase/client.ts, server.ts, route-handler.ts, database.types.ts
-src/middleware.ts
+### 已知限制
+1. 微信读书 API 接口为代理接入（服务端调用）
+2. AI LLM 模式需要用户自行配置 API Key
+3. 浏览器通知在后台/锁屏时不可靠
+4. iOS 主屏 PWA 数据加载曾卡死（迁移前 Supabase 直连波动所致），迁移 CloudBase 后链路前提已变，**待真机重新验证**
 
-**页面路由 (10 个):**
-src/app/layout.tsx, page.tsx, globals.css
-src/app/login/page.tsx
-src/app/onboarding/page.tsx
-src/app/today/page.tsx
-src/app/habits/page.tsx
-src/app/records/page.tsx
-src/app/me/page.tsx
-src/app/auth/callback/route.ts
-src/app/api/profile/route.ts
-
-**功能模块 (21 个):**
-features/auth/store/auth-store.ts + components (3 files)
-features/app/components/app-layout.tsx, auth-guard.tsx (2 files)
-features/habits/store/habit-store.ts + components (3 files)
-features/records/store/sleep-store.ts, exercise-store.ts, reading-store.ts, goal-store.ts (4 store files)
-features/records/components/sleep-form.tsx, sleep-analysis.tsx, exercise-form.tsx, exercise-analysis.tsx, reading-view.tsx, reflection-view.tsx, weekly-report.tsx, records-page-client.tsx, goal-view.tsx (9 component files)
-features/notifications/use-notification.ts, notification-prompt.tsx (2 files)
-features/ai/insight-engine.ts (1 file)
-
-**总计：约 48 个源文件**
-
-### 需要手动验证的场景
-
-#### 核心流程
+### 待验证场景
 1. [ ] 登录 → 引导页 → 跳转今日页
 2. [ ] 创建习惯 → 今日页自动生成待办
 3. [ ] 完成 / 跳过 / 撤销待办
@@ -150,26 +141,9 @@ features/ai/insight-engine.ts (1 file)
 7. [ ] 填写每日复盘
 8. [ ] 查看周报
 9. [ ] 设定目标 → 添加关键结果 → 添加里程碑
-10. [ ] 创建邀请码 → 另一个账号输入邀请码绑定
-11. [ ] 设置共享权限 → 对方查看共享数据
-12. [ ] 发送鼓励消息
-13. [ ] 解除情侣关系（确认）
-14. [ ] 退出登录
-
-#### 移动端适配
-15. [ ] iPhone Safari 访问和操作
-16. [ ] Android Chrome 访问和操作
-17. [ ] 页面在 320px-768px 宽度下可读
-
-### 已知限制
-1. 工作空间磁盘不足，无法运行 typecheck 和 lint
-2. 微信读书 API 接口未接入（需单独调研）
-3. AI LLM 模式需要用户自行配置 API Key
-4. 浏览器通知在后台/锁屏时不可靠
-5. 情侣共享数据的跨用户查询 RLS 需要后续细化
-
-### 后续建议
-1. 在本地运行 `npm run build` 确认无编译错误
-2. 在 Supabase 执行完整 schema migration
-3. 逐个验证核心流程
-4. 部署到 Vercel（一键导入 GitHub 项目）
+10. [ ] 实践闭环：议题 → 方向 → 方法 → 实践 → 轮次 → 日志
+11. [ ] 今日想法捕获
+12. [ ] 退出登录
+13. [ ] iOS Safari / 主屏 PWA 访问和操作
+14. [ ] Android Chrome 访问和操作
+15. [ ] 页面在 320px-768px 宽度下可读

@@ -20,7 +20,7 @@ export function ObservationCard() {
         </span>
       </div>
       <p className="text-[0.78rem] text-rhythm-text-primary leading-relaxed tracking-tight m-0 mb-2">
-        AI 观察数据下阶段接入,示例:最近 4 次"没开始",有 3 次提到工作疲惫。
+        AI 观察数据下阶段接入,示例:最近 4 次&ldquo;没开始&rdquo;,有 3 次提到工作疲惫。
       </p>
       <div className="text-[0.64rem] text-rhythm-text-muted tracking-tight mb-2 leading-normal">
         依据:接入后将显示证据引用和样本量提示。

@@ -48,7 +48,7 @@ export function TopicsList() {
       {!isLoadingTopics && topics.length === 0 && (
         <div className="r-card p-8 text-center">
           <p className="text-sm text-rhythm-text-secondary">还没有议题</p>
-          <p className="text-xs text-rhythm-text-muted mt-1">点右上"新建议题"写下第一个真实困扰</p>
+          <p className="text-xs text-rhythm-text-muted mt-1">点右上&ldquo;新建议题&rdquo;写下第一个真实困扰</p>
         </div>
       )}
 

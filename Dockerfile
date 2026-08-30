@@ -4,6 +4,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# 项目暂无 public 目录(App Router 用 src/app/icon.svg、manifest.ts 约定),
+# 建空目录保证下方 runtime 阶段 COPY 不失败;以后放了静态资源无需改这里
+RUN mkdir -p public
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

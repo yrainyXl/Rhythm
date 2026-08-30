@@ -7,7 +7,7 @@
 ### 技术栈
 
 - Next.js 14 (App Router) + TypeScript strict mode + Tailwind CSS
-- 后端：CloudBase（鉴权网关）+ TencentDB PostgreSQL 直连（连接池复用 + 事务）
+- 后端：数据库 Session 鉴权 + TencentDB PostgreSQL 直连（连接池复用 + 事务）
 - 浏览器侧不直连网关：登录走同源 `/api/auth/signin` 服务端代理，token 存 httpOnly cookie
 - 状态管理：Zustand ｜ 表单：React Hook Form + Zod ｜ 图表：Recharts
 

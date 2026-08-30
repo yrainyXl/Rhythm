@@ -1,6 +1,6 @@
-# 双人生活节奏管理 Web App
+# 生活节奏管理 Web App
 
-一个仅供两人使用的生活管理 Web 应用，帮助双方建立稳定、可持续的生活节奏。
+一个个人生活管理 Web 应用，帮助建立稳定、可持续的生活节奏。
 
 ## 技术栈
 
@@ -14,7 +14,7 @@
 - **图表**: Recharts
 - **部署**: Docker（Next.js standalone）+ 宿主机 nginx + certbot
 
-> 架构演进：Supabase → CloudBase + TencentDB → 全自托管（当前）。详见 `docs/migration-self-hosted.md`。
+> 当前架构：自托管鉴权（数据库 Session Cookie）+ TencentDB PostgreSQL 直连，Docker/nginx 部署。Supabase 与 CloudBase 已移除。历史迁移记录见 `docs/migration-self-hosted.md`。
 
 ## 开始使用
 
@@ -116,4 +116,4 @@ npm test             # 运行单元测试
 
 ## License
 
-私有项目，仅供两人使用。
+私有项目。

@@ -1,0 +1,9 @@
+services:
+  app:
+    build: .
+    image: rhythm-app:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"   # 仅本机，nginx 反代；不暴露公网
+    env_file: .env
+    # 健康检查已在镜像内定义

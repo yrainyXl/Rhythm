@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
+import { apiFetch, ApiError } from '@/lib/api-client'
 
 type TopicStatus = 'active' | 'archived'
 type PracticeStatus = 'active' | 'ended'

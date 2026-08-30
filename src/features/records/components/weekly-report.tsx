@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch } from '@/lib/api-client'
 
 interface WeeklyData {
   habitCompletionRate: number

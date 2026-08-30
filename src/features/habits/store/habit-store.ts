@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
+import { apiFetch, ApiError } from '@/lib/api-client'
 
 type HabitCategory = 'self_discipline' | 'learning' | 'exercise' | 'sleep' | 'diet' | 'life' | 'other'
 type TargetType = 'boolean' | 'duration' | 'count' | 'value'

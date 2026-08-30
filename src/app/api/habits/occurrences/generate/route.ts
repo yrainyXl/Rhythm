@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { withUser } from '@/lib/cloudbase/db'
+import { withUser } from '@/lib/server/with-user'
 import { buildOccurrenceBatchInsert } from '@/features/habits/server/occurrence-batch'
 
 export const runtime = 'nodejs'

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { create } from 'zustand'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch } from '@/lib/api-client'
 import { ReflectionHistory } from '@/features/records/components/reflection-history'
 import { ReflectionCTA } from '@/features/records/components/reflection-cta.tsx'
 

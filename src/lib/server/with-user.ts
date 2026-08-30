@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { PoolClient } from 'pg'
-import { getPgPool, getUserIdFromCloudbase } from './server'
+import { getPgPool } from './pg'
+import { verifySession } from './session'
+import { getSessionToken } from './cookies'
 import { formatServerTiming, type ServerTimingEntry } from '@/lib/server-timing'
 
 type QueryResult<T> = { rows: T[]; rowCount: number }
@@ -26,7 +28,7 @@ export interface DbHandle {
   query: QueryFn
   /**
    * 在同一 client 上跑事务(BEGIN/COMMIT/ROLLBACK)。
-   * 多表写入必须用,避免部分成功留下孤儿记录。(DB-P0-05)
+   * 多表写入必须用,避免部分成功留下孤儿记录。
    * fn 收一个 { query } 对象,语义与 db.query 一致。
    */
   transaction: <T>(fn: (q: { query: QueryFn }) => Promise<T>) => Promise<T>
@@ -35,24 +37,10 @@ export interface DbHandle {
 /**
  * Route Handler 通用入口:鉴权并拿到 app_users.id + 一个 PG client。
  *
- * 用法:
- *   export async function GET(request: NextRequest) {
- *     return withUser(request, async (userId, db) => {
- *       const res = await db.query('SELECT * FROM habits WHERE user_id=$1', [userId])
- *       return NextResponse.json(res.rows)
- *     })
- *   }
+ * 与迁移前的区别:鉴权与会话校验、handler 复用同一条连接(先取连接,再在同一连接上
+ * verifySession),消除旧实现「鉴权一条连接 + handler 一条连接」的双连接开销。
  *
- * 多表写入:
- *   return withUser(request, async (userId, db) => {
- *     return db.transaction(async (tx) => {
- *       await tx.query('INSERT ...', [...])
- *       await tx.query('INSERT ...', [...])
- *       return NextResponse.json({ ok: true })
- *     })
- *   })
- *
- * 未登录返回 401,handler 内抛错返回 500。PG client 复用进程级 Pool。(DB-P0-01/02)
+ * 未登录返回 401,handler 内抛错返回 500。PG client 复用进程级 Pool。
  */
 export async function withUser<T>(
   request: Request,
@@ -60,35 +48,8 @@ export async function withUser<T>(
 ): Promise<Response> {
   const startedAt = performance.now()
   const timings: ServerTimingEntry[] = []
-  let userId: string | null = null
-  const authStartedAt = performance.now()
-  try {
-    userId = await getUserIdFromCloudbase(
-      { request },
-      (name, duration) => timings.push({ name, duration }),
-    )
-  } catch (e) {
-    timings.push({ name: 'auth', duration: performance.now() - authStartedAt })
-    // 诊断:鉴权环节抛异常(非 401),标注来源
-    const tag = e instanceof Error ? e.message.slice(0, 60) : 'auth-error'
-    return withServerTiming(
-      NextResponse.json(
-        { error: '鉴权异常' },
-        { status: 500, headers: { 'x-error-tag': `auth:${tag}` } },
-      ),
-      timings,
-      startedAt,
-    )
-  }
-  timings.push({ name: 'auth', duration: performance.now() - authStartedAt })
-  if (!userId) {
-    return withServerTiming(
-      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
-      timings,
-      startedAt,
-    )
-  }
 
+  // 1) 取连接(先于鉴权,供鉴权与 handler 复用)
   const pool = getPgPool()
   const connectStartedAt = performance.now()
   let client: PoolClient
@@ -108,6 +69,36 @@ export async function withUser<T>(
   }
   timings.push({ name: 'db-connect', duration: performance.now() - connectStartedAt })
 
+  // 2) 鉴权(同一连接)
+  let userId: string | null = null
+  const authStartedAt = performance.now()
+  try {
+    const token = getSessionToken(request)
+    userId = token ? await verifySession(token, client) : null
+  } catch (e) {
+    timings.push({ name: 'auth', duration: performance.now() - authStartedAt })
+    client.release()
+    const tag = e instanceof Error ? e.message.slice(0, 60) : 'auth-error'
+    return withServerTiming(
+      NextResponse.json(
+        { error: '鉴权异常' },
+        { status: 500, headers: { 'x-error-tag': `auth:${tag}` } },
+      ),
+      timings,
+      startedAt,
+    )
+  }
+  timings.push({ name: 'auth', duration: performance.now() - authStartedAt })
+  if (!userId) {
+    client.release()
+    return withServerTiming(
+      NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      timings,
+      startedAt,
+    )
+  }
+
+  // 3) handler(同一连接)
   const queryFn: QueryFn = ((text: string, params?: unknown[]) =>
     client.query(text, params as never[])) as QueryFn
   const tx = async <R>(fn: (q: { query: QueryFn }) => Promise<R>): Promise<R> => {
@@ -122,16 +113,15 @@ export async function withUser<T>(
     }
   }
   const db: DbHandle = { query: queryFn, transaction: tx }
+
   const handlerStartedAt = performance.now()
   let response: Response
   try {
     const result = await handler(userId, db)
-    // handler 若已返回 Response 直接透传
     response = result instanceof Response
       ? result
       : (NextResponse.json(result) as unknown as Response)
   } catch (e) {
-    // 诊断:标注是连接/查询错误,不回显原始信息(安全)
     const tag = e instanceof Error ? e.message.slice(0, 60) : 'query-error'
     response = NextResponse.json(
       { error: '操作失败,请重试' },

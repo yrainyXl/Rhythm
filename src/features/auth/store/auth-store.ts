@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { apiFetch, ApiError } from '@/lib/cloudbase/api-client'
+import { apiFetch, ApiError } from '@/lib/api-client'
 import { createTimedSingleFlight } from '@/lib/async/single-flight'
 
 interface Profile {
@@ -19,17 +19,17 @@ interface Profile {
 const refreshProfileFlight = createTimedSingleFlight<Profile | null>({ ttlMs: 30_000 })
 let authGeneration = 0
 
-type CloudbaseUser = {
+type AuthUser = {
   uid?: string
   username?: string
   email?: string
 }
 
 interface AuthState {
-  user: CloudbaseUser | null
+  user: AuthUser | null
   profile: Profile | null
   isLoading: boolean
-  setUser: (user: CloudbaseUser | null) => void
+  setUser: (user: AuthUser | null) => void
   setProfile: (profile: Profile | null) => void
   setLoading: (isLoading: boolean) => void
   refreshProfile: () => Promise<void>
@@ -88,7 +88,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signInWithMagicLink: async () => ({ error: '暂不支持免密码登录' }),
 
-  signUp: async () => ({ error: '请在 CloudBase 控制台创建账号后登录' }),
+  signUp: async () => ({ error: '账号由管理员创建，请联系管理员' }),
 
   signOut: async () => {
     authGeneration += 1

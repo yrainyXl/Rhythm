@@ -1,14 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getCloudbaseAppUserId } from '@/lib/cloudbase/route-handler'
+import { verifySession } from '@/lib/server/session'
+import { getSessionToken } from '@/lib/server/cookies'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+/** GET /api/auth/me - 校验当前会话,返回是否已认证。 */
 export async function GET(request: Request) {
   try {
-    const userId = await getCloudbaseAppUserId(request as any)
+    const token = getSessionToken(request)
+    const userId = token ? await verifySession(token) : null
 
     if (!userId) {
       return NextResponse.json(
-        { success: false, authenticated: false, message: 'No valid authentication' },
-        { status: 401 }
+        { success: false, authenticated: false, message: 'No valid session' },
+        { status: 401 },
       )
     }
 
@@ -16,19 +22,16 @@ export async function GET(request: Request) {
       success: true,
       authenticated: true,
       userId,
-      message: 'Cloudbase Auth token validated successfully'
+      message: 'Session validated successfully',
     })
   } catch (error) {
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-        message: 'Auth validation failed'
+        message: 'Auth validation failed',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
-
-export const runtime = 'nodejs'
-export const dynamic = "force-dynamic"

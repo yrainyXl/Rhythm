@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch } from '@/lib/api-client'
 
 type Band = 'morning' | 'afternoon' | 'evening' | 'night'
 type Status = 'pending' | 'done' | 'cancelled'

@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-import { withUser } from '@/lib/cloudbase/db'
+import { withUser } from '@/lib/server/with-user'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

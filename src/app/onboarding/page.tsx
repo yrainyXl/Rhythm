@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch } from '@/lib/api-client'
 import { useAuthStore } from '@/features/auth/store/auth-store'
 
 type Step = 'welcome' | 'timezone' | 'sleep-schedule' | 'done'

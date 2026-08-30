@@ -1,7 +1,7 @@
 'use client'
 
 import { create } from 'zustand'
-import { apiFetch } from '@/lib/cloudbase/api-client'
+import { apiFetch } from '@/lib/api-client'
 
 type RecStatus = 'pending' | 'confirmed' | 'more_data' | 'dismissed'
 type RecKind = 'observation' | 'try' | 'method_suggest'

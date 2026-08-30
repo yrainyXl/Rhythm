@@ -1,47 +1,28 @@
-要启用邮箱登录，需要在 Supabase Dashboard 开启 Email Auth。
+# 认证说明
 
-## 操作步骤
+> 本项目鉴权已从 Supabase Auth 迁移为**自托管数据库 Session Cookie**，不再依赖任何第三方鉴权网关（Supabase / CloudBase）。
 
-### 1. 打开认证设置
+## 当前鉴权方式
 
-访问 https://supabase.com/project/jmkdorwbcocynczrukyp/auth/providers
+- 账号由管理员通过 `scripts/create-user.mjs` 创建（口令经 scrypt 哈希存入 `app_users.password_hash`）。
+- 登录走同源 `/api/auth/signin`，成功后写入 httpOnly cookie `rhythm_session`。
+- 会话存于 PostgreSQL `sessions` 表，登出/改密即时撤销，无 refresh token。
 
-或者在项目 Dashboard 中：
-1. 点击左侧 **「Authentication」**（锁形图标）
-2. 点击 **「Providers」** 标签
+## 创建账号
 
-### 2. 启用邮箱认证
-
-找到 **「Email」** 这一行，确保开关是 **绿色开启状态**。
-
-默认情况下：
-- ✅ Email auth 是开启的
-- ✅ 密码登录（Password）默认启用
-
-### 3. 【重要】关闭邮箱确认（可选）
-
-为了开发方便，可以关闭邮箱确认让用户直接登录：
-
-1. 在 **「Authentication > Providers」** 页面
-2. 点击 **「Email」** 进入设置
-3. 找到 **「Confirm email」** 
-4. **关闭** 这个开关
-5. 点击 **「Save」**
-
-⚠️ **注意**：生产环境建议开启邮箱确认。开发阶段关闭可以方便测试。
-
-### 4. 验证是否生效
-
-尝试访问 http://localhost:3000/login ，应该能看到登录页面。
-
----
+```bash
+node scripts/create-user.mjs <email>
+# 口令经交互式输入（或管道），不进入命令行历史
+```
 
 ## 验证登录流程
 
-1. 打开 http://localhost:3000/login
-2. 点击 **「注册」** 标签
-3. 输入邮箱和密码注册
-4. 注册成功后自动切换到登录页
-5. 用刚才的邮箱密码登录
-6. 登录后进入引导页，设置昵称和时区
-7. 完成引导后进入今日页
+1. 打开 `http://localhost:3000/login`
+2. 输入管理员创建好的邮箱与口令登录
+3. 首次登录进入引导页，设置昵称和时区
+4. 完成引导后进入今日页
+
+## 相关文档
+
+- `docs/migration-self-hosted.md` - 鉴权迁移方案（P0 章节）
+- `README.md` - 项目概述

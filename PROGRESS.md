@@ -2,7 +2,7 @@
 
 ## 总体状态：核心功能开发完成 ✅
 
-> 架构变更说明：项目已从 **Supabase（Auth + PostgreSQL + RLS）整体迁移到 CloudBase（腾讯云）+ TencentDB PostgreSQL 直连**。情侣（couple）功能已移除。本文档已与当前代码对齐。
+> 架构变更说明：项目已从 **Supabase（Auth + PostgreSQL + RLS）→ CloudBase（腾讯云）+ TencentDB PostgreSQL 直连 → 全自托管（数据库 Session 鉴权 + TencentDB PostgreSQL 直连，Docker/nginx 部署）**。情侣（couple）功能已移除。最新鉴权与部署方案见 `docs/migration-self-hosted.md` 与 `docs/deploy/ubuntu-docker.md`。
 
 ### 技术栈
 

@@ -7,10 +7,14 @@
 - **框架**: Next.js 14 (App Router)
 - **语言**: TypeScript
 - **样式**: Tailwind CSS
-- **后端**: Supabase (Auth + PostgreSQL + RLS)
+- **鉴权**: 自托管数据库 Session Cookie（scrypt 口令哈希 + PostgreSQL sessions 表，httpOnly cookie）
+- **数据库**: TencentDB PostgreSQL 直连（`pg` 连接池 + 事务）
 - **状态管理**: Zustand
 - **表单**: React Hook Form + Zod
 - **图表**: Recharts
+- **部署**: Docker（Next.js standalone）+ 宿主机 nginx + certbot
+
+> 架构演进：Supabase → CloudBase + TencentDB → 全自托管（当前）。详见 `docs/migration-self-hosted.md`。
 
 ## 开始使用
 
@@ -20,21 +24,24 @@
 npm install
 ```
 
-### 2. 配置 Supabase
-
-1. 在 [Supabase](https://supabase.com) 创建新项目
-2. 复制 `.env.example` 为 `.env.local`
-3. 填入你的 Supabase URL 和 Anon Key
+### 2. 配置环境变量
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
+# 填入 TENCENTDB_*（PostgreSQL 连接）与 AUTH_COOKIE_SECURE
 ```
 
-### 3. 运行数据库迁移
+### 3. 初始化数据库
 
-在 Supabase SQL Editor 中按顺序执行 `supabase/migrations/` 目录下的 SQL 文件。
+在 TencentDB 上按顺序执行 `database/tencentdb/` 目录下的 SQL 文件（001 → 007）。
 
-### 4. 启动开发服务器
+### 4. 创建账号
+
+```bash
+node scripts/create-user.mjs <email>
+```
+
+### 5. 启动开发服务器
 
 ```bash
 npm run dev
@@ -46,36 +53,33 @@ npm run dev
 
 ```
 ├── src/
-│   ├── app/                    # Next.js App Router 页面
+│   ├── app/                    # Next.js App Router 页面 + API Route
 │   ├── components/             # 通用 UI 组件
 │   ├── features/               # 按功能模块划分的代码
 │   │   ├── auth/              # 认证相关
 │   │   ├── habits/            # 习惯管理
 │   │   ├── today/             # 今日页
 │   │   ├── records/           # 睡眠/运动记录
-│   │   └── reflection/        # 每日复盘
-│   └── lib/                    # 工具函数和配置
-├── supabase/
-│   └── migrations/             # 数据库迁移文件
-└── public/                     # 静态资源
+│   │   ├── practice/          # 实践闭环
+│   │   └── reading/           # 阅读专项
+│   └── lib/
+│       ├── api-client.ts      # 浏览器侧统一 API 客户端
+│       └── server/            # 服务端:鉴权 + DB 连接 + 会话
+├── database/tencentdb/         # 数据库迁移文件（按序执行）
+├── deploy/nginx/               # nginx 反代配置
+├── scripts/                    # 运维脚本（建号等）
+└── docs/                       # 部署与迁移文档
 ```
 
 ## 核心功能
 
-### 第一阶段 (MVP)
-
-- [x] 项目初始化和配置
-- [ ] 用户登录和个人资料
-- [ ] 习惯管理（创建、编辑、启用/停用）
-- [ ] 今日页（每日待办生成和展示）
-- [ ] 习惯完成、跳过、补记
-- [ ] 睡眠和运动记录
-- [ ] 每日复盘
-- [ ] 浏览器通知和提醒
-- [ ] 情侣邀请和绑定
-- [ ] 数据共享权限
-- [ ] 建议计划和鼓励功能
-- [ ] 周报
+- 习惯管理（创建、编辑、启用/停用、完成/跳过/补记）
+- 今日页（每日待办生成和展示）
+- 睡眠、运动/康复、阅读专项记录与分析
+- 每日复盘
+- 周报（本地规则生成）
+- 目标拆解（plan）+ 实践闭环（practice）
+- 浏览器通知提醒
 
 ## 开发指南
 
@@ -83,20 +87,17 @@ npm run dev
 
 - 项目使用 TypeScript strict 模式
 - 禁止使用 `any` 类型
-- 所有 Supabase 查询使用类型化接口
+- 所有数据库查询使用类型化接口
 
 ### 数据库
 
-- 所有数据库变更通过 migration 管理
-- 所有用户数据访问受 RLS 保护
-- 客户端不使用 service role key
+- 所有数据库变更通过 `database/tencentdb/` 下的 migration 管理
+- 数据访问统一走 `withUser`（`src/lib/server/with-user.ts`），复用单连接 + 事务
 
 ### 权限模型
 
-- 所有数据默认私有
-- 情侣关系需要双方授权
-- 共享数据按用户设置的范围限制
-- 解除关系后立即失去访问权限
+- 所有数据默认私有，按 `user_id` 隔离
+- 会话为数据库 Session Cookie：登出/改密即时撤销
 
 ## 脚本命令
 
@@ -106,7 +107,12 @@ npm run build        # 构建生产版本
 npm run start        # 启动生产服务器
 npm run lint         # 运行 ESLint
 npm run typecheck    # TypeScript 类型检查
+npm test             # 运行单元测试
 ```
+
+## 部署
+
+见 `docs/deploy/ubuntu-docker.md`（Docker + nginx + TencentDB）与 `docs/migration-self-hosted.md`（迁移方案）。
 
 ## License
 

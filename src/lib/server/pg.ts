@@ -34,11 +34,21 @@ export function getPgPool(): Pool {
       database: env.TENCENTDB_DATABASE,
       ssl: pgSslConfig(),
       connectionTimeoutMillis: 5000,
-      idleTimeoutMillis: 60_000,
-      max: 5,
+      idleTimeoutMillis: 10 * 60_000, // 10 分钟,减少空闲连接被回收后的冷启动建连(实测 ~167ms)
+      max: 10,
     })
+    warmupPool(poolInstance)
   }
   return poolInstance
+}
+
+// 预热:创建后预建若干连接放回池中,避免首个请求冷启动 TCP+TLS 握手(远程 DB 建连 ~167ms)。
+// 失败静默——DB 暂不可达时由请求路径的 withUser 兜底返回 500。
+function warmupPool(pool: Pool): void {
+  const count = Math.min(pool.options.max ?? 3, 3)
+  for (let i = 0; i < count; i++) {
+    pool.connect().then((client) => client.release()).catch(() => {})
+  }
 }
 
 // 旧 API 名保留兼容(返回单例,不再每次新建)

@@ -13,9 +13,17 @@ const PERIOD_PRESETS = [
 export function PracticeFormSheet({
   open,
   onClose,
+  initialTitle,
+  initialAssumption,
+  sourceHighlightId,
+  sourceLabel,
 }: {
   open: boolean
   onClose: () => void
+  initialTitle?: string
+  initialAssumption?: string
+  sourceHighlightId?: string
+  sourceLabel?: string
 }) {
   const { topics, loadTopics, createPractice } = usePracticeStore()
   const [title, setTitle] = useState('')
@@ -32,14 +40,14 @@ export function PracticeFormSheet({
 
   useEffect(() => {
     if (open) {
-      setTitle('')
-      setAssumption('')
+      setTitle(initialTitle ?? '')
+      setAssumption(initialAssumption ?? '')
       setTopicId('')
       setPeriodDays(7)
       setError(null)
       loadTopics()
     }
-  }, [open, loadTopics])
+  }, [open, initialTitle, initialAssumption, loadTopics])
 
   useEffect(() => {
     if (!open) return
@@ -58,6 +66,7 @@ export function PracticeFormSheet({
       topicId: topicId || null,
       assumption,
       periodDays,
+      sourceHighlightId,
     })
     setSaving(false)
     if (result.error) {
@@ -89,6 +98,13 @@ export function PracticeFormSheet({
             </svg>
           </button>
         </div>
+
+        {sourceLabel && (
+          <div className="mb-4 flex items-start gap-2 text-xs text-rhythm-text-muted bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2">
+            <span>📌</span>
+            <span>{sourceLabel}</span>
+          </div>
+        )}
 
         <div className="space-y-4">
           <div>

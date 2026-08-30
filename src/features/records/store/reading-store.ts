@@ -18,6 +18,7 @@ export interface ReadingBook {
   status: BookStatus
   source: string
   source_book_id: string | null
+  source_sort: number | null
   cover_url: string | null
   rating: number | null
   is_shared: boolean
@@ -72,7 +73,11 @@ interface ReadingHighlight {
 
 export type HighlightWithBook = ReadingHighlight
 
-export type SyncResult = { books: number; highlights: number; thoughts: number }
+export type SyncResult = { books: number; highlights: number; thoughts: number; skipped?: number }
+
+// 自动同步:进入阅读页时距上次同步超过该间隔则后台静默同步一次
+const AUTO_SYNC_STORAGE_KEY = 'weread_last_sync_at'
+const AUTO_SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000 // 6 小时
 
 interface ReadingAnalysis {
   totalBooks: number
@@ -93,15 +98,22 @@ interface ReadingState {
   analysis: ReadingAnalysis | null
   isLoadingAnalysis: boolean
   highlights: HighlightWithBook[]
+  highlightsTotal: number
   isLoadingHighlights: boolean
   isSyncing: boolean
   syncError: string | null
   lastSyncResult: SyncResult | null
+  // 书籍详情页:某本书的词条与阅读记录
+  bookHighlights: HighlightWithBook[]
+  bookSessions: ReadingSession[]
+  isLoadingBookDetail: boolean
 
   loadBooks: () => Promise<void>
   loadRecentSessions: (limit?: number) => Promise<void>
-  loadHighlights: () => Promise<void>
+  loadHighlights: (opts?: { recentBooks?: number }) => Promise<void>
+  loadBookDetail: (bookId: string) => Promise<void>
   syncWeread: () => Promise<void>
+  maybeAutoSyncWeread: () => Promise<void>
   addBook: (data: {
     title: string
     author?: string
@@ -129,10 +141,14 @@ export const useReadingStore = create<ReadingState>((set, get) => ({
   analysis: null,
   isLoadingAnalysis: false,
   highlights: [],
+  highlightsTotal: 0,
   isLoadingHighlights: false,
   isSyncing: false,
   syncError: null,
   lastSyncResult: null,
+  bookHighlights: [],
+  bookSessions: [],
+  isLoadingBookDetail: false,
 
   loadBooks: async () => {
     try {
@@ -158,15 +174,20 @@ export const useReadingStore = create<ReadingState>((set, get) => ({
     }
   },
 
-  loadHighlights: async () => {
+  loadHighlights: async (opts) => {
     set({ isLoadingHighlights: true })
     try {
       await highlightsFlight.run(async () => {
-        const { highlights } = await apiFetch<{ highlights: HighlightWithBook[] }>(
-          '/api/reading/highlights',
+        const qs = opts?.recentBooks ? `?recentBooks=${opts.recentBooks}` : ''
+        const { highlights, total } = await apiFetch<{ highlights: HighlightWithBook[]; total: number }>(
+          `/api/reading/highlights${qs}`,
         )
         const nextHighlights = highlights ?? []
-        set({ highlights: nextHighlights, isLoadingHighlights: false })
+        set({
+          highlights: nextHighlights,
+          highlightsTotal: total ?? nextHighlights.length,
+          isLoadingHighlights: false,
+        })
         return nextHighlights
       })
       set({ isLoadingHighlights: false })
@@ -175,10 +196,28 @@ export const useReadingStore = create<ReadingState>((set, get) => ({
     }
   },
 
+  loadBookDetail: async (bookId) => {
+    set({ isLoadingBookDetail: true })
+    try {
+      const [highlightsRes, sessionsRes] = await Promise.all([
+        apiFetch<{ highlights: HighlightWithBook[] }>(`/api/reading/highlights?book_id=${bookId}`),
+        apiFetch<{ sessions: ReadingSession[] }>(`/api/reading/sessions?book_id=${bookId}`),
+      ])
+      set({
+        bookHighlights: highlightsRes.highlights ?? [],
+        bookSessions: sessionsRes.sessions ?? [],
+        isLoadingBookDetail: false,
+      })
+    } catch {
+      set({ bookHighlights: [], bookSessions: [], isLoadingBookDetail: false })
+    }
+  },
+
   syncWeread: async () => {
     set({ isSyncing: true, syncError: null })
     try {
-      const body = await apiFetch<SyncResult>('/api/weread/sync', { method: 'POST' })
+      // 同步要翻页拉笔记本+逐本拉划线/想法,耗时远超默认 15s,放宽到 120s
+      const body = await apiFetch<SyncResult>('/api/weread/sync', { method: 'POST' }, 120_000)
       set({
         isSyncing: false,
         lastSyncResult: { books: body.books, highlights: body.highlights, thoughts: body.thoughts },
@@ -188,6 +227,16 @@ export const useReadingStore = create<ReadingState>((set, get) => ({
     } catch (e) {
       set({ isSyncing: false, syncError: e instanceof Error ? e.message : '同步失败' })
     }
+  },
+
+  maybeAutoSyncWeread: async () => {
+    if (typeof window === 'undefined') return
+    if (get().isSyncing) return
+    const last = Number(window.localStorage.getItem(AUTO_SYNC_STORAGE_KEY) ?? 0)
+    if (Date.now() - last < AUTO_SYNC_INTERVAL_MS) return
+    // 先写时间:即使失败(如未配置 API key)也避免每次进页面都重试,6 小时后再试
+    window.localStorage.setItem(AUTO_SYNC_STORAGE_KEY, String(Date.now()))
+    await get().syncWeread()
   },
 
   addBook: async (data) => {

@@ -32,6 +32,7 @@ export interface Practice {
   topic_id: string | null
   title: string
   assumption: string | null
+  source_highlight_id: string | null
   status: PracticeStatus
   created_at: string
   updated_at: string
@@ -103,6 +104,7 @@ interface PracticeState {
     topicId: string | null
     assumption: string
     periodDays: number
+    sourceHighlightId?: string | null
   }) => Promise<{ error: string | null }>
   endPractice: (id: string) => Promise<void>
   deletePractice: (id: string) => Promise<void>
@@ -248,14 +250,14 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
     } catch {}
   },
 
-  createPractice: async ({ title, topicId, assumption, periodDays }) => {
+  createPractice: async ({ title, topicId, assumption, periodDays, sourceHighlightId }) => {
     const t = title.trim()
     if (!t) return { error: '实践名不能为空' }
     if (periodDays < 3 || periodDays > 60) return { error: '周期必须在 3–60 天之间' }
     try {
       const data = await apiFetch<PracticeWithLatestRound>('/api/practice/practices', {
         method: 'POST',
-        body: JSON.stringify({ title: t, topicId, assumption: assumption.trim(), periodDays }),
+        body: JSON.stringify({ title: t, topicId, assumption: assumption.trim(), periodDays, sourceHighlightId }),
       })
       set({ practices: [data, ...get().practices] })
       return { error: null }

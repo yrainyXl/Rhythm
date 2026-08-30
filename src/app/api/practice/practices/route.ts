@@ -10,6 +10,7 @@ interface PracticeRow {
   topic_id: string | null
   title: string
   assumption: string | null
+  source_highlight_id: string | null
   status: string
   created_at: string
   updated_at: string
@@ -38,6 +39,7 @@ export async function GET(request: NextRequest) {
       topic_id: string | null
       title: string
       assumption: string | null
+      source_highlight_id: string | null
       status: string
       created_at: string
       updated_at: string
@@ -61,6 +63,7 @@ export async function GET(request: NextRequest) {
       topic_id: row.topic_id,
       title: row.title,
       assumption: row.assumption,
+      source_highlight_id: row.source_highlight_id,
       status: row.status,
       created_at: row.created_at,
       updated_at: row.updated_at,
@@ -75,6 +78,7 @@ interface CreatePracticeBody {
   topicId: string | null
   assumption: string
   periodDays: number
+  sourceHighlightId?: string | null
 }
 
 /** POST /api/practice/practices - 创建实践 + 首轮。 */
@@ -88,6 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     const assumption = body.assumption?.trim() || null
+    const sourceHighlightId = body.sourceHighlightId ?? null
     const today = new Date().toISOString().slice(0, 10)
     const end = new Date()
     end.setDate(end.getDate() + body.periodDays - 1)
@@ -96,9 +101,9 @@ export async function POST(request: NextRequest) {
     // (DB-P0-05) practice + 首轮两表写入用事务,失败回滚不留孤儿实践
     return db.transaction(async (tx) => {
       const practiceRes = await tx.query<PracticeRow>(
-        `INSERT INTO practices (user_id, title, topic_id, assumption)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [userId, title, body.topicId ?? null, assumption],
+        `INSERT INTO practices (user_id, title, topic_id, assumption, source_highlight_id)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [userId, title, body.topicId ?? null, assumption, sourceHighlightId],
       )
       const practice = practiceRes.rows[0]
 

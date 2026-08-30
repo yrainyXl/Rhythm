@@ -12,13 +12,25 @@ interface BookBody {
   status?: 'reading' | 'finished' | 'paused' | 'dropped'
 }
 
-/** GET /api/reading/books - 列出当前用户的书籍。 */
+/**
+ * GET /api/reading/books - 列出当前用户的书籍。
+ * 排序:微信读书的书按官方 sort(最近阅读在前);无 sort 的(手动添加)按「最后活动时间」降序。
+ * 注意:updated_at 会被每次 sync 的 upsert 刷成相同值,不能作为排序依据。
+ */
 export async function GET(request: NextRequest) {
   return withUser(request, async (userId, db) => {
     const res = await db.query(
-      `SELECT * FROM public.reading_books
-       WHERE user_id = $1
-       ORDER BY created_at DESC`,
+      `SELECT b.*,
+              GREATEST(
+                COALESCE((SELECT max(h.highlighted_at) FROM public.reading_highlights h
+                          WHERE h.book_id = b.id AND h.user_id = $1), '-infinity'::timestamptz),
+                COALESCE((SELECT max(s.read_date::timestamptz) FROM public.reading_sessions s
+                          WHERE s.book_id = b.id AND s.user_id = $1), '-infinity'::timestamptz),
+                b.updated_at
+              ) AS last_activity_at
+       FROM public.reading_books b
+       WHERE b.user_id = $1
+       ORDER BY b.source_sort DESC NULLS LAST, last_activity_at DESC`,
       [userId],
     )
     return NextResponse.json({ books: res.rows })

@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useReadingStore } from '@/features/records/store/reading-store'
-import type { HighlightWithBook } from '@/features/records/store/reading-store'
+import { groupHighlightsByBook, sortBookGroupsByLatest } from '@/features/reading/lib/highlight-groups'
 
 function getBookBg(bookStatus: string, coverUrl: string | null | undefined): string {
   if (coverUrl) {
@@ -26,15 +26,8 @@ export default function AllHighlightsPage() {
     loadHighlights()
   }, [loadHighlights])
 
-  const grouped = new Map<string, HighlightWithBook[]>()
-  highlights.forEach(h => {
-    const bookId = h.book_id
-    if (!grouped.has(bookId)) {
-      grouped.set(bookId, [])
-    }
-    grouped.get(bookId)!.push(h)
-  })
-  const books = Array.from(grouped.entries())
+  const grouped = groupHighlightsByBook(highlights)
+  const books = sortBookGroupsByLatest(grouped)
 
   return (
     <AuthGuard>
@@ -80,6 +73,7 @@ export default function AllHighlightsPage() {
             <p className="text-xs text-rhythm-success mt-3">
               已同步 {lastSyncResult.books} 本书 · {lastSyncResult.highlights} 条划线 ·{' '}
               {lastSyncResult.thoughts} 条想法
+              {lastSyncResult.skipped ? ` · ${lastSyncResult.skipped} 本无更新已跳过` : ''}
             </p>
           )}
           {syncError && <p className="text-xs text-rhythm-danger mt-3">{syncError}</p>}

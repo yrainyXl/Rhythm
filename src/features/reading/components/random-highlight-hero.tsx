@@ -2,13 +2,26 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useReadingStore } from '@/features/records/store/reading-store'
+import type { HighlightWithBook } from '@/features/records/store/reading-store'
+import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
 
 const MIN_HEIGHT_CLASS = 'h-[240px]'
+
+function derivePracticeTitle(h: HighlightWithBook): string {
+  const text = (h.mark_text || h.thought || '').replace(/\s+/g, ' ').trim()
+  return text.length > 18 ? `${text.slice(0, 18)}…` : text
+}
+
+function deriveAssumption(h: HighlightWithBook): string {
+  const parts = [h.mark_text, h.thought ? `💭 ${h.thought}` : null].filter(Boolean) as string[]
+  return parts.join('\n\n')
+}
 
 export function RandomHighlightHero() {
   const { highlights } = useReadingStore()
   const [seed, setSeed] = useState(0)
   const [showFull, setShowFull] = useState(false)
+  const [practiceOpen, setPracticeOpen] = useState(false)
 
   useEffect(() => {
     if (!showFull) return
@@ -107,6 +120,12 @@ export function RandomHighlightHero() {
             <p className="mt-8 text-xs text-rhythm-text-muted tracking-tight">
               ——《{book?.title ?? '未知书籍'}》{book?.author ? ` · ${book.author}` : ''}
             </p>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setPracticeOpen(true) }}
+              className="mt-6 inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-rhythm-border-strong text-rhythm-glow text-xs tracking-tight cursor-pointer hover:border-rhythm-glow hover:bg-rhythm-glow-soft transition-colors">
+              发起实践
+            </button>
           </div>
           <button
             type="button"
@@ -122,6 +141,15 @@ export function RandomHighlightHero() {
           </button>
         </div>
       )}
+
+      <PracticeFormSheet
+        open={practiceOpen}
+        onClose={() => setPracticeOpen(false)}
+        initialTitle={derivePracticeTitle(pick)}
+        initialAssumption={deriveAssumption(pick)}
+        sourceHighlightId={pick.id}
+        sourceLabel={book?.title ? `来自《${book.title}》的划线` : undefined}
+      />
     </>
   )
 }

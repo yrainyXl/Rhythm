@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useReadingStore } from '@/features/records/store/reading-store'
-import type { HighlightWithBook } from '@/features/records/store/reading-store'
+import { groupHighlightsByBook, sortBookGroupsByLatest } from '@/features/reading/lib/highlight-groups'
 
 const VARIANT_BG: Record<string, string> = {
   reading: 'linear-gradient(135deg, rgba(143,180,220,0.4), rgba(143,180,220,0.2))',
@@ -18,18 +18,6 @@ function getBookBg(bookStatus: string, coverUrl: string | null | undefined): str
   return VARIANT_BG[bookStatus] ?? VARIANT_BG.reading
 }
 
-function groupHighlightsByBook(highlights: HighlightWithBook[]): Map<string, HighlightWithBook[]> {
-  const map = new Map<string, HighlightWithBook[]>()
-  highlights.forEach(h => {
-    const bookId = h.book_id
-    if (!map.has(bookId)) {
-      map.set(bookId, [])
-    }
-    map.get(bookId)!.push(h)
-  })
-  return map
-}
-
 export function HighlightsStream() {
   const { highlights } = useReadingStore()
 
@@ -43,8 +31,8 @@ export function HighlightsStream() {
   }
 
   const grouped = groupHighlightsByBook(highlights)
-  // Take the most recent 5 books with highlights
-  const recentBooks = Array.from(grouped.entries()).slice(0, 5)
+  // 按每组 max(highlighted_at) 降序,取最近 5 本有词条的书
+  const recentBooks = sortBookGroupsByLatest(grouped).slice(0, 5)
 
   return (
     <div className="space-y-2">

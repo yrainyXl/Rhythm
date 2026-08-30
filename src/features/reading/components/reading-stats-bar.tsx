@@ -21,8 +21,8 @@ export function ReadingStatsBar() {
   }
 
   // Calculate total highlights from store
-  const { highlights } = useReadingStore.getState()
-  const totalHighlights = highlights.length
+  const { highlights, highlightsTotal } = useReadingStore.getState()
+  const totalHighlights = highlightsTotal || highlights.length
 
   // Calculate this week reading time
   const weekDuration = analysis.weeklyTrend.reduce((sum, week) => sum + week.duration, 0)

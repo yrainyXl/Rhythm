@@ -73,16 +73,33 @@ export async function POST(_request: NextRequest) {
       let bookCount = 0
       let highlightCount = 0
       let thoughtCount = 0
+      let skippedCount = 0
+
+      // 增量同步:一次查出已存书的划线/想法计数,没变的书跳过详情拉取
+      const existingRes = await db.query<{
+        source_book_id: string
+        source_note_count: number | null
+        source_review_count: number | null
+      }>(
+        `SELECT source_book_id, source_note_count, source_review_count
+         FROM public.reading_books WHERE user_id = $1 AND source = 'weixin_read'`,
+        [userId],
+      )
+      const existingMap = new Map(existingRes.rows.map((r) => [r.source_book_id, r]))
 
       for (const nb of targets) {
         // 2) upsert 书籍 (source=weixin_read)，拿本地 book.id
         const bookRes = await db.query<{ id: string }>(
           `INSERT INTO public.reading_books
-             (user_id, title, author, total_pages, cover_url, source, source_book_id, status)
-           VALUES ($1,$2,$3,$4,$5,'weixin_read',$6,'reading')
+             (user_id, title, author, total_pages, cover_url, source, source_book_id, status, source_sort,
+              source_note_count, source_review_count)
+           VALUES ($1,$2,$3,$4,$5,'weixin_read',$6,'reading',$7,$8,$9)
            ON CONFLICT (user_id, source, source_book_id)
            DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author,
                          total_pages = EXCLUDED.total_pages, cover_url = EXCLUDED.cover_url,
+                         source_sort = EXCLUDED.source_sort,
+                         source_note_count = EXCLUDED.source_note_count,
+                         source_review_count = EXCLUDED.source_review_count,
                          updated_at = now()
            RETURNING id`,
           [
@@ -92,14 +109,28 @@ export async function POST(_request: NextRequest) {
             nb.book?.totalPages ?? null,
             nb.book?.cover ?? null,
             nb.bookId,
+            nb.sort ?? null,
+            nb.noteCount ?? 0,
+            nb.reviewCount ?? 0,
           ],
         )
         if (bookRes.rowCount === 0) continue
         const localBookId = bookRes.rows[0].id
         bookCount++
 
+        // 增量判断:存量书且划线/想法计数都没变 → 跳过详情拉取
+        const prev = existingMap.get(nb.bookId)
+        const notesChanged = prev == null || prev.source_note_count == null
+          || prev.source_note_count !== (nb.noteCount ?? 0)
+        const reviewsChanged = prev == null || prev.source_review_count == null
+          || prev.source_review_count !== (nb.reviewCount ?? 0)
+        if (!notesChanged && !reviewsChanged) {
+          skippedCount++
+          continue
+        }
+
         // 3) 划线内容
-        if ((nb.noteCount ?? 0) > 0) {
+        if ((nb.noteCount ?? 0) > 0 && notesChanged) {
           const bm = await gateway(apiKey, '/book/bookmarklist', { bookId: nb.bookId })
           const chapters: { chapterUid: number; title: string }[] = bm.chapters ?? []
           const chapterMap = new Map(chapters.map((c) => [c.chapterUid, c.title]))
@@ -138,7 +169,7 @@ export async function POST(_request: NextRequest) {
         }
 
         // 4) 个人想法/点评
-        if ((nb.reviewCount ?? 0) > 0) {
+        if ((nb.reviewCount ?? 0) > 0 && reviewsChanged) {
           const rv = await gateway(apiKey, '/review/list/mine', { bookid: nb.bookId, count: 100 })
           const rows = ((rv.reviews ?? []) as { review?: Record<string, unknown> }[])
             .filter((item) => item.review)
@@ -185,6 +216,7 @@ export async function POST(_request: NextRequest) {
         books: bookCount,
         highlights: highlightCount,
         thoughts: thoughtCount,
+        skipped: skippedCount,
       })
     } catch (e) {
       const message = e instanceof Error ? e.message : '同步失败'

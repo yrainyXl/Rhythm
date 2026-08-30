@@ -13,11 +13,28 @@ interface SessionBody {
 
 /**
  * GET /api/reading/sessions?book_id=X 或不带参:列最近阅读会话(含书名)。
- * ?limit=N 默认 10。
+ * ?limit=N 默认 10;带 book_id 时默认不限量(单书记录量级小),仍可用 ?limit=N 显式覆盖。
  */
 export async function GET(request: NextRequest) {
   return withUser(request, async (userId, db) => {
-    const limit = Number(new URL(request.url).searchParams.get('limit') ?? 10)
+    const params = new URL(request.url).searchParams
+    const bookId = params.get('book_id')
+    const limitRaw = params.get('limit')
+    const limit = limitRaw ? Number(limitRaw) : bookId ? null : 10
+
+    if (bookId) {
+      const res = await db.query(
+        `SELECT s.*, b.title AS book_title
+         FROM public.reading_sessions s
+         JOIN public.reading_books b ON b.id = s.book_id
+         WHERE s.user_id = $1 AND s.book_id = $2
+         ORDER BY s.read_date DESC
+         ${limit !== null ? 'LIMIT $3' : ''}`,
+        limit !== null ? [userId, bookId, limit] : [userId, bookId],
+      )
+      return NextResponse.json({ sessions: res.rows })
+    }
+
     const res = await db.query(
       `SELECT s.*, b.title AS book_title
        FROM public.reading_sessions s

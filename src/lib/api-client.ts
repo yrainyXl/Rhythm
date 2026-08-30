@@ -52,13 +52,17 @@ async function safeJson(res: Response): Promise<unknown> {
   }
 }
 
-export async function apiFetch<T = unknown>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T = unknown>(
+  path: string,
+  init: RequestInit = {},
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
+): Promise<T> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...((init.headers as Record<string, string>) ?? {}),
   }
 
-  const res = await fetchWithTimeout(path, { ...init, headers }, REQUEST_TIMEOUT_MS)
+  const res = await fetchWithTimeout(path, { ...init, headers }, timeoutMs)
 
   if (res.status === 401) {
     handleSessionExpired()

@@ -39,15 +39,17 @@ function SectionTitle({ label, action }: { label: string; action?: string }) {
 }
 
 function ReadingContent() {
-  const { loadBooks, loadHighlights, runAnalysis } = useReadingStore()
+  const { loadBooks, loadHighlights, runAnalysis, maybeAutoSyncWeread } = useReadingStore()
 
   useEffect(() => {
     void Promise.all([
       loadBooks(),
-      loadHighlights(),
+      loadHighlights({ recentBooks: 5 }),
       runAnalysis(),
     ])
-  }, [loadBooks, loadHighlights, runAnalysis])
+    // 后台静默自动同步(距上次超过 6 小时才触发),完成后自动刷新书籍与词条
+    void maybeAutoSyncWeread()
+  }, [loadBooks, loadHighlights, runAnalysis, maybeAutoSyncWeread])
 
   return (
     <div className="p-5 space-y-5">

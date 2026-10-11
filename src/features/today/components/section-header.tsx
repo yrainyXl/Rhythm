@@ -16,8 +16,8 @@ export function SectionHeader({
   return (
     <div className={c.wrapper}>
       <div className="flex items-center gap-2">
-        <span className={c.dot} />
-        <span className={c.label}>{label}</span>
+
+        <h2 className={c.label}>{label}</h2>
       </div>
       {actionLabel && (
         <button type="button" onClick={onAction} className={c.action}>

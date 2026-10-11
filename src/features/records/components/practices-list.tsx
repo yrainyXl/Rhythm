@@ -37,27 +37,27 @@ export function PracticesList() {
   }, [loadPractices])
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <div className="flex justify-end">
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer">
-          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2.2, fill: 'none' }}>
+          className="r-btn-primary flex items-center gap-2">
+          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 2.2, fill: 'none' }}>
             <path d="M12 5v14M5 12h14" />
           </svg>
-          发起新实践
+          创建实践
         </button>
       </div>
 
       {isLoadingPractices && (
-        <div className="r-card p-6 text-center text-xs text-rhythm-text-muted">加载中...</div>
+        <div className="py-6 text-sm text-rhythm-text-secondary">加载中...</div>
       )}
 
       {!isLoadingPractices && practices.length === 0 && (
         <TabPlaceholder
           title="还没有实践"
-          hint="发起你的第一轮实践,记录假设和每日进展"
+          hint="尝试一个小行动，留下每天的结果"
         />
       )}
 
@@ -66,51 +66,32 @@ export function PracticesList() {
         const r = p.latestRound
         const dayInfo = r && active ? daysBetween(r.start_date, r.end_date) : null
         return (
-          <div key={p.id} className="r-card p-4">
-            <Link href={`/habits/practices/${p.id}`} className="block">
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
-                  active ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
-                }`}>
-                  {active ? '进行中' : '已完成'}
-                </span>
-                {r && (
-                  <span className="text-[0.62rem] text-rhythm-text-muted">
-                    {formatRange(r.start_date, r.end_date)}
-                  </span>
-                )}
+          <div key={p.id} className="r-panel">
+            <Link href={`/habits/practices/${p.id}`} className="block no-underline text-rhythm-text-primary">
+              <div className="flex flex-wrap gap-2 items-center justify-between mb-3 text-xs text-rhythm-text-secondary">
+                <span>{active ? '进行中' : '已结束'}</span>
+                {r && <span>{formatRange(r.start_date, r.end_date)}</span>}
               </div>
-              <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1">{p.title}</h3>
-              {p.assumption && (
-                <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
-                  {p.assumption}
-                </p>
-              )}
-              <div className="flex items-center justify-between mt-2">
-                {r && (
-                  <div className="text-[0.68rem] text-rhythm-text-muted">
-                    第 <span className="font-serifsc text-rhythm-text-primary">{r.round_number}</span> 轮
-                    {dayInfo && (
-                      <span className="ml-1.5">· 第 {dayInfo.elapsed}/{dayInfo.total} 天</span>
-                    )}
-                  </div>
-                )}
-                <span className="text-[0.62rem] text-rhythm-text-faint ml-auto">查看详情 ›</span>
+              <div className="flex min-h-[44px] items-start gap-3 justify-between">
+                <h3 className="text-xl font-semibold leading-snug break-words">{p.title}</h3>
+                <span aria-hidden="true" className="text-xl shrink-0">→</span>
               </div>
+              {p.assumption && <p className="text-sm text-rhythm-text-secondary leading-relaxed mt-2">{p.assumption}</p>}
+              {dayInfo && <p className="text-xs text-rhythm-text-secondary mt-3">已进行 {dayInfo.elapsed} 天 · 本次计划 {dayInfo.total} 天</p>}
             </Link>
-            <div className="flex gap-1 justify-end mt-2">
+            <div className="flex flex-wrap gap-2 justify-end mt-4">
                 {active && confirmEnd === p.id ? (
                   <>
                     <button
                       type="button"
                       onClick={() => { endPractice(p.id); setConfirmEnd(null) }}
-                      className="px-2 py-1 rounded text-[0.62rem] bg-rhythm-warn-soft border border-rhythm-warn text-rhythm-warn cursor-pointer">
+                      className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-rhythm-warn-soft border border-rhythm-warn text-rhythm-warn cursor-pointer">
                       确认结束
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmEnd(null)}
-                      className="px-2 py-1 rounded text-[0.62rem] bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer">
+                      className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-transparent border border-rhythm-border text-rhythm-text-secondary cursor-pointer">
                       取消
                     </button>
                   </>
@@ -119,13 +100,13 @@ export function PracticesList() {
                     <button
                       type="button"
                       onClick={() => { deletePractice(p.id); setConfirmDelete(null) }}
-                      className="px-2 py-1 rounded text-[0.62rem] bg-rhythm-danger-soft border border-rhythm-danger text-rhythm-danger cursor-pointer">
+                      className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-rhythm-danger-soft border border-rhythm-danger text-rhythm-danger cursor-pointer">
                       确认删除
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(null)}
-                      className="px-2 py-1 rounded text-[0.62rem] bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer">
+                      className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-transparent border border-rhythm-border text-rhythm-text-secondary cursor-pointer">
                       取消
                     </button>
                   </>
@@ -135,19 +116,19 @@ export function PracticesList() {
                       <button
                         type="button"
                         onClick={() => setConfirmEnd(p.id)}
-                        aria-label="结束本轮"
+                        aria-label={`结束实践：${p.title}`}
                         title="结束"
-                        className="px-2 py-1 rounded text-[0.62rem] bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-warn hover:text-rhythm-warn transition-colors">
+                        className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-transparent border border-rhythm-border text-rhythm-text-secondary cursor-pointer hover:border-rhythm-warn hover:text-rhythm-warn transition-colors">
                         结束
                       </button>
                     )}
                     <button
                       type="button"
                       onClick={() => setConfirmDelete(p.id)}
-                      aria-label="删除"
+                      aria-label={`删除实践：${p.title}`}
                       title="删除"
-                      className="w-6 h-6 grid place-items-center rounded bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-danger hover:text-rhythm-danger transition-colors">
-                      <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
+                      className="w-11 h-11 grid place-items-center rounded-xl bg-transparent border border-rhythm-border text-rhythm-text-secondary cursor-pointer hover:border-rhythm-danger hover:text-rhythm-danger transition-colors">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
                         <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
                       </svg>
                     </button>

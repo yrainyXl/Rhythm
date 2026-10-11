@@ -11,7 +11,8 @@ import { TodayHabits } from '@/features/today/components/today-habits'
 import { CaptureInput } from '@/features/today/components/capture-input'
 
 function todayIsoDate() {
-  return new Date().toISOString().split('T')[0]
+  const date = new Date()
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }
 
 function formatDate(iso: string) {
@@ -28,30 +29,25 @@ export default function TodayPage() {
 
   const total = occurrences.length
   const completed = occurrences.filter((o) => o.status === 'done').length
-  const hasData = total > 0
-
   const dateText = formatDate(todayDate)
-  const tonightHtml = hasData
-    ? `今日已完成 <b>${completed} / ${total}</b>,继续保持节奏。`
-    : '今天的节奏正在整理…'
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-5">
-        <DayHead dateText={dateText} tonightHtml={tonightHtml} completed={completed} total={total} />
+      <div className="r-page">
+        <DayHead dateText={dateText} completed={completed} total={total} />
 
         <section>
-          <SectionHeader label="进行中的实践" actionLabel="查看实践" onAction={() => router.push('/habits/practices')} />
+          <SectionHeader label="今天的实践" actionLabel="全部" onAction={() => router.push('/habits/practices')} />
           <PracticeHero />
         </section>
 
         <section>
-          <SectionHeader label="日常打卡" actionLabel="管理" />
+          <SectionHeader label="日常习惯" actionLabel="管理" onAction={() => router.push('/habits/manage')} />
           <TodayHabits />
         </section>
 
         <section>
-          <SectionHeader label="记录此刻的想法" />
+          <SectionHeader label="记下一个想法" />
           <CaptureInput />
         </section>
       </div>

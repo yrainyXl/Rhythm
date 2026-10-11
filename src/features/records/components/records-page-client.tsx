@@ -9,7 +9,6 @@ import { RecordsSubTabs, type RecordsSubTab } from '@/features/records/component
 import { PracticesList } from '@/features/records/components/practices-list'
 import { TrendsPane } from '@/features/records/components/trends-pane'
 import { WeeklyReviewFeed } from '@/features/records/components/weekly-review-feed'
-import { TabPlaceholder } from '@/features/records/components/tab-placeholder'
 
 export default function RecordsPageClient() {
   const [activeTab, setActiveTab] = useState<RecordsTab>('records')
@@ -17,18 +16,26 @@ export default function RecordsPageClient() {
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-5">
-        <RecordsTabs active={activeTab} onChange={setActiveTab} />
+      <div className="r-page">
+        <header>
+          <h1 className="r-page-title">记录</h1>
+          <p className="r-page-description">回看行动与感受，找到适合自己的做法。</p>
+        </header>
+        <div className="[&_button]:min-h-[44px] [&_button]:text-sm [&_button]:px-2 [&_button]:tracking-normal [&_button]:text-rhythm-text-secondary [&_button[aria-selected=true]]:text-rhythm-text-primary">
+          <RecordsTabs active={activeTab} onChange={setActiveTab} />
+        </div>
 
         {activeTab === 'records' && (
-          <div className="space-y-4">
-            <RecordsSubTabs active={activeSubTab} onChange={setActiveSubTab} />
+          <section aria-label="实践记录" className="space-y-5">
+            <div className="[&_button]:min-h-[44px] [&_button]:text-sm [&_button]:tracking-normal [&_button]:text-rhythm-text-secondary [&_button[aria-selected=true]]:text-rhythm-text-primary">
+              <RecordsSubTabs active={activeSubTab} onChange={setActiveSubTab} />
+            </div>
             {activeSubTab === 'list' ? (
               <PracticesList />
             ) : (
               <TrendsPane />
             )}
-          </div>
+          </section>
         )}
 
         {activeTab === 'sleep' && <SleepAnalysis />}

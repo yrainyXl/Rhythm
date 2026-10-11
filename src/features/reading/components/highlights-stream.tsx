@@ -19,13 +19,15 @@ function getBookBg(bookStatus: string, coverUrl: string | null | undefined): str
 }
 
 export function HighlightsStream() {
-  const { highlights } = useReadingStore()
+  const { highlights, isLoadingHighlights } = useReadingStore()
+
+  if (isLoadingHighlights && highlights.length === 0) return <p className="py-4 text-sm text-rhythm-text-secondary" role="status">正在加载划线…</p>
 
   if (highlights.length === 0) {
     return (
-      <div className="p-6 rounded-2xl border border-rhythm-border bg-rhythm-card/60 text-center">
+      <div className="py-4">
         <p className="text-sm text-rhythm-text-secondary">还没有划线笔记</p>
-        <p className="text-xs text-rhythm-text-muted mt-1">同步微信读书或手动添加笔记后会显示在这里</p>
+        <p className="text-sm text-rhythm-text-secondary mt-2">同步微信读书或手动添加笔记后会显示在这里</p>
       </div>
     )
   }
@@ -35,7 +37,7 @@ export function HighlightsStream() {
   const recentBooks = sortBookGroupsByLatest(grouped).slice(0, 5)
 
   return (
-    <div className="space-y-2">
+    <div className="divide-y divide-rhythm-border">
       {recentBooks.map(([bookId, bookHighlights]) => {
         const firstHighlight = bookHighlights[0]
         const bookTitle = firstHighlight.reading_books?.title ?? '未知书籍'
@@ -46,18 +48,19 @@ export function HighlightsStream() {
           <Link
             key={bookId}
             href={`/reading/${bookId}`}
-            className="block p-4 rounded-2xl border border-rhythm-border bg-rhythm-card/80 backdrop-blur-sm hover:bg-rhythm-void/40 transition-colors">
+            className="block py-5 transition-colors hover:text-rhythm-glow">
             <div className="flex items-center gap-3">
               <div className="w-8 h-11 rounded-sm flex-none"
                 style={{ background: getBookBg(bookStatus, coverUrl) }} />
               <div className="flex-1 min-w-0">
-                <b className="block font-serifsc font-medium text-[0.85rem] tracking-tight truncate">《{bookTitle}》</b>
-                <small className="block text-[0.65rem] text-rhythm-text-muted mt-0.5">
+                <b className="block font-semibold text-base truncate">《{bookTitle}》</b>
+                <small className="block text-sm text-rhythm-text-secondary mt-0.5">
                   {bookAuthor ?? '未知作者'} · {bookHighlights.length} {bookHighlights.length === 1 ? '条' : '条'}
                 </small>
               </div>
-              <span className="text-[0.6rem] text-rhythm-text-muted">→</span>
+              <span className="text-lg text-rhythm-text-secondary">→</span>
             </div>
+            <p className="mt-3 line-clamp-2 text-[15px] leading-relaxed text-rhythm-text-secondary">{firstHighlight.mark_text || firstHighlight.thought}</p>
           </Link>
         )
       })}

@@ -54,13 +54,13 @@ export default function MePage() {
   if (showGoals) {
     return (
       <AuthGuard>
-        <div className="p-5">
+        <div className="r-page">
           <button
             type="button"
             onClick={() => setShowGoals(false)}
-            className="text-sm text-rhythm-text-secondary hover:text-rhythm-text-primary mb-4 inline-block transition-colors"
+            className="r-link mb-4"
           >
-            ← 个人资料
+            ← 我的
           </button>
           <GoalView />
         </div>
@@ -70,21 +70,34 @@ export default function MePage() {
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-4">
+      <div className="r-page">
+        <header>
+          <h1 className="r-page-title">我的</h1>
+          <p className="r-page-description">个人资料与应用设置。</p>
+        </header>
         {/* Profile Card */}
-        <div className="r-card p-5">
+        <div className="r-panel">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl r-title border border-rhythm-border-strong bg-rhythm-glow-soft text-rhythm-glow">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-semibold border border-rhythm-border bg-rhythm-card-hover text-rhythm-text-primary">
               {profile?.nickname?.[0] ?? user?.email?.[0].toUpperCase() ?? '·'}
             </div>
-            <div className="flex-1">
-              <p className="r-title text-base">{profile?.nickname ?? '未设置昵称'}</p>
-              <p className="text-sm text-rhythm-text-muted mt-0.5">{user?.email}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-xl font-semibold break-words">{profile?.nickname ?? '未设置昵称'}</p>
+              <p className="text-sm text-rhythm-text-secondary mt-1 break-all">{user?.email}</p>
             </div>
             <button
               type="button"
-              onClick={() => setIsEditing(!isEditing)}
-              className="text-sm text-rhythm-glow hover:text-rhythm-text-primary transition-colors"
+              onClick={() => {
+                if (!isEditing) {
+                  setNickname(profile?.nickname ?? '')
+                  setTimezone(profile?.timezone ?? 'Asia/Shanghai')
+                  setWakeTime(profile?.preferred_wake_time?.slice(0, 5) ?? '07:00')
+                  setSleepTime(profile?.preferred_sleep_time?.slice(0, 5) ?? '23:30')
+                  setSaveMessage(null)
+                }
+                setIsEditing(!isEditing)
+              }}
+              className="r-link shrink-0"
             >
               {isEditing ? '取消' : '编辑'}
             </button>
@@ -93,11 +106,12 @@ export default function MePage() {
 
         {/* Edit Form */}
         {isEditing && (
-          <div className="r-card p-5 space-y-4">
+          <div className="r-panel space-y-4">
             <div>
-              <label className="r-label">昵称</label>
+              <label htmlFor="profile-nickname" className="block text-sm font-medium mb-2">昵称</label>
               <input
                 type="text"
+                id="profile-nickname"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 maxLength={20}
@@ -106,8 +120,9 @@ export default function MePage() {
             </div>
 
             <div>
-              <label className="r-label">时区</label>
+              <label htmlFor="profile-timezone" className="block text-sm font-medium mb-2">时区</label>
               <select
+                id="profile-timezone"
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
                 className="r-input"
@@ -121,9 +136,10 @@ export default function MePage() {
             </div>
 
             <div>
-              <label className="r-label">起床时间</label>
+              <label htmlFor="profile-wakeTime" className="block text-sm font-medium mb-2">起床时间</label>
               <input
                 type="time"
+                id="profile-wakeTime"
                 value={wakeTime}
                 onChange={(e) => setWakeTime(e.target.value)}
                 className="r-input"
@@ -131,9 +147,10 @@ export default function MePage() {
             </div>
 
             <div>
-              <label className="r-label">睡觉时间</label>
+              <label htmlFor="profile-sleepTime" className="block text-sm font-medium mb-2">睡觉时间</label>
               <input
                 type="time"
+                id="profile-sleepTime"
                 value={sleepTime}
                 onChange={(e) => setSleepTime(e.target.value)}
                 className="r-input"
@@ -141,7 +158,7 @@ export default function MePage() {
             </div>
 
             {saveMessage && (
-              <p className={`text-sm ${saveMessage === '保存成功' ? 'text-rhythm-success' : 'text-rhythm-danger'}`}>
+              <p role="status" className={`text-sm ${saveMessage === '保存成功' ? 'text-rhythm-success' : 'text-rhythm-danger'}`}>
                 {saveMessage}
               </p>
             )}
@@ -157,55 +174,59 @@ export default function MePage() {
           </div>
         )}
 
+        <h2 className="r-section-title">设置</h2>
         {/* Menu items */}
-        <div className="r-card divide-y divide-rhythm-border overflow-hidden">
+        <div className="rounded-[20px] border border-rhythm-border divide-y divide-rhythm-border overflow-hidden">
           <button
             type="button"
             onClick={() => setShowGoals(true)}
-            className="w-full px-4 py-3.5 text-sm text-rhythm-text-primary text-left hover:bg-rhythm-card-hover/60 flex items-center justify-between transition-colors"
+            className="w-full px-5 py-4 text-[15px] text-rhythm-text-primary text-left hover:bg-rhythm-card-hover/60 flex items-center justify-between transition-colors"
           >
             <span>目标和里程碑</span>
-            <span className="text-rhythm-text-faint">→</span>
+            <span className="text-rhythm-text-secondary">→</span>
           </button>
-          <div className="px-4 py-3.5 flex items-center justify-between">
+          <div className="px-5 py-4 flex items-center justify-between">
             <span className="text-sm text-rhythm-text-primary">外观</span>
             <button
               type="button"
               onClick={toggle}
-              className="flex items-center gap-1.5 text-xs text-rhythm-glow border border-rhythm-border-strong bg-rhythm-glow-soft rounded-full px-3 py-1.5 transition-colors hover:border-rhythm-glow"
+              aria-label={`切换到${theme === 'dark' ? '白天' : '黑夜'}模式`}
+              className="flex min-h-[44px] items-center gap-2 text-sm text-rhythm-text-primary border border-rhythm-border rounded-full px-4 transition-colors hover:bg-rhythm-card-hover"
             >
               {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
               {theme === 'dark' ? '黑夜' : '白天'}
             </button>
           </div>
-          <div className="px-4 py-3.5 text-sm text-rhythm-text-primary flex items-center justify-between">
+          <div className="px-5 py-4 text-[15px] text-rhythm-text-primary flex flex-wrap gap-2 items-center justify-between">
             <span>提醒设置</span>
-            <span className="text-rhythm-text-muted text-xs">即将支持</span>
+            <span className="text-rhythm-text-secondary text-sm">即将支持</span>
           </div>
-          <div className="px-4 py-3.5 text-sm text-rhythm-text-primary flex items-center justify-between">
+          <div className="px-5 py-4 text-[15px] text-rhythm-text-primary flex flex-wrap gap-2 items-center justify-between">
             <span>通知权限</span>
-            <span className="text-rhythm-text-muted text-xs">已关闭 · 暂未开放</span>
+            <span className="text-rhythm-text-secondary text-sm">已关闭 · 暂未开放</span>
           </div>
         </div>
 
+        <h2 className="r-section-title">个人信息</h2>
         {/* Info */}
-        <div className="r-card divide-y divide-rhythm-border overflow-hidden">
-          <div className="px-4 py-3.5 text-sm">
-            <span className="text-rhythm-text-muted text-xs">邮箱</span>
-            <p className="text-rhythm-text-primary mt-0.5">{user?.email}</p>
+        <div className="rounded-[20px] border border-rhythm-border divide-y divide-rhythm-border overflow-hidden">
+          <div className="px-5 py-4 text-[15px]">
+            <span className="text-rhythm-text-secondary text-sm">邮箱</span>
+            <p className="text-rhythm-text-primary mt-1 break-words">{user?.email}</p>
           </div>
-          <div className="px-4 py-3.5 text-sm">
-            <span className="text-rhythm-text-muted text-xs">时区</span>
-            <p className="text-rhythm-text-primary mt-0.5">{profile?.timezone ?? '未设置'}</p>
+          <div className="px-5 py-4 text-[15px]">
+            <span className="text-rhythm-text-secondary text-sm">时区</span>
+            <p className="text-rhythm-text-primary mt-1 break-words">{profile?.timezone ?? '未设置'}</p>
           </div>
-          <div className="px-4 py-3.5 text-sm">
-            <span className="text-rhythm-text-muted text-xs">作息</span>
-            <p className="text-rhythm-text-primary mt-0.5">
+          <div className="px-5 py-4 text-[15px]">
+            <span className="text-rhythm-text-secondary text-sm">作息</span>
+            <p className="text-rhythm-text-primary mt-1 break-words">
               {profile?.preferred_wake_time?.slice(0, 5) ?? '--'} 起床 / {profile?.preferred_sleep_time?.slice(0, 5) ?? '--'} 睡觉
             </p>
           </div>
         </div>
 
+        {saveMessage && !isEditing && <p role="status" className="text-sm text-rhythm-success">{saveMessage}</p>}
         {/* Sign out */}
         <button
           type="button"

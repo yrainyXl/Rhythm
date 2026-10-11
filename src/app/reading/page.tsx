@@ -8,32 +8,13 @@ import { RandomHighlightHero } from '@/features/reading/components/random-highli
 import { ReadingStatsBar } from '@/features/reading/components/reading-stats-bar'
 import { BookshelfRow } from '@/features/reading/components/bookshelf-row'
 import { HighlightsStream } from '@/features/reading/components/highlights-stream'
-import { ThemesRow } from '@/features/reading/components/themes-row'
-import { TryRecommendation } from '@/features/reading/components/try-recommendation'
 import { DoneBooksList } from '@/features/reading/components/done-books-list'
 
-function SectionTitle({ label, action }: { label: string; action?: string }) {
+function SectionTitle({ label, href, action }: { label: string; href?: string; action?: string }) {
   return (
-    <div className="flex items-center justify-between mb-2 px-0.5">
-      <div className="flex items-center gap-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-rhythm-glow opacity-60" />
-        <span className="text-xs tracking-[0.06em] text-rhythm-text-secondary">{label}</span>
-      </div>
-      {action && action === '全部书架 →' && (
-        <Link href="/reading/books" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer no-underline hover:underline">
-          {action}
-        </Link>
-      )}
-      {action && action === '全部 →' && (
-        <Link href="/reading/highlights" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer no-underline hover:underline">
-          {action}
-        </Link>
-      )}
-      {action && !['全部书架 →', '全部 →'].includes(action) && (
-        <button type="button" className="text-xs text-rhythm-glow bg-transparent border-0 cursor-pointer">
-          {action}
-        </button>
-      )}
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <h2 className="r-section-title">{label}</h2>
+      {href && <Link href={href} className="r-link">{action}</Link>}
     </div>
   )
 }
@@ -52,32 +33,26 @@ function ReadingContent() {
   }, [loadBooks, loadHighlights, runAnalysis, maybeAutoSyncWeread])
 
   return (
-    <div className="p-5 space-y-5">
-      <RandomHighlightHero />
-      <ReadingStatsBar />
-
+    <div className="r-page">
+      <header>
+        <h1 className="r-page-title">阅读</h1>
+        <p className="r-page-description mt-2">留下触动你的想法，把收获带进生活。</p>
+      </header>
       <section>
-        <SectionTitle label="在读" action="全部书架 →" />
+        <SectionTitle label="正在读" href="/reading/books" action="书架" />
         <BookshelfRow />
       </section>
-
       <section>
-        <SectionTitle label="词条 · 按书" action="全部 →" />
+        <SectionTitle label="最近的划线" href="/reading/highlights" action="全部划线" />
         <HighlightsStream />
       </section>
-
       <section>
-        <SectionTitle label="AI · 跨书主题" />
-        <ThemesRow />
+        <SectionTitle label="重读一句" />
+        <RandomHighlightHero />
       </section>
-
+      <ReadingStatsBar />
       <section>
-        <SectionTitle label="想试试 · AI 推荐" />
-        <TryRecommendation />
-      </section>
-
-      <section>
-        <SectionTitle label="已读 · 暂停" action="14 本 →" />
+        <SectionTitle label="读过的书" />
         <DoneBooksList />
       </section>
     </div>

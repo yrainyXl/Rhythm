@@ -8,11 +8,13 @@ interface Entry {
   label: string
   href: string
   icon: ReactNode
+  description: string
 }
 
 const ENTRIES: Entry[] = [
   {
     key: 'direction',
+    description: '想往哪里走',
     label: '方向',
     href: '/habits/directions',
     icon: (
@@ -23,6 +25,7 @@ const ENTRIES: Entry[] = [
   },
   {
     key: 'practice',
+    description: '尝试行动并记录',
     label: '实践',
     href: '/habits/practices',
     icon: (
@@ -34,6 +37,7 @@ const ENTRIES: Entry[] = [
   },
   {
     key: 'topic',
+    description: '值得思考的问题',
     label: '议题',
     href: '/habits/topics',
     icon: (
@@ -45,6 +49,7 @@ const ENTRIES: Entry[] = [
   },
   {
     key: 'method',
+    description: '留下有效的做法',
     label: '方法',
     href: '/habits/methods',
     icon: (
@@ -56,6 +61,7 @@ const ENTRIES: Entry[] = [
   },
   {
     key: 'habit',
+    description: '管理日常打卡',
     label: '习惯',
     href: '/habits/manage',
     icon: (
@@ -68,16 +74,14 @@ const ENTRIES: Entry[] = [
 
 export function QuickActions() {
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
       {ENTRIES.map((a) => (
-        <Link
-          key={a.key}
-          href={a.href}
-          className="flex flex-col items-center gap-1.5 px-1 py-3 rounded-xl border border-rhythm-border bg-rhythm-card/40 text-rhythm-text-secondary text-[0.68rem] tracking-tight cursor-pointer transition-colors hover:border-rhythm-border-strong hover:text-rhythm-text-primary no-underline">
-          <span className="flex-none w-8 h-8 rounded-[10px] grid place-items-center bg-rhythm-glow-soft text-rhythm-glow">
-            {a.icon}
+        <Link key={a.key} href={a.href} className="flex items-center gap-3 p-4 rounded-2xl border border-rhythm-border text-rhythm-text-primary no-underline hover:bg-rhythm-card-hover transition-colors">
+          <span aria-hidden="true" className="shrink-0">{a.icon}</span>
+          <span className="min-w-0">
+            <span className="block text-[15px] font-semibold">{a.label}</span>
+            <span className="block text-sm text-rhythm-text-secondary mt-1">{a.description}</span>
           </span>
-          <b className="font-medium tracking-tight leading-tight">{a.label}</b>
         </Link>
       ))}
     </div>

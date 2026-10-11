@@ -85,6 +85,7 @@ interface PracticeState {
   practices: PracticeWithLatestRound[]
   topics: Topic[]
   directions: Direction[]
+  practicesError: string | null
   isLoadingPractices: boolean
   isLoadingTopics: boolean
   isLoadingDirections: boolean
@@ -158,6 +159,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   practices: [],
   topics: [],
   directions: [],
+  practicesError: null,
   isLoadingPractices: true,
   isLoadingTopics: true,
   isLoadingDirections: true,
@@ -172,11 +174,12 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   detailRequestId: 0,
 
   loadPractices: async () => {
+    set({ isLoadingPractices: true, practicesError: null })
     try {
       const data = await apiFetch<{ practices: PracticeWithLatestRound[] }>('/api/practice/practices')
-      set({ practices: data.practices ?? [], isLoadingPractices: false })
+      set({ practices: data.practices ?? [], isLoadingPractices: false, practicesError: null })
     } catch {
-      set({ practices: [], isLoadingPractices: false })
+      set({ isLoadingPractices: false, practicesError: '实践暂时加载失败，请重试' })
     }
   },
 

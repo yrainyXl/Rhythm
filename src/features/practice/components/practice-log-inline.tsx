@@ -23,8 +23,8 @@ const STATES: { value: LogStatus; label: string; active: string; inactive: strin
   {
     value: 'skipped',
     label: '没开始',
-    active: 'bg-rhythm-danger-soft border-rhythm-danger text-rhythm-danger',
-    inactive: 'text-rhythm-text-muted hover:text-rhythm-danger hover:border-rhythm-danger',
+    active: 'bg-rhythm-glow-soft border-rhythm-border-strong text-rhythm-text-primary',
+    inactive: 'text-rhythm-text-secondary hover:text-rhythm-text-primary hover:border-rhythm-border-strong',
   },
 ]
 
@@ -89,31 +89,31 @@ export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: st
   return (
     <div className="space-y-2">
       {startDate && endDate && (
-        <label className="block text-xs text-rhythm-text-secondary">
+        <label className="block text-sm text-rhythm-text-secondary">
           记录日期（可以补记）
           <input type="date" value={localDate} min={startDate} max={maximumDate} disabled={saving} onChange={(e) => setLocalDate(e.target.value)} className="mt-1 block rounded-lg border border-rhythm-border bg-rhythm-void px-3 py-2 text-rhythm-text-primary" />
         </label>
       )}
-      {!validDate && <p className="text-xs text-rhythm-warn">请选择本轮周期内且不晚于今天的日期</p>}
-      {logsErrorsByRound[roundId] && <p role="alert" className="text-xs text-rhythm-danger">{logsErrorsByRound[roundId]} <button type="button" onClick={() => void loadLogsForRound(roundId)}>重试</button></p>}
-      {error && <p role="alert" className="text-xs text-rhythm-danger">{error}</p>}
+      {!validDate && <p className="text-sm text-rhythm-warn">请选择本轮周期内且不晚于今天的日期</p>}
+      {logsErrorsByRound[roundId] && <p role="alert" className="text-sm text-rhythm-danger">{logsErrorsByRound[roundId]} <button type="button" onClick={() => void loadLogsForRound(roundId)}>重试</button></p>}
+      {error && <p role="alert" className="text-sm text-rhythm-danger">{error}</p>}
       {todayLog && savedState && !isEditing ? (
-        <div className="rounded-xl border border-rhythm-border p-3 space-y-2" role="status">
+        <div className="border-t border-rhythm-border pt-3 space-y-2" role="status">
           <div className="flex items-center justify-between gap-3">
-            <span className={`rounded-full border px-2.5 py-1 text-xs font-medium ${savedState.active}`}>
-              {localDate === today ? '今日' : localDate} · {savedState.label}
+            <span className={`rounded-full border px-2.5 py-1 text-sm font-medium ${savedState.active}`}>
+              {localDate === today ? '今天' : localDate} · {savedState.label}
             </span>
-            <button type="button" disabled={saving} onClick={() => setIsEditing(true)} className="text-xs text-rhythm-glow disabled:opacity-40">
+            <button type="button" disabled={saving} onClick={() => setIsEditing(true)} className="r-link disabled:opacity-40">
               修改记录
             </button>
           </div>
-          {todayLog.note && <p className="text-xs text-rhythm-text-secondary whitespace-pre-wrap break-words">{todayLog.note}</p>}
-          <p className="text-[0.68rem] text-rhythm-text-muted">已保存本次记录，整轮实践继续进行</p>
+          {todayLog.note && <p className="text-sm text-rhythm-text-secondary whitespace-pre-wrap break-words">{todayLog.note}</p>}
+
         </div>
       ) : (
       <>
-      <p className="text-xs text-rhythm-text-secondary">
-        {isEditing ? '修改本次实践记录' : `${localDate === today ? '今天' : localDate}实践得怎么样？选择后立即保存`}
+      <p className="text-sm text-rhythm-text-secondary">
+        {isEditing ? '修改本次实践记录' : `${localDate === today ? '今天' : localDate}实践得怎么样？点选即可记录`}
       </p>
       <div className="grid grid-cols-3 gap-2">
         {STATES.map((s) => {
@@ -128,7 +128,7 @@ export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: st
                 setSelected(s.value)
                 if (!isEditing) void saveRecord(s.value)
               }}
-              className={`px-2 py-2 rounded-xl border cursor-pointer transition-colors text-[0.75rem] font-medium text-center ${
+              className={`min-h-[44px] px-2 py-2 rounded-xl border cursor-pointer transition-colors text-sm font-medium text-center ${
                 isActive
                   ? s.active
                   : `border-rhythm-border bg-rhythm-void/40 ${s.inactive}`
@@ -139,7 +139,7 @@ export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: st
         })}
       </div>
 
-      {saving && <p role="status" className="text-xs text-rhythm-text-muted">保存中…</p>}
+      {saving && <p role="status" className="text-sm text-rhythm-text-muted">保存中…</p>}
 
       {selected && (
         <div className="space-y-2">
@@ -147,9 +147,10 @@ export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: st
             disabled={saving}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="今天实际情况、想法或原因(可选)"
+            aria-label="实践记录备注"
+            placeholder="想记下什么？（可选）"
             rows={2}
-            className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2 text-[0.72rem] text-rhythm-text-primary placeholder-rhythm-text-muted resize-none focus:outline-none focus:border-rhythm-border-strong"
+            className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2 text-sm text-rhythm-text-primary placeholder-rhythm-text-muted resize-none focus:outline-none focus:border-rhythm-border-strong"
           />
           <div className="flex items-center justify-end gap-2">
             {isEditing && (
@@ -158,13 +159,13 @@ export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: st
                 setNote(todayLog?.note ?? '')
                 setError(null)
                 setIsEditing(false)
-              }} className="text-xs text-rhythm-text-secondary disabled:opacity-40">取消修改</button>
+              }} className="text-sm text-rhythm-text-secondary disabled:opacity-40">取消修改</button>
             )}
             <button
               type="button"
               onClick={onConfirm}
               disabled={saving || !dirty || !validDate || !!logsErrorsByRound[roundId]}
-              className="px-4 py-1.5 rounded-full text-[0.72rem] bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer disabled:opacity-40">
+              className="px-4 py-1.5 rounded-full text-sm bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer disabled:opacity-40">
               {saving ? '保存中…' : '保存记录'}
             </button>
           </div>

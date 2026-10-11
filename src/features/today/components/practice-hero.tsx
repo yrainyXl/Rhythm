@@ -21,78 +21,38 @@ function daysBetween(start: string, end: string): { total: number; elapsed: numb
 function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
   const round = practice.latestRound
   const dayInfo = round ? daysBetween(round.start_date, round.end_date) : null
+  const now = new Date()
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  const expired = !!round && round.end_date < today
+  const upcoming = !!round && round.start_date > today
   return (
-    <div
-      className="w-full h-full p-4 rounded-2xl border relative overflow-hidden flex flex-col"
-      style={{
-        borderColor: 'var(--r-feature-border)',
-        background: 'var(--r-feature-background)',
-      }}>
-      <div className="flex items-start justify-between mb-2">
-        <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgb(var(--r-glow) / 0.85)' }}>
-          {round ? `当前实践 · 第 ${round.round_number} 轮` : '当前实践'}
-        </span>
-      </div>
-      <h3 className="font-serifsc font-medium text-[1.05rem] tracking-tight leading-snug m-0 mb-1.5 line-clamp-2">
-        {practice.title}
-      </h3>
-      {practice.assumption && (
-        <div className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed mb-1.5 pl-2 border-l-2 line-clamp-2"
-          style={{ borderColor: 'rgb(var(--r-glow) / 0.25)' }}>
-          <span className="text-rhythm-text-muted tracking-wider">假设　</span>{practice.assumption}
-        </div>
-      )}
-      {dayInfo && (
-        <div className="text-[0.68rem] text-rhythm-text-muted tracking-tight mb-2.5">
-          第 <span className="font-serifsc text-rhythm-text-primary">{dayInfo.elapsed}</span> / {dayInfo.total} 天
-          <span className="mx-1">·</span>
-          {round?.start_date} 起
-        </div>
-      )}
-      {round && (
-        <div className="mb-2.5">
-          <PracticeLogInline roundId={round.id} />
-        </div>
-      )}
-      <Link
-        href={`/habits/practices/${practice.id}`}
-        className="self-end text-[0.68rem] tracking-tight text-rhythm-glow no-underline hover:text-rhythm-text-primary transition-colors">
-        进入实践 →
+    <div className="r-panel h-full">
+      <Link href={`/habits/practices/${practice.id}`} className="block py-1 text-2xl font-semibold leading-snug tracking-tight hover:text-rhythm-glow">
+        {practice.title}<span className="ml-2 text-base text-rhythm-text-muted" aria-hidden="true">↗</span>
       </Link>
+      {practice.assumption && <p className="mt-2 text-sm leading-relaxed text-rhythm-text-secondary">{practice.assumption}</p>}
+      {dayInfo && <p className="mt-3 mb-5 text-sm text-rhythm-text-secondary">{expired ? '本次尝试已到期' : upcoming ? `${round?.start_date} 开始` : `第 ${dayInfo.elapsed} 天 · 共 ${dayInfo.total} 天`}</p>}
+      {round && !expired && !upcoming && <PracticeLogInline roundId={round.id} />}
+      {expired && <div className="border-t border-rhythm-border pt-4">
+        <p className="text-sm text-rhythm-text-secondary">回看这次尝试，决定接下来怎么做。</p>
+        <Link href={`/habits/practices/${practice.id}`} className="r-btn-primary mt-4">回顾这次实践</Link>
+      </div>}
     </div>
   )
 }
 
 function NewPracticeSlide({ onOpen }: { onOpen: () => void }) {
   return (
-    <div
-      className="w-full h-full p-4 rounded-2xl border border-dashed relative overflow-hidden flex flex-col justify-center items-center gap-2.5"
-      style={{ borderColor: 'rgb(var(--r-glow) / 0.32)' }}>
-      <div className="w-10 h-10 rounded-full grid place-items-center"
-        style={{ background: 'var(--r-glow-soft)', color: 'rgb(var(--r-glow))' }}>
-        <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-      </div>
-      <div className="font-serifsc text-[0.9rem] font-medium tracking-tight text-rhythm-text-primary">
-        发起新实践
-      </div>
-      <div className="text-[0.66rem] text-rhythm-text-muted tracking-tight text-center px-4">
-        选定一件事，设定假设，验证它是否适合自己
-      </div>
-      <button
-        type="button"
-        onClick={onOpen}
-        className="mt-0.5 px-4 py-1.5 rounded-full text-[0.72rem] cursor-pointer"
-        style={{ background: 'rgb(var(--r-glow) / 0.22)', border: '1px solid rgb(var(--r-glow) / 0.42)', color: 'rgb(var(--r-glow))' }}>
-        开始
-      </button>
+    <div className="r-panel">
+      <h3 className="text-xl font-semibold">从一个小行动开始</h3>
+      <p className="mt-2 text-sm text-rhythm-text-secondary">选一件想尝试的事，做几天，再看看感受。</p>
+      <button type="button" onClick={onOpen} className="r-btn-primary mt-5">开始一个实践</button>
     </div>
   )
 }
 
 export function PracticeHero() {
-  const { practices, isLoadingPractices, loadPractices } = usePracticeStore()
+  const { practices, practicesError, isLoadingPractices, loadPractices } = usePracticeStore()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [activeIdx, setActiveIdx] = useState(0)
   const scrollerRef = useRef<HTMLDivElement>(null)
@@ -122,6 +82,7 @@ export function PracticeHero() {
     el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
   }
 
+  if (practicesError) return <div role="alert" className="r-panel text-sm text-rhythm-text-secondary">{practicesError}<button type="button" onClick={() => void loadPractices()} className="r-link ml-3">重试</button></div>
   if (isLoadingPractices) {
     return (
       <div className="p-4 rounded-2xl border border-rhythm-border bg-rhythm-card/60 text-center text-xs text-rhythm-text-muted">
@@ -139,29 +100,29 @@ export function PracticeHero() {
         style={{ scrollbarWidth: 'none' }}>
         {hasActive ? (
           activePractices.map((p, i) => (
-            <div key={p.id} className={`min-w-full snap-start ${i < activePractices.length - 1 ? 'pr-2' : ''}`}>
+            <div key={p.id} className={`w-full min-w-full shrink-0 snap-start ${i < activePractices.length - 1 ? 'pr-2' : ''}`}>
               <PracticeSlide practice={p} />
             </div>
           ))
         ) : (
-          <div className="min-w-full snap-start">
+          <div className="w-full min-w-full shrink-0 snap-start">
             <NewPracticeSlide onOpen={() => setSheetOpen(true)} />
           </div>
         )}
       </div>
 
       {slides > 1 && (
-        <div className="flex justify-center gap-1.5 mt-2">
+        <div className="flex justify-center gap-1 mt-2">
           {Array.from({ length: slides }).map((_, i) => (
             <button
               key={i}
               type="button"
               aria-label={`第 ${i + 1} 个实践`}
               onClick={() => goTo(i)}
-              className={`h-1.5 rounded-full transition-all ${
-                i === activeIdx ? 'w-4 bg-rhythm-glow' : 'w-1.5 bg-rhythm-border-strong'
+              className={`min-h-[44px] min-w-[44px] rounded-full transition-colors text-sm ${
+                i === activeIdx ? 'bg-rhythm-glow-soft text-rhythm-glow' : 'text-rhythm-text-secondary'
               }`}
-            />
+            >{i + 1}</button>
           ))}
         </div>
       )}

@@ -3,61 +3,24 @@
 import { useReadingStore } from '@/features/records/store/reading-store'
 
 export function ReadingStatsBar() {
-  const { analysis, isLoadingAnalysis } = useReadingStore()
-
-  if (isLoadingAnalysis || !analysis) {
-    return (
-      <div className="flex justify-around py-3 rounded-xl border border-rhythm-border bg-rhythm-card/40">
-        {['本周', '在读', '读完', '划线'].map((label, i) => (
-          <div key={i} className="text-center opacity-50">
-            <div className="font-serifsc text-[1.15rem] text-rhythm-text-primary leading-tight">
-              —<small className="font-inherit text-[0.6rem] text-rhythm-text-muted ml-0.5"></small>
-            </div>
-            <div className="text-[0.6rem] tracking-tight text-rhythm-text-muted mt-1">{label}</div>
-          </div>
-        ))}
-      </div>
-    )
+  const { analysis, isLoadingAnalysis, highlights, highlightsTotal } = useReadingStore()
+  if (!analysis) {
+    return isLoadingAnalysis ? <p className="text-sm text-rhythm-text-secondary" role="status">正在加载阅读概况…</p> : null
   }
 
-  // Calculate total highlights from store
-  const { highlights, highlightsTotal } = useReadingStore.getState()
-  const totalHighlights = highlightsTotal || highlights.length
-
-  // Calculate this week reading time
-  const weekDuration = analysis.weeklyTrend.reduce((sum, week) => sum + week.duration, 0)
-  const weekHours = (weekDuration / 60).toFixed(1)
-
+  const stats = [
+    { label: '近 30 天阅读', value: `${(analysis.totalDuration / 60).toFixed(1)} 小时` },
+    { label: '已读完', value: `${analysis.finishedBooks} 本` },
+    { label: '收藏划线', value: `${highlightsTotal || highlights.length} 条` },
+  ]
   return (
-    <div className="flex justify-around py-3 rounded-xl border border-rhythm-border bg-rhythm-card/40">
-      <div className="text-center">
-        <div className="font-serifsc text-[1.15rem] text-rhythm-text-primary leading-tight">
-          {weekHours}
-          <small className="font-inherit text-[0.6rem] text-rhythm-text-muted ml-0.5">h</small>
+    <dl className="grid grid-cols-3 gap-3 border-y border-rhythm-border py-5">
+      {stats.map(({ label, value }) => (
+        <div key={label}>
+          <dt className="text-sm text-rhythm-text-secondary">{label}</dt>
+          <dd className="mt-2 text-base font-semibold text-rhythm-text-primary">{value}</dd>
         </div>
-        <div className="text-[0.6rem] tracking-tight text-rhythm-text-muted mt-1">本周</div>
-      </div>
-      <div className="text-center">
-        <div className="font-serifsc text-[1.15rem] text-rhythm-text-primary leading-tight">
-          {analysis.readingBooks}
-          <small className="font-inherit text-[0.6rem] text-rhythm-text-muted ml-0.5">本</small>
-        </div>
-        <div className="text-[0.6rem] tracking-tight text-rhythm-text-muted mt-1">在读</div>
-      </div>
-      <div className="text-center">
-        <div className="font-serifsc text-[1.15rem] text-rhythm-text-primary leading-tight">
-          {analysis.finishedBooks}
-          <small className="font-inherit text-[0.6rem] text-rhythm-text-muted ml-0.5">本</small>
-        </div>
-        <div className="text-[0.6rem] tracking-tight text-rhythm-text-muted mt-1">已读完</div>
-      </div>
-      <div className="text-center">
-        <div className="font-serifsc text-[1.15rem] text-rhythm-text-primary leading-tight">
-          {totalHighlights}
-          <small className="font-inherit text-[0.6rem] text-rhythm-text-muted ml-0.5">条</small>
-        </div>
-        <div className="text-[0.6rem] tracking-tight text-rhythm-text-muted mt-1">划线</div>
-      </div>
-    </div>
+      ))}
+    </dl>
   )
 }

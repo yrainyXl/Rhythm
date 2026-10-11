@@ -1,43 +1,13 @@
-'use client'
-
-export function DayHead({
-  dateText,
-  tonightHtml,
-  completed,
-  total,
-}: {
-  dateText: string
-  tonightHtml: string
-  completed: number
-  total: number
-}) {
-  const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((completed / total) * 100))) : 0
+export function DayHead({ dateText, completed, total }: { dateText: string; completed: number; total: number }) {
   return (
-    <section className="flex items-end justify-between gap-4">
-      <div>
-        <div className="text-[0.7rem] tracking-[0.14em] uppercase text-rhythm-text-muted">
-          {dateText}
-        </div>
-        <h1 className="mt-1 font-serifsc font-normal text-[1.6rem] leading-tight tracking-[0.04em] text-rhythm-text-primary">
-          今天
-        </h1>
-        <p
-          className="mt-2 text-[0.78rem] leading-relaxed text-rhythm-text-secondary"
-          dangerouslySetInnerHTML={{ __html: tonightHtml }}
-        />
-      </div>
-      <div
-        className="flex-none w-16 h-16 rounded-full grid place-items-center relative"
-        style={{
-          background: `conic-gradient(rgb(var(--r-glow) / 0.7) 0deg ${pct * 3.6}deg, rgb(var(--r-glow) / 0.08) 0deg 360deg)`,
-        }}
-        title={`今日完成 ${completed}/${total}`}
-      >
-        <div className="absolute inset-[5px] rounded-full bg-rhythm-void/90" />
-        <span className="relative z-10 font-serifsc text-[0.95rem] text-rhythm-glow">
-          {completed}/{total}
-        </span>
-      </div>
+    <section>
+      <p className="text-sm text-rhythm-text-secondary">{dateText}</p>
+      <h1 className="r-page-title mt-2">今天</h1>
+      <p className="r-page-description">把想做的事，做一点。</p>
+      {total > 0 && <div className="mt-5 flex items-center gap-3">
+        <span className="text-sm text-rhythm-text-secondary">习惯已完成 <strong className="text-rhythm-text-primary">{completed} / {total}</strong></span>
+        <progress aria-label="今日习惯完成进度" value={completed} max={total} className="h-1.5 w-20 overflow-hidden rounded-full accent-rhythm-glow" />
+      </div>}
     </section>
   )
 }

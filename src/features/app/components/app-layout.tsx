@@ -28,15 +28,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="max-w-lg mx-auto min-h-screen relative">
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-xl focus:bg-rhythm-card focus:px-4 focus:py-3 focus:text-rhythm-text-primary">跳到主要内容</a>
       {showNav && (
-        <header className="sticky top-0 z-20 px-5 pb-4 pt-[calc(1rem+env(safe-area-inset-top))] backdrop-blur-md bg-rhythm-void/70 border-b border-rhythm-border">
+        <header className="sticky top-0 z-20 px-6 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-rhythm-void border-b border-rhythm-border">
           <div className="flex items-center justify-between">
-            <h1 className="r-title text-base">
-              {profile?.nickname ? `${profile.nickname} 的节奏` : 'Rhythm'}
-            </h1>
+            <Link href="/today" className="inline-flex min-h-[44px] items-center text-lg font-semibold tracking-tight text-rhythm-text-primary no-underline">Rhythm</Link>
             <Link
               href="/me"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs text-rhythm-text-secondary border border-rhythm-border-strong bg-rhythm-glow-soft transition-colors hover:text-rhythm-text-primary"
+              aria-label="我的资料与设置"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-medium text-rhythm-text-primary border border-rhythm-border bg-rhythm-card-hover transition-colors"
             >
               {profile?.nickname?.[0] ?? '·'}
             </Link>
@@ -44,24 +44,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={showNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}>
+      <main id="main-content" tabIndex={-1} className={showNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}>
         {children}
       </main>
 
       {showNav && (
-        <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-20 backdrop-blur-md bg-rhythm-void/80 border-t border-rhythm-border">
-          <div className="flex justify-around px-2 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))]">
+        <nav aria-label="主要导航" className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-20 bg-rhythm-void border-t border-rhythm-border">
+          <div className="flex justify-around px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
             {navItems.map(({ href, label, Icon }) => {
               const isActive = pathname.startsWith(href)
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex flex-col items-center gap-1 px-3 py-1 text-[0.65rem] tracking-[0.05em] transition-colors duration-300 ${
-                    isActive ? 'text-rhythm-glow' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex min-h-[48px] flex-1 flex-col justify-center items-center gap-1 px-1 py-1 text-xs transition-colors ${
+                    isActive ? 'text-rhythm-text-primary font-semibold' : 'text-rhythm-text-secondary hover:text-rhythm-text-primary'
                   }`}
                 >
-                  <Icon size={19} strokeWidth={isActive ? 2 : 1.5} />
+                  <Icon aria-hidden="true" size={22} strokeWidth={isActive ? 2 : 1.7} />
                   <span>{label}</span>
                 </Link>
               )

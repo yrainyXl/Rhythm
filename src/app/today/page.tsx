@@ -6,7 +6,6 @@ import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useHabitStore } from '@/features/habits/store/habit-store'
 import { DayHead } from '@/features/today/components/day-head'
 import { SectionHeader } from '@/features/today/components/section-header.tsx'
-import { ArrangementsBand } from '@/features/today/components/arrangements-band'
 import { PracticeHero } from '@/features/today/components/practice-hero'
 import { TodayHabits } from '@/features/today/components/today-habits'
 import { CaptureInput } from '@/features/today/components/capture-input'
@@ -40,11 +39,6 @@ export default function TodayPage() {
     <AuthGuard>
       <div className="p-5 space-y-5">
         <DayHead dateText={dateText} tonightHtml={tonightHtml} completed={completed} total={total} />
-
-        <section>
-          <SectionHeader label="今日安排" />
-          <ArrangementsBand />
-        </section>
 
         <section>
           <SectionHeader label="进行中的实践" actionLabel="查看实践" onAction={() => router.push('/habits/practices')} />

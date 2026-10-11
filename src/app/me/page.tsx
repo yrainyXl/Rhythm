@@ -184,7 +184,7 @@ export default function MePage() {
           </div>
           <div className="px-4 py-3.5 text-sm text-rhythm-text-primary flex items-center justify-between">
             <span>通知权限</span>
-            <span className="text-rhythm-text-muted text-xs">即将支持</span>
+            <span className="text-rhythm-text-muted text-xs">已关闭 · 暂未开放</span>
           </div>
         </div>
 

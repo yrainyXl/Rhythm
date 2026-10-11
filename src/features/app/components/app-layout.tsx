@@ -5,7 +5,6 @@ import { useThemeStore } from '@/features/app/store/theme-store'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
-import { NotificationPrompt } from '@/features/notifications/notification-prompt'
 import { CalendarCheck, Target, LineChart, BookOpen, User } from 'lucide-react'
 
 const navItems = [
@@ -48,8 +47,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <main className={showNav ? 'pb-[calc(6rem+env(safe-area-inset-bottom))]' : ''}>
         {children}
       </main>
-
-      {showNav && <NotificationPrompt />}
 
       {showNav && (
         <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg z-20 backdrop-blur-md bg-rhythm-void/80 border-t border-rhythm-border">

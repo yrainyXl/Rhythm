@@ -32,12 +32,6 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
         <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgb(var(--r-glow) / 0.85)' }}>
           {round ? `当前实践 · 第 ${round.round_number} 轮` : '当前实践'}
         </span>
-        <div className="w-6 h-6 rounded-lg grid place-items-center flex-none"
-          style={{ background: 'var(--r-glow-soft)', color: 'rgb(var(--r-glow))' }}>
-          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.7, fill: 'none' }}>
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        </div>
       </div>
       <h3 className="font-serifsc font-medium text-[1.05rem] tracking-tight leading-snug m-0 mb-1.5 line-clamp-2">
         {practice.title}

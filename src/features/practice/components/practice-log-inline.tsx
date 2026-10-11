@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
+
+import { canRecordDate } from '@/features/practice/lib/recording'
 
 type LogStatus = 'done' | 'partial' | 'skipped'
 
@@ -35,41 +37,54 @@ function todayIso(): string {
 }
 
 /** 今天页内联实践打卡：选状态 -> 可选补充说明 -> 确定保存。 */
-export function PracticeLogInline({ roundId }: { roundId: string }) {
-  const { logsByRound, loadLogsForRound, upsertLog } = usePracticeStore()
+export function PracticeLogInline({ roundId, startDate, endDate }: { roundId: string; startDate?: string; endDate?: string }) {
+  const { logsByRound, logsErrorsByRound, loadLogsForRound, upsertLog } = usePracticeStore()
   const [selected, setSelected] = useState<LogStatus | null>(null)
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const today = todayIso()
+  const maximumDate = endDate && endDate < today ? endDate : today
+  const [localDate, setLocalDate] = useState(maximumDate)
 
   useEffect(() => {
     loadLogsForRound(roundId)
   }, [roundId, loadLogsForRound])
 
-  const today = todayIso()
   const logs = logsByRound[roundId] ?? []
-  const todayLog = useMemo(() => logs.find((l) => l.local_date === today), [logs, today])
+  const todayLog = logs.find((l) => l.local_date === localDate)
+  const validDate = canRecordDate(localDate, startDate ?? today, endDate ?? today, today)
 
   // 同步已保存记录到本地 state(保存后 store 更新会重新触发)
   useEffect(() => {
-    if (todayLog) {
-      setSelected(todayLog.status)
-      setNote(todayLog.note ?? '')
-    }
-  }, [todayLog?.id, todayLog?.status, todayLog?.note])
+    setSelected(todayLog?.status ?? null)
+    setNote(todayLog?.note ?? '')
+    setError(null)
+  }, [roundId, localDate, todayLog?.status, todayLog?.note])
 
   const dirty = todayLog
     ? selected !== todayLog.status || (note ?? '') !== (todayLog.note ?? '')
     : selected !== null
 
   const onConfirm = async () => {
-    if (!selected || !dirty) return
+    if (!selected || !dirty || !validDate || saving) return
     setSaving(true)
-    await upsertLog({ roundId, localDate: today, status: selected, note })
+    const result = await upsertLog({ roundId, localDate, status: selected, note })
+    setError(result.error)
     setSaving(false)
   }
 
   return (
     <div className="space-y-2">
+      {startDate && endDate && (
+        <label className="block text-xs text-rhythm-text-secondary">
+          记录日期（可以补记）
+          <input type="date" value={localDate} min={startDate} max={maximumDate} disabled={saving} onChange={(e) => setLocalDate(e.target.value)} className="mt-1 block rounded-lg border border-rhythm-border bg-rhythm-void px-3 py-2 text-rhythm-text-primary" />
+        </label>
+      )}
+      {!validDate && <p className="text-xs text-rhythm-warn">请选择本轮周期内且不晚于今天的日期</p>}
+      {logsErrorsByRound[roundId] && <p role="alert" className="text-xs text-rhythm-danger">{logsErrorsByRound[roundId]} <button type="button" onClick={() => void loadLogsForRound(roundId)}>重试</button></p>}
+      {error && <p role="alert" className="text-xs text-rhythm-danger">{error}</p>}
       <div className="grid grid-cols-3 gap-2">
         {STATES.map((s) => {
           const isActive = selected === s.value
@@ -77,6 +92,7 @@ export function PracticeLogInline({ roundId }: { roundId: string }) {
             <button
               key={s.value}
               type="button"
+              disabled={saving || !validDate}
               onClick={() => setSelected(s.value)}
               className={`px-2 py-2 rounded-xl border cursor-pointer transition-colors text-[0.75rem] font-medium text-center ${
                 isActive
@@ -92,6 +108,7 @@ export function PracticeLogInline({ roundId }: { roundId: string }) {
       {selected && (
         <div className="space-y-2">
           <textarea
+            disabled={saving}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="今天实际情况、想法或原因(可选)"
@@ -105,7 +122,7 @@ export function PracticeLogInline({ roundId }: { roundId: string }) {
             <button
               type="button"
               onClick={onConfirm}
-              disabled={saving || !dirty}
+              disabled={saving || !dirty || !validDate}
               className="px-4 py-1.5 rounded-full text-[0.72rem] bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer disabled:opacity-40">
               {saving ? '保存中...' : '确定'}
             </button>

@@ -75,7 +75,7 @@ export function TodayHabits() {
               }`}
             >
               {isDone && (
-                <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" style={{ stroke: 'rgba(11,16,25,0.9)', strokeWidth: 3, fill: 'none' }}>
+                <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" style={{ stroke: 'var(--r-on-glow)', strokeWidth: 3, fill: 'none' }}>
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               )}

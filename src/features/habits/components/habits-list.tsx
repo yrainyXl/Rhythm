@@ -180,7 +180,7 @@ export default function HabitsPageClient() {
                 type="button"
                 onClick={() => handleDelete(confirmDelete)}
                 className="r-btn flex-1 text-rhythm-danger"
-                style={{ border: '1px solid rgba(220, 140, 140, 0.35)', background: 'rgba(220, 140, 140, 0.1)' }}
+                style={{ border: '1px solid rgb(var(--r-danger-rgb) / 0.35)', background: 'rgb(var(--r-danger-rgb) / 0.1)' }}
               >
                 确认停用
               </button>

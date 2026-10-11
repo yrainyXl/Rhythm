@@ -11,10 +11,10 @@ function getBookBg(bookStatus: string, coverUrl: string | null | undefined): str
     return `url(${coverUrl}) center/cover`
   }
   const defaults: Record<string, string> = {
-    reading: 'linear-gradient(135deg, rgba(143,180,220,0.4), rgba(143,180,220,0.2))',
-    finished: 'linear-gradient(135deg, #c5a68d, #7f6952)',
-    paused: 'linear-gradient(135deg, #8fa8b8, #4a5c74)',
-    dropped: 'linear-gradient(135deg, #6b7280, #374151)',
+    reading: 'var(--r-book-reading)',
+    finished: 'var(--r-book-finished)',
+    paused: 'var(--r-book-paused)',
+    dropped: 'var(--r-book-dropped)',
   }
   return defaults[bookStatus] ?? defaults.reading
 }

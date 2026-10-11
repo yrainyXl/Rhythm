@@ -37,7 +37,7 @@ export function DoneBooksList() {
               style={{
                 background: b.cover_url
                   ? `url(${b.cover_url}) center/cover`
-                  : 'linear-gradient(135deg, rgba(150,175,205,0.35), rgba(150,175,205,0.15))',
+                  : 'var(--r-book-placeholder)',
               }} />
             <div className="flex-1 min-w-0">
               <b className="block text-[0.78rem] tracking-tight font-medium truncate">《{b.title}》</b>

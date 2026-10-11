@@ -211,7 +211,7 @@ export default function MePage() {
           type="button"
           onClick={handleSignOut}
           className="r-btn w-full text-rhythm-danger"
-          style={{ border: '1px solid rgba(220, 140, 140, 0.3)' }}
+          style={{ border: '1px solid rgb(var(--r-danger-rgb) / 0.3)' }}
         >
           退出登录
         </button>

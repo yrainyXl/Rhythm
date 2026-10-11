@@ -3,8 +3,8 @@
 export function TryRecommendation() {
   return (
     <div className="p-4 rounded-2xl border relative"
-      style={{ borderColor: 'rgba(220,180,130,0.22)', background: 'linear-gradient(180deg, rgba(220,180,130,0.07), transparent)' }}>
-      <div className="text-[0.6rem] tracking-[0.14em] uppercase mb-2" style={{ color: 'rgb(220,180,130)' }}>
+      style={{ borderColor: 'var(--r-observation-border)', background: 'var(--r-observation-background)' }}>
+      <div className="text-[0.6rem] tracking-[0.14em] uppercase mb-2" style={{ color: 'rgb(var(--r-observation-rgb))' }}>
         来自《深度工作》· 关联你的议题(占位)
       </div>
       <p className="text-[0.78rem] text-rhythm-text-secondary leading-relaxed m-0 mb-2">
@@ -16,11 +16,11 @@ export function TryRecommendation() {
       </div>
       <div className="flex gap-1.5">
         <button type="button" className="px-2 py-1.5 rounded-lg text-[0.68rem] tracking-tight cursor-pointer"
-          style={{ background: 'rgba(220,180,130,0.16)', border: '1px solid rgba(220,180,130,0.28)', color: 'rgb(220,180,130)' }}>
+          style={{ background: 'rgb(var(--r-observation-rgb) / 0.16)', border: '1px solid rgb(var(--r-observation-rgb) / 0.28)', color: 'rgb(var(--r-observation-rgb))' }}>
           发起实践
         </button>
         <button type="button" className="px-2 py-1.5 rounded-lg text-[0.68rem] tracking-tight cursor-pointer bg-transparent"
-          style={{ border: '1px solid rgba(220,180,130,0.28)', color: 'rgb(220,180,130)' }}>
+          style={{ border: '1px solid rgb(var(--r-observation-rgb) / 0.28)', color: 'rgb(var(--r-observation-rgb))' }}>
           先收藏
         </button>
         <button type="button" className="px-2 py-1.5 rounded-lg text-[0.68rem] tracking-tight cursor-pointer bg-transparent border border-rhythm-border text-rhythm-text-muted">

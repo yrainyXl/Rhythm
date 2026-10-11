@@ -50,19 +50,19 @@ export function TrendsPane() {
         subtitle={`近 ${completedRounds.length} 轮`}
         empty={completedRounds.length === 0 ? '发起实践后,这里会显示每轮的完成率对比' : undefined}>
         <svg viewBox="0 0 320 160" className="w-full h-auto block" preserveAspectRatio="none">
-          <line x1="0" y1="130" x2="320" y2="130" stroke="rgba(150,175,205,0.18)" strokeWidth="0.5" />
-          <line x1="0" y1="80" x2="320" y2="80" stroke="rgba(150,175,205,0.10)" strokeWidth="0.5" strokeDasharray="2 2" />
-          <line x1="0" y1="40" x2="320" y2="40" stroke="rgba(150,175,205,0.10)" strokeWidth="0.5" strokeDasharray="2 2" />
+          <line x1="0" y1="130" x2="320" y2="130" stroke="rgb(var(--r-neutral) / 0.18)" strokeWidth="0.5" />
+          <line x1="0" y1="80" x2="320" y2="80" stroke="rgb(var(--r-neutral) / 0.10)" strokeWidth="0.5" strokeDasharray="2 2" />
+          <line x1="0" y1="40" x2="320" y2="40" stroke="rgb(var(--r-neutral) / 0.10)" strokeWidth="0.5" strokeDasharray="2 2" />
           {completedRounds.map((r, i) => {
             const barH = (r.value / 100) * 90
             const x = 30 + i * 55
             return (
               <g key={i}>
                 <rect x={x} y={130 - barH} width="42" height={barH} rx="4" fill="url(#barGrad)" />
-                <text x={x + 21} y="146" fontSize="8" textAnchor="middle" fill="rgba(210,218,228,0.55)">
+                <text x={x + 21} y="146" fontSize="8" textAnchor="middle" fill="var(--r-text-secondary)">
                   {r.label.slice(0, 4)}
                 </text>
-                <text x={x + 21} y={126 - barH} fontSize="9" textAnchor="middle" fill="rgba(222,228,236,0.92)" fontFamily="Noto Serif SC">
+                <text x={x + 21} y={126 - barH} fontSize="9" textAnchor="middle" fill="var(--r-text-primary)" fontFamily="Noto Serif SC">
                   {r.value}%
                 </text>
               </g>
@@ -70,8 +70,8 @@ export function TrendsPane() {
           })}
           <defs>
             <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgb(143,180,220)" stopOpacity="0.95" />
-              <stop offset="100%" stopColor="rgb(143,180,220)" stopOpacity="0.35" />
+              <stop offset="0%" stopColor="rgb(var(--r-glow))" stopOpacity="0.95" />
+              <stop offset="100%" stopColor="rgb(var(--r-glow))" stopOpacity="0.35" />
             </linearGradient>
           </defs>
         </svg>

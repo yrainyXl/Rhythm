@@ -5,16 +5,15 @@ import { useReadingStore } from '@/features/records/store/reading-store'
 import type { ReadingBook } from '@/features/records/store/reading-store'
 
 const VARIANT_BG: Record<string, string> = {
-  reading: 'linear-gradient(135deg, rgba(143,180,220,0.35), rgba(143,180,220,0.15))',
-  finished: 'linear-gradient(135deg, #c5a68d, #7f6952)',
-  paused: 'linear-gradient(135deg, #8fa8b8, #4a5c74)',
-  dropped: 'linear-gradient(135deg, #6b7280, #374151)',
+  reading: 'var(--r-book-reading)',
+  finished: 'var(--r-book-finished)',
+  paused: 'var(--r-book-paused)',
+  dropped: 'var(--r-book-dropped)',
 }
 
 function getBookBg(book: ReadingBook): string {
   if (book.cover_url) {
-    // If we have a cover, use a subtle gradient overlay
-    return `linear-gradient(135deg, rgba(0,0,0,0.2), rgba(0,0,0,0.5)), url(${book.cover_url})`
+    return `url(${JSON.stringify(book.cover_url)})`
   }
   return VARIANT_BG[book.status] ?? VARIANT_BG.reading
 }

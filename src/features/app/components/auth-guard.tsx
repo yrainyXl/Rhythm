@@ -17,10 +17,10 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-rhythm-void">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-gray-500">加载中...</p>
+          <div className="w-8 h-8 border-2 border-rhythm-glow border-t-transparent rounded-full animate-spin" />
+          <p className="text-sm text-rhythm-text-secondary">加载中...</p>
         </div>
       </div>
     )

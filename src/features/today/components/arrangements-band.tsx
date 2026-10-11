@@ -72,7 +72,7 @@ export function ArrangementsBand() {
             ))}
 
             {activeBand === b.key ? (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[rgba(143,180,220,0.4)] bg-rhythm-void/60">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-[rgb(var(--r-glow)_/_0.4)] bg-rhythm-void/60">
                 <input
                   autoFocus
                   type="text"
@@ -159,7 +159,7 @@ function ArrangementRow({
         aria-label={isDone ? '恢复' : '完成'}
       >
         {isDone && (
-          <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" style={{ stroke: 'rgba(11,16,25,0.9)', strokeWidth: 3, fill: 'none' }}>
+          <svg viewBox="0 0 24 24" className="w-2.5 h-2.5" style={{ stroke: 'var(--r-on-glow)', strokeWidth: 3, fill: 'none' }}>
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}

@@ -51,7 +51,7 @@ export function HabitItem({ occurrence, onComplete, onCompleteWithDetail, onSkip
                 type="button"
                 onClick={() => onComplete(occurrence.id)}
                 className="w-9 h-9 rounded-full flex items-center justify-center transition-all text-rhythm-glow border border-rhythm-border-strong hover:border-rhythm-glow"
-                style={{ background: 'rgba(143, 180, 220, 0.12)' }}
+                style={{ background: 'rgb(var(--r-glow) / 0.12)' }}
                 title="完成"
               >
                 <Check size={16} strokeWidth={2.2} />
@@ -145,7 +145,7 @@ export function HabitDetailForm({
                   ? 'text-rhythm-glow border-rhythm-glow'
                   : 'text-rhythm-text-muted border-rhythm-border hover:border-rhythm-border-strong'
               }`}
-              style={feeling === v ? { background: 'rgba(143, 180, 220, 0.12)' } : undefined}
+              style={feeling === v ? { background: 'rgb(var(--r-glow) / 0.12)' } : undefined}
             >
               {v}
             </button>

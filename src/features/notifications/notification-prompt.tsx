@@ -18,7 +18,7 @@ export function NotificationPrompt() {
 
   return (
     <div className="fixed bottom-20 left-4 right-4 max-w-sm mx-auto z-50">
-      <div className="r-card p-4 shadow-lg">
+      <div className="r-card r-floating-card p-4">
         <p className="text-sm text-rhythm-text-primary font-medium mb-1">开启通知提醒</p>
         <p className="text-xs text-rhythm-text-muted mb-3">开启后可以在习惯时间收到浏览器通知</p>
         <div className="flex gap-2">

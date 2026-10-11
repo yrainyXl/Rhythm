@@ -33,7 +33,7 @@ export function CaptureInput() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 rounded-2xl border border-rhythm-border bg-rhythm-void/60 px-3 py-2.5 transition-colors focus-within:border-[rgba(143,180,220,0.4)]">
+      <div className="flex items-center gap-2 rounded-2xl border border-rhythm-border bg-rhythm-void/60 px-3 py-2.5 transition-colors focus-within:border-[rgb(var(--r-glow)_/_0.4)]">
         <input
           type="text"
           value={value}
@@ -48,9 +48,9 @@ export function CaptureInput() {
           type="button"
           disabled
           aria-label="语音记录(下阶段接入)"
-          className="flex-none w-7 h-7 rounded-full grid place-items-center border border-rhythm-border-strong text-rhythm-glow bg-[rgba(143,180,220,0.06)] opacity-50 cursor-not-allowed"
+          className="flex-none w-7 h-7 rounded-full grid place-items-center border border-rhythm-border-strong text-rhythm-glow bg-[rgb(var(--r-glow)_/_0.06)] opacity-50 cursor-not-allowed"
         >
-          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'rgb(143,180,220)', strokeWidth: 1.9, fill: 'none' }}>
+          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'rgb(var(--r-glow))', strokeWidth: 1.9, fill: 'none' }}>
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
             <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
             <line x1="12" y1="19" x2="12" y2="23" />

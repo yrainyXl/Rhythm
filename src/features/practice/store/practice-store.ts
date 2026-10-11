@@ -63,7 +63,7 @@ interface MethodRow {
   created_at: string
   updated_at: string
 }
-interface PracticeLog {
+export interface PracticeLog {
   id: string
   user_id: string
   round_id: string
@@ -105,13 +105,15 @@ interface PracticeState {
     assumption: string
     periodDays: number
     sourceHighlightId?: string | null
-  }) => Promise<{ error: string | null }>
-  endPractice: (id: string) => Promise<void>
-  deletePractice: (id: string) => Promise<void>
+  }) => Promise<{ error: string | null; practiceId?: string }>
+  endPractice: (id: string) => Promise<{ error: string | null }>
+  deletePractice: (id: string) => Promise<{ error: string | null }>
 
   // 详情 + 多轮
-  detailPractice: (Practice & { rounds: (PracticeRound & { log_count: number })[] }) | null
+  detailPractice: (Practice & { sourceHighlight: { id: string; book_id: string; book_title: string; mark_text: string; thought: string | null } | null; rounds: (PracticeRound & { log_count: number })[] }) | null
   isLoadingDetail: boolean
+  detailError: string | null
+  detailRequestId: number
   loadDetail: (id: string) => Promise<void>
   createRound: (practiceId: string, input: { assumption?: string; periodDays: number; conclusion?: string | null }) => Promise<{ error: string | null }>
   endRound: (roundId: string, input?: {
@@ -119,7 +121,7 @@ interface PracticeState {
     reviewReality?: string | null
     reviewEffect?: string | null
     reviewAdjustment?: string | null
-  }) => Promise<void>
+  }) => Promise<{ error: string | null }>
   saveReview: (roundId: string, input: {
     reviewReality?: string | null
     reviewEffect?: string | null
@@ -139,6 +141,7 @@ interface PracticeState {
   deleteMethod: (id: string) => Promise<void>
 
   logsByRound: Record<string, PracticeLog[]>
+  logsErrorsByRound: Record<string, string | null>
   isLoadingLogs: boolean
 
   loadLogsForRound: (roundId: string) => Promise<void>
@@ -161,9 +164,12 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   methods: [],
   isLoadingMethods: true,
   logsByRound: {},
+  logsErrorsByRound: {},
   isLoadingLogs: false,
   detailPractice: null,
   isLoadingDetail: false,
+  detailError: null,
+  detailRequestId: 0,
 
   loadPractices: async () => {
     try {
@@ -260,7 +266,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         body: JSON.stringify({ title: t, topicId, assumption: assumption.trim(), periodDays, sourceHighlightId }),
       })
       set({ practices: [data, ...get().practices] })
-      return { error: null }
+      return { error: null, practiceId: data.id }
     } catch (e) {
       return { error: toErr(e, '创建失败') }
     }
@@ -275,28 +281,28 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
           : p,
       )
       set({ practices })
-    } catch {}
+      return { error: null }
+    } catch (e) { return { error: toErr(e, '结束实践失败') } }
   },
 
   deletePractice: async (id) => {
     try {
       await apiFetch(`/api/practice/practices/${id}`, { method: 'DELETE' })
       set({ practices: get().practices.filter((p) => p.id !== id) })
-    } catch {}
+      return { error: null }
+    } catch (e) { return { error: toErr(e, '删除实践失败') } }
   },
 
   loadDetail: async (id) => {
-    set({ isLoadingDetail: true })
+    const requestId = get().detailRequestId + 1
+    set({ isLoadingDetail: true, detailPractice: null, detailError: null, detailRequestId: requestId })
     try {
-      const data = await apiFetch<{ practice: Practice; rounds: (PracticeRound & { log_count: number })[] }>(
-        `/api/practice/practices/${id}`,
-      )
-      set({
-        detailPractice: data.practice ? { ...data.practice, rounds: data.rounds ?? [] } : null,
-        isLoadingDetail: false,
-      })
-    } catch {
-      set({ detailPractice: null, isLoadingDetail: false })
+      const data = await apiFetch<{ practice: Practice; sourceHighlight: NonNullable<PracticeState['detailPractice']>['sourceHighlight']; rounds: (PracticeRound & { log_count: number })[] }>(`/api/practice/practices/${id}`)
+      if (get().detailRequestId !== requestId) return
+      set({ detailPractice: data.practice ? { ...data.practice, sourceHighlight: data.sourceHighlight ?? null, rounds: data.rounds ?? [] } : null, isLoadingDetail: false, detailError: data.practice ? null : '实践不存在' })
+    } catch (e) {
+      if (get().detailRequestId !== requestId) return
+      set({ detailPractice: null, isLoadingDetail: false, detailError: toErr(e, '加载实践失败，请重试') })
     }
   },
 
@@ -331,7 +337,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       }
       // 刷新列表缓存:本轮结束后 latestRound.status 变 ended,今天/计划页需据此隐藏
       await get().loadPractices()
-    } catch {}
+      return { error: null }
+    } catch (e) { return { error: toErr(e, '结束轮次失败') } }
   },
 
   saveReview: async (roundId, input) => {
@@ -397,12 +404,12 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
   },
 
   loadLogsForRound: async (roundId) => {
-    set({ isLoadingLogs: true })
+    set({ isLoadingLogs: true, logsErrorsByRound: { ...get().logsErrorsByRound, [roundId]: null } })
     try {
       const data = await apiFetch<{ logs: PracticeLog[] }>(`/api/practice/rounds/${roundId}/logs`)
       set({ logsByRound: { ...get().logsByRound, [roundId]: data.logs ?? [] }, isLoadingLogs: false })
-    } catch {
-      set({ isLoadingLogs: false })
+    } catch (e) {
+      set({ isLoadingLogs: false, logsErrorsByRound: { ...get().logsErrorsByRound, [roundId]: toErr(e, '加载记录失败，请重试') } })
     }
   },
 
@@ -416,9 +423,10 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
       const existingIdx = list.findIndex((l) => l.local_date === localDate)
       const newList =
         existingIdx >= 0
-          ? list.map((l) => (l.id === data.id ? data : l))
+          ? list.map((l) => (l.local_date === localDate ? data : l))
           : [data, ...list]
-      set({ logsByRound: { ...get().logsByRound, [roundId]: newList } })
+      const detail = get().detailPractice
+      set({ logsByRound: { ...get().logsByRound, [roundId]: newList }, detailPractice: detail ? { ...detail, rounds: detail.rounds.map((r) => r.id === roundId ? { ...r, log_count: newList.length } : r) } : null })
       return { error: null }
     } catch (e) {
       return { error: toErr(e, '保存失败') }

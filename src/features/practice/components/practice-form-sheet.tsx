@@ -17,6 +17,8 @@ export function PracticeFormSheet({
   initialAssumption,
   sourceHighlightId,
   sourceLabel,
+  sourceExcerpt,
+  onCreated,
 }: {
   open: boolean
   onClose: () => void
@@ -24,6 +26,8 @@ export function PracticeFormSheet({
   initialAssumption?: string
   sourceHighlightId?: string
   sourceLabel?: string
+  sourceExcerpt?: string
+  onCreated?: (practiceId: string) => void
 }) {
   const { topics, loadTopics, createPractice } = usePracticeStore()
   const [title, setTitle] = useState('')
@@ -52,13 +56,18 @@ export function PracticeFormSheet({
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape' && !saving) onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  }, [open, onClose, saving])
 
   const handleSubmit = async () => {
+    if (saving) return
+    if (sourceHighlightId && !assumption.trim()) {
+      setError('请写下本轮具体行动与想观察的变化')
+      return
+    }
     setError(null)
     setSaving(true)
     const result = await createPractice({
@@ -74,6 +83,7 @@ export function PracticeFormSheet({
       return
     }
     onClose()
+    if (result.practiceId) onCreated?.(result.practiceId)
   }
 
   if (!open) return null
@@ -81,7 +91,7 @@ export function PracticeFormSheet({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-rhythm-void/70 backdrop-blur-sm"
-      onClick={onClose}>
+      onClick={() => { if (!saving) onClose() }}>
       <div
         className="w-full sm:max-w-md p-5 rounded-t-2xl sm:rounded-2xl bg-rhythm-card border-t sm:border border-rhythm-border-strong max-h-[85vh] overflow-y-auto"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
@@ -91,7 +101,7 @@ export function PracticeFormSheet({
           <button
             type="button"
             aria-label="关闭"
-            onClick={onClose}
+            onClick={() => { if (!saving) onClose() }}
             className="w-8 h-8 grid place-items-center rounded-full bg-transparent border-0 cursor-pointer text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
             <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
               <path d="M18 6L6 18M6 6l12 12" />
@@ -102,7 +112,9 @@ export function PracticeFormSheet({
         {sourceLabel && (
           <div className="mb-4 flex items-start gap-2 text-xs text-rhythm-text-muted bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2">
             <span>📌</span>
-            <span>{sourceLabel}</span>
+            <div><span>{sourceLabel}</span>
+              {sourceExcerpt && <p className="mt-2 mb-0 whitespace-pre-wrap leading-relaxed">{sourceExcerpt}</p>}
+            </div>
           </div>
         )}
 
@@ -137,12 +149,12 @@ export function PracticeFormSheet({
 
           <div>
             <label className="text-xs text-rhythm-text-secondary tracking-tight block mb-1.5">
-              本轮假设 <span className="text-rhythm-text-muted">(可选)</span>
+              本轮行动与假设 <span className="text-rhythm-text-muted">{sourceHighlightId ? '(必填)' : '(可选)'}</span>
             </label>
             <textarea
               value={assumption}
               onChange={(e) => setAssumption(e.target.value)}
-              placeholder="例如:确定一件事 + 约定娱乐结束时间,看开始率是否提高"
+              placeholder="把书中的启发变成具体行动：什么时候做什么，想观察什么变化？"
               rows={3}
               className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2.5 text-sm text-rhythm-text-primary placeholder-rhythm-text-muted resize-none focus:outline-none focus:border-rhythm-border-strong"
             />
@@ -175,7 +187,7 @@ export function PracticeFormSheet({
         <div className="flex gap-2 mt-5">
           <button
             type="button"
-            onClick={onClose}
+            onClick={() => { if (!saving) onClose() }}
             disabled={saving}
             className="flex-1 py-2.5 rounded-xl text-sm bg-transparent border border-rhythm-border text-rhythm-text-secondary cursor-pointer disabled:opacity-50">
             取消
@@ -183,7 +195,7 @@ export function PracticeFormSheet({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={saving || !title.trim()}
+            disabled={saving || !title.trim() || (!!sourceHighlightId && !assumption.trim())}
             className="flex-1 py-2.5 rounded-xl text-sm bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer disabled:opacity-50">
             {saving ? '保存中...' : '发起实践'}
           </button>

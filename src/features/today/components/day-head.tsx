@@ -29,7 +29,7 @@ export function DayHead({
       <div
         className="flex-none w-16 h-16 rounded-full grid place-items-center relative"
         style={{
-          background: `conic-gradient(rgba(143,180,220,0.7) 0deg ${pct * 3.6}deg, rgba(143,180,220,0.08) 0deg 360deg)`,
+          background: `conic-gradient(rgb(var(--r-glow) / 0.7) 0deg ${pct * 3.6}deg, rgb(var(--r-glow) / 0.08) 0deg 360deg)`,
         }}
         title={`今日完成 ${completed}/${total}`}
       >

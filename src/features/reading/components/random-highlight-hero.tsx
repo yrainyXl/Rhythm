@@ -64,17 +64,17 @@ export function RandomHighlightHero() {
         }}
         className={`${MIN_HEIGHT_CLASS} relative flex flex-col justify-center p-5 rounded-2xl border cursor-pointer transition-colors hover:border-rhythm-border-strong`}
         style={{
-          background: 'linear-gradient(180deg, rgba(143,180,220,0.08), transparent)',
-          borderColor: 'rgba(150,175,205,0.10)',
+          background: 'var(--r-subtle-background)',
+          borderColor: 'rgb(var(--r-neutral) / 0.10)',
         }}>
         <span aria-hidden="true"
           className="absolute top-2 left-3 font-serifsc leading-none text-[2.5rem] pointer-events-none"
-          style={{ color: 'rgba(143,180,220,0.35)' }}>❝</span>
+          style={{ color: 'rgb(var(--r-glow) / 0.35)' }}>❝</span>
         <button
           type="button"
           aria-label="换一句"
           onClick={(e) => { e.stopPropagation(); setSeed((s) => s + 1) }}
-          className="absolute top-3 right-3 w-6 h-6 grid place-items-center rounded-full bg-transparent border-0 cursor-pointer text-rhythm-text-muted hover:text-rhythm-text-primary hover:bg-[rgba(143,180,220,0.1)] transition-colors">
+          className="absolute top-3 right-3 w-6 h-6 grid place-items-center rounded-full bg-transparent border-0 cursor-pointer text-rhythm-text-muted hover:text-rhythm-text-primary hover:bg-[rgb(var(--r-glow)_/_0.1)] transition-colors">
           <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
             <path d="M23 4v6h-6" />
             <path d="M20 9a9 9 0 0 0-14.85-3.36L1 10" />

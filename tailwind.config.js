@@ -45,6 +45,7 @@ module.exports = {
           success: 'var(--r-success)',
           'success-soft': 'var(--r-success-soft)',
           warn: 'var(--r-warn)',
+          'warn-soft': 'var(--r-warn-soft)',
           danger: 'var(--r-danger)',
           'danger-soft': 'var(--r-danger-soft)',
         },

@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
+import { PracticeLogInline } from '@/features/practice/components/practice-log-inline'
 import { RoundLogPanel } from '@/features/practice/components/round-log-panel'
 import { ReviewFormSheet } from '@/features/practice/components/review-form-sheet'
 import { ReviewTimeline } from '@/features/practice/components/review-timeline'
@@ -23,8 +24,10 @@ type Tab = 'detail' | 'review'
 export default function PracticeDetailPage() {
   const params = useParams<{ id: string }>()
   const router = useRouter()
-  const { detailPractice, isLoadingDetail, loadDetail, endRound, endPractice, deletePractice } =
+  const { detailPractice, isLoadingDetail, detailError, loadDetail, endPractice, deletePractice } =
     usePracticeStore()
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [acting, setActing] = useState(false)
   const [tab, setTab] = useState<Tab>('detail')
   const [showNewRound, setShowNewRound] = useState(false)
   const [confirmEndPractice, setConfirmEndPractice] = useState(false)
@@ -73,11 +76,13 @@ export default function PracticeDetailPage() {
           返回实践列表
         </Link>
 
-        {isLoadingDetail && !detailPractice && (
+        {(isLoadingDetail || (detailPractice && detailPractice.id !== params.id)) && !detailPractice && (
           <div className="r-card p-6 text-center text-xs text-rhythm-text-muted">加载中...</div>
         )}
 
-        {detailPractice && (
+        {detailError && <div className="r-card p-4 text-sm text-rhythm-danger"><p role="alert">{detailError}</p><button type="button" onClick={() => void loadDetail(params.id)} className="r-btn">重新加载</button></div>}
+        {actionError && <p role="alert" className="text-xs text-rhythm-danger">{actionError}</p>}
+        {detailPractice && detailPractice.id === params.id && (
           <>
             <div className="r-card p-4">
               <div className="flex items-center justify-between mb-2">
@@ -98,6 +103,13 @@ export default function PracticeDetailPage() {
               )}
             </div>
 
+            {detailPractice.sourceHighlight && (
+              <div className="r-card p-4 space-y-2">
+                <Link href={`/reading/${detailPractice.sourceHighlight.book_id}`} className="text-sm text-rhythm-glow">来自《{detailPractice.sourceHighlight.book_title}》 · 回看书籍</Link>
+                <blockquote className="m-0 text-sm text-rhythm-text-secondary whitespace-pre-wrap">{detailPractice.sourceHighlight.mark_text}</blockquote>
+                {detailPractice.sourceHighlight.thought && <p className="text-xs text-rhythm-text-muted whitespace-pre-wrap">当时的想法：{detailPractice.sourceHighlight.thought}</p>}
+              </div>
+            )}
             {/* Tab 切换 */}
             <div className="flex gap-1 p-1 rounded-xl bg-rhythm-void/40 border border-rhythm-border">
               <button
@@ -160,6 +172,7 @@ export default function PracticeDetailPage() {
                         {r.assumption && (
                           <p className="text-[0.72rem] text-rhythm-text-secondary m-0 mb-2">{r.assumption}</p>
                         )}
+                        <div className="my-3"><PracticeLogInline roundId={r.id} startDate={r.start_date} endDate={r.end_date} /></div>
                         <div className="text-[0.66rem] text-rhythm-text-muted">
                           <RoundLogPanel
                             roundId={r.id}
@@ -198,9 +211,10 @@ export default function PracticeDetailPage() {
                       <>
                         <button
                           type="button"
-                          onClick={() => { void endPractice(detailPractice.id); setConfirmEndPractice(false); router.push('/habits/practices') }}
+                          disabled={acting}
+                          onClick={async () => { if (acting) return; if (activeRound) { setActionError('请先结束本轮并完成复盘，再结束整个实践'); setConfirmEndPractice(false); onClickEndRound(activeRound.id, activeRound.round_number); return }; setActing(true); const result = await endPractice(detailPractice.id); setActing(false); if (result.error) { setActionError(result.error); return }; setConfirmEndPractice(false); router.push('/habits/practices') }}
                           className="r-btn flex-1 text-rhythm-warn"
-                          style={{ border: '1px solid rgba(220,180,130,0.4)' }}
+                          style={{ border: '1px solid rgb(var(--r-warn-rgb) / 0.4)' }}
                         >
                           确认结束整个实践
                         </button>
@@ -222,9 +236,10 @@ export default function PracticeDetailPage() {
                 {!isActive && (
                   <button
                     type="button"
-                    onClick={() => { void deletePractice(detailPractice.id); router.push('/habits/practices') }}
+                    disabled={acting}
+                    onClick={async () => { if (acting) return; setActing(true); const result = await deletePractice(detailPractice.id); setActing(false); if (result.error) { setActionError(result.error); return }; router.push('/habits/practices') }}
                     className="r-btn w-full text-rhythm-danger"
-                    style={{ border: '1px solid rgba(220,140,140,0.3)' }}
+                    style={{ border: '1px solid rgb(var(--r-danger-rgb) / 0.3)' }}
                   >
                     删除实践
                   </button>

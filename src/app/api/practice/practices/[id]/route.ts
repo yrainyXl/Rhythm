@@ -22,7 +22,14 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
        ORDER BY r.round_number ASC`,
       [params.id, userId],
     )
+    const sourceRes = await db.query(
+      `SELECT h.id, h.book_id, h.mark_text, h.thought, b.title AS book_title
+       FROM reading_highlights h JOIN reading_books b ON b.id = h.book_id AND b.user_id = $2
+       WHERE h.id = $1 AND h.user_id = $2`,
+      [practiceRes.rows[0].source_highlight_id, userId],
+    )
     return NextResponse.json({
+      sourceHighlight: sourceRes.rows[0] ?? null,
       practice: practiceRes.rows[0],
       rounds: roundsRes.rows,
     })
@@ -37,21 +44,18 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (action !== 'end') {
       return NextResponse.json({ error: 'unsupported action' }, { status: 400 })
     }
-    await db.query(
-      `UPDATE practices SET status = 'ended' WHERE id = $1 AND user_id = $2`,
-      [id, userId],
-    )
-    // 结束最新 active 轮
-    await db.query(
-      `UPDATE practice_rounds SET status = 'ended'
-       WHERE id = (
-         SELECT id FROM practice_rounds
-         WHERE practice_id = $1 AND user_id = $2 AND status = 'active'
-         ORDER BY round_number DESC LIMIT 1
-       )`,
-      [id, userId],
-    )
-    return NextResponse.json({ success: true })
+    return db.transaction(async (tx) => {
+      const practice = await tx.query(
+        `UPDATE practices SET status = 'ended' WHERE id = $1 AND user_id = $2 RETURNING id`,
+        [id, userId],
+      )
+      if (!practice.rows.length) return NextResponse.json({ error: '实践不存在' }, { status: 404 })
+      await tx.query(
+        `UPDATE practice_rounds SET status = 'ended' WHERE practice_id = $1 AND user_id = $2 AND status = 'active'`,
+        [id, userId],
+      )
+      return NextResponse.json({ success: true })
+    })
   })
 }
 

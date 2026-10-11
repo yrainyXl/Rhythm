@@ -4,12 +4,6 @@ import { useState } from 'react'
 import type { PracticeRound } from '@/features/practice/store/practice-store'
 import { ReviewFormSheet } from '@/features/practice/components/review-form-sheet'
 
-const STATUS_LABEL: Record<'done' | 'partial' | 'skipped', string> = {
-  done: '完成',
-  partial: '做了一点',
-  skipped: '没开始',
-}
-
 function formatRange(start: string, end: string): string {
   const parseM = (iso: string) => {
     const [, m, d] = iso.split('-').map(Number)
@@ -81,6 +75,7 @@ export function ReviewTimeline({
                   )}
                   <button
                     type="button"
+                    disabled={r.status === 'active'}
                     onClick={() => setReviewTarget({ roundId: r.id, roundNumber: r.round_number })}
                     className="text-[0.62rem] text-rhythm-text-muted hover:text-rhythm-glow cursor-pointer mt-1">
                     编辑复盘
@@ -89,7 +84,8 @@ export function ReviewTimeline({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setReviewTarget({ roundId: r.id, roundNumber: r.round_number })}
+                  disabled={r.status === 'active'}
+                    onClick={() => setReviewTarget({ roundId: r.id, roundNumber: r.round_number })}
                   className="w-full py-2 rounded-xl text-[0.7rem] bg-rhythm-void/40 border border-dashed border-rhythm-border text-rhythm-text-muted hover:text-rhythm-glow hover:border-rhythm-glow/40 cursor-pointer transition-colors">
                   {r.status === 'active' ? '本轮结束后可写复盘' : '补填这轮复盘'}
                 </button>
@@ -101,7 +97,8 @@ export function ReviewTimeline({
 
       <ReviewFormSheet
         open={!!reviewTarget}
-        onClose={() => setReviewTarget(null)}        roundId={reviewTarget?.roundId ?? ''}
+        onClose={(result) => { setReviewTarget(null); if (result === 'submitted') onReviewSaved?.() }}
+        roundId={reviewTarget?.roundId ?? ''}
         roundNumber={reviewTarget?.roundNumber}
         mode="review"
         initial={

@@ -3,9 +3,9 @@
 export function PlanBriefing() {
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-2xl border border-rhythm-border"
-      style={{ background: 'linear-gradient(180deg, rgba(143,180,220,0.08), transparent)' }}>
+      style={{ background: 'var(--r-subtle-background)' }}>
       <div className="flex-none w-9 h-9 rounded-full grid place-items-center"
-        style={{ background: 'rgba(143,180,220,0.18)', color: 'rgb(143,180,220)' }}>
+        style={{ background: 'var(--r-glow-soft)', color: 'rgb(var(--r-glow))' }}>
         <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
           <path d="M12 8v4l3 2" />
           <circle cx="12" cy="12" r="9" />

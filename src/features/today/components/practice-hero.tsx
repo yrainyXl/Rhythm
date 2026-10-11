@@ -25,15 +25,15 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
     <div
       className="w-full h-full p-4 rounded-2xl border relative overflow-hidden flex flex-col"
       style={{
-        borderColor: 'rgba(143,180,220,0.28)',
-        background: 'linear-gradient(180deg, rgba(143,180,220,0.10), rgba(20,27,39,0.8))',
+        borderColor: 'var(--r-feature-border)',
+        background: 'var(--r-feature-background)',
       }}>
       <div className="flex items-start justify-between mb-2">
-        <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgba(143,180,220,0.85)' }}>
+        <span className="text-[0.58rem] tracking-[0.16em] uppercase" style={{ color: 'rgb(var(--r-glow) / 0.85)' }}>
           {round ? `当前实践 · 第 ${round.round_number} 轮` : '当前实践'}
         </span>
         <div className="w-6 h-6 rounded-lg grid place-items-center flex-none"
-          style={{ background: 'rgba(143,180,220,0.2)', color: 'rgb(143,180,220)' }}>
+          style={{ background: 'var(--r-glow-soft)', color: 'rgb(var(--r-glow))' }}>
           <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.7, fill: 'none' }}>
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -44,7 +44,7 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
       </h3>
       {practice.assumption && (
         <div className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed mb-1.5 pl-2 border-l-2 line-clamp-2"
-          style={{ borderColor: 'rgba(143,180,220,0.25)' }}>
+          style={{ borderColor: 'rgb(var(--r-glow) / 0.25)' }}>
           <span className="text-rhythm-text-muted tracking-wider">假设　</span>{practice.assumption}
         </div>
       )}
@@ -73,9 +73,9 @@ function NewPracticeSlide({ onOpen }: { onOpen: () => void }) {
   return (
     <div
       className="w-full h-full p-4 rounded-2xl border border-dashed relative overflow-hidden flex flex-col justify-center items-center gap-2.5"
-      style={{ borderColor: 'rgba(143,180,220,0.32)' }}>
+      style={{ borderColor: 'rgb(var(--r-glow) / 0.32)' }}>
       <div className="w-10 h-10 rounded-full grid place-items-center"
-        style={{ background: 'rgba(143,180,220,0.16)', color: 'rgb(143,180,220)' }}>
+        style={{ background: 'var(--r-glow-soft)', color: 'rgb(var(--r-glow))' }}>
         <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
           <path d="M12 5v14M5 12h14" />
         </svg>
@@ -90,7 +90,7 @@ function NewPracticeSlide({ onOpen }: { onOpen: () => void }) {
         type="button"
         onClick={onOpen}
         className="mt-0.5 px-4 py-1.5 rounded-full text-[0.72rem] cursor-pointer"
-        style={{ background: 'rgba(143,180,220,0.22)', border: '1px solid rgba(143,180,220,0.42)', color: 'rgb(143,180,220)' }}>
+        style={{ background: 'rgb(var(--r-glow) / 0.22)', border: '1px solid rgb(var(--r-glow) / 0.42)', color: 'rgb(var(--r-glow))' }}>
         开始
       </button>
     </div>

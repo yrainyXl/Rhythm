@@ -12,10 +12,10 @@ export function ThemesRow() {
       {THEMES.map((t) => (
         <a key={t.key} className="flex-none w-[240px] snap-start p-4 rounded-2xl border no-underline cursor-pointer text-inherit"
           style={{
-            borderColor: 'rgba(143,180,220,0.24)',
-            background: 'linear-gradient(180deg, rgba(143,180,220,0.09), rgba(20,27,39,0.8))',
+            borderColor: 'var(--r-feature-border)',
+            background: 'var(--r-feature-background)',
           }}>
-          <div className="text-[0.58rem] tracking-[0.16em] uppercase mb-1.5" style={{ color: 'rgba(143,180,220,0.9)' }}>
+          <div className="text-[0.58rem] tracking-[0.16em] uppercase mb-1.5" style={{ color: 'rgb(var(--r-glow) / 0.9)' }}>
             {t.kicker}
           </div>
           <h3 className="font-serifsc font-medium text-[0.95rem] tracking-tight m-0 mb-2 leading-tight">{t.title}</h3>

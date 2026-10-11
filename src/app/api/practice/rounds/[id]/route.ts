@@ -20,6 +20,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const action = new URL(request.url).searchParams.get('action')
     const body = (await request.json().catch(() => ({}))) as ReviewBody
 
+    if ([body.reviewReality, body.reviewEffect, body.reviewAdjustment, body.conclusion].some((v) => v != null && typeof v !== 'string')) {
+      return NextResponse.json({ error: '复盘内容必须是文字' }, { status: 400 })
+    }
     const reviewReality = body.reviewReality?.trim() || null
     const reviewEffect = body.reviewEffect?.trim() || null
     const reviewAdjustment = body.reviewAdjustment?.trim() || null

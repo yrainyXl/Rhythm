@@ -1,13 +1,21 @@
 'use client'
 
+import { groupRecentHighlightsByChapter } from '@/features/reading/lib/highlight-groups'
+
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { apiFetch } from '@/lib/api-client'
+import type { PracticeWithLatestRound } from '@/features/practice/store/practice-store'
+import { BookPractices } from '@/features/reading/components/book-practices'
 import { AuthGuard } from '@/features/app/components/auth-guard'
 import { useReadingStore } from '@/features/records/store/reading-store'
 import type { ReadingBook } from '@/features/records/store/reading-store'
 import type { HighlightWithBook } from '@/features/records/store/reading-store'
 import { PracticeFormSheet } from '@/features/practice/components/practice-form-sheet'
 import { RecordSessionSheet } from '@/features/reading/components/record-session-sheet'
+
+type BookSessions = ReturnType<typeof useReadingStore.getState>['bookSessions']
 
 const STATUS_LABEL: Record<ReadingBook['status'], string> = {
   reading: '在读',
@@ -40,44 +48,61 @@ function derivePracticeTitle(h: HighlightWithBook): string {
   return text.length > 18 ? `${text.slice(0, 18)}…` : text
 }
 
-function deriveAssumption(h: HighlightWithBook): string {
+function sourceExcerpt(h: HighlightWithBook): string {
   const parts = [h.mark_text, h.thought ? `💭 ${h.thought}` : null].filter(Boolean) as string[]
   return parts.join('\n\n')
 }
 
 export default function BookDetailPage({ params }: { params: { bookId: string } }) {
-  const { books, loadBooks, updateBookStatus, loadBookDetail, bookHighlights, bookSessions } =
-    useReadingStore()
-  const [book, setBook] = useState<ReadingBook | null>(null)
+  const router = useRouter()
+  const { updateBookStatus } = useReadingStore()
+  const [detail, setDetail] = useState<{
+    bookId: string
+    book: ReadingBook | null
+    highlights: HighlightWithBook[]
+    sessions: BookSessions
+    practices: PracticeWithLatestRound[]
+  } | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [reload, setReload] = useState(0)
   const [sessionOpen, setSessionOpen] = useState(false)
   const [practiceTarget, setPracticeTarget] = useState<HighlightWithBook | null>(null)
 
   useEffect(() => {
-    loadBooks()
-  }, [loadBooks])
+    let cancelled = false
+    const bookId = encodeURIComponent(params.bookId)
+    setLoading(true)
+    setError(null)
+    setDetail(null)
+    setSessionOpen(false)
+    setPracticeTarget(null)
+    Promise.all([
+      apiFetch<{ books: ReadingBook[] }>('/api/reading/books'),
+      apiFetch<{ highlights: HighlightWithBook[] }>(`/api/reading/highlights?book_id=${bookId}`),
+      apiFetch<{ sessions: BookSessions }>(`/api/reading/sessions?book_id=${bookId}`),
+      apiFetch<{ practices: PracticeWithLatestRound[] }>(`/api/practice/practices?bookId=${bookId}`),
+    ]).then(([books, highlights, sessions, practices]) => {
+      if (cancelled) return
+      setDetail({ bookId: params.bookId, book: books.books.find((b) => b.id === params.bookId) ?? null,
+        highlights: highlights.highlights ?? [], sessions: sessions.sessions ?? [], practices: practices.practices ?? [] })
+      setLoading(false)
+    }).catch((e: unknown) => {
+      if (cancelled) return
+      setError(e instanceof Error ? e.message : '加载失败')
+      setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [params.bookId, reload])
 
-  useEffect(() => {
-    const found = books.find((b) => b.id === params.bookId)
-    setBook(found || null)
-  }, [books, params.bookId])
+  const current = detail?.bookId === params.bookId ? detail : null
+  const book = current?.book ?? null
+  const bookHighlights = current?.highlights ?? []
+  const bookSessions = current?.sessions ?? []
+  const handleRecorded = () => setReload((value) => value + 1)
 
-  useEffect(() => {
-    void loadBookDetail(params.bookId)
-  }, [loadBookDetail, params.bookId])
-
-  const handleRecorded = () => {
-    void loadBookDetail(params.bookId)
-    void loadBooks()
-  }
-
-  // 划线笔记按章节分组
-  const chapterGroups = new Map<string, HighlightWithBook[]>()
-  bookHighlights.forEach((h) => {
-    const key = h.chapter_title?.trim() || '其他章节'
-    if (!chapterGroups.has(key)) chapterGroups.set(key, [])
-    chapterGroups.get(key)!.push(h)
-  })
-  const chapterEntries = Array.from(chapterGroups.entries())
+  // 保持最新笔记优先，仅合并相邻的同章节笔记。
+  const chapterEntries = groupRecentHighlightsByChapter(bookHighlights)
 
   if (!book) {
     return (
@@ -94,7 +119,9 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
             </Link>
           </div>
           <div className="r-card p-8 text-center">
-            <p className="text-sm text-rhythm-text-secondary">书籍不存在</p>
+            <p className="text-sm text-rhythm-text-secondary">{loading || (detail !== null && detail.bookId !== params.bookId) ? '正在加载书籍…' : error ? '书籍加载失败' : '书籍不存在'}</p>
+            {error && <p className="text-xs text-rhythm-danger" role="alert">{error}</p>}
+            {error && <button type="button" onClick={handleRecorded} className="text-sm text-rhythm-glow">重新加载</button>}
           </div>
         </div>
       </AuthGuard>
@@ -170,7 +197,7 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
               <button
                 key={opt.value}
                 type="button"
-                onClick={() => updateBookStatus(book.id, opt.value)}
+                onClick={async () => { await updateBookStatus(book.id, opt.value); handleRecorded() }}
                 className={`flex-1 py-2 rounded-xl text-sm border cursor-pointer transition-colors ${
                   book.status === opt.value
                     ? 'bg-rhythm-glow-soft border-rhythm-border-strong text-rhythm-glow'
@@ -193,8 +220,8 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
             </div>
           ) : (
             <div className="space-y-3">
-              {chapterEntries.map(([chapter, items]) => (
-                <div key={chapter}>
+              {chapterEntries.map(([chapter, items], index) => (
+                <div key={`${chapter}-${index}`}>
                   <p className="text-[0.65rem] tracking-wide text-rhythm-text-muted mb-1.5 px-0.5">
                     {chapter} · {items.length} 条
                   </p>
@@ -211,6 +238,7 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
                             💭 {h.thought}
                           </p>
                         )}
+                        <BookPractices practices={current?.practices.filter((p) => p.source_highlight_id === h.id) ?? []} />
                         <div className="flex items-center justify-between mt-2.5">
                           <span className="text-[0.6rem] text-rhythm-text-muted">
                             {formatDate(h.highlighted_at || h.created_at)}
@@ -270,7 +298,8 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
           open={practiceTarget !== null}
           onClose={() => setPracticeTarget(null)}
           initialTitle={practiceTarget ? derivePracticeTitle(practiceTarget) : undefined}
-          initialAssumption={practiceTarget ? deriveAssumption(practiceTarget) : undefined}
+          sourceExcerpt={practiceTarget ? sourceExcerpt(practiceTarget) : undefined}
+          onCreated={(practiceId) => router.push(`/habits/practices/${practiceId}`)}
           sourceHighlightId={practiceTarget?.id}
           sourceLabel={practiceTarget ? `来自《${book.title}》的划线` : undefined}
         />

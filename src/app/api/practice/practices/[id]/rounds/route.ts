@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { withUser } from '@/lib/server/with-user'
+import { practiceDates, validPeriod } from '@/features/practice/server/input'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,7 +19,7 @@ interface CreateRoundBody {
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   return withUser(request, async (userId, db) => {
     const body = (await request.json().catch(() => null)) as CreateRoundBody | null
-    if (!body || !body.periodDays || body.periodDays < 3 || body.periodDays > 60) {
+    if (!body || !validPeriod(body.periodDays)) {
       return NextResponse.json({ error: 'periodDays 必须在 3–60 之间' }, { status: 400 })
     }
 
@@ -49,10 +50,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         [params.id, userId],
       )
       const nextRound = maxRes.rows[0].m + 1
-      const today = new Date().toISOString().slice(0, 10)
-      const end = new Date()
-      end.setDate(end.getDate() + body.periodDays - 1)
-      const endDate = end.toISOString().slice(0, 10)
+      const { startDate: today, endDate } = practiceDates(body.periodDays)
       const assumption = body.assumption?.trim() || null
 
       const roundRes = await tx.query(

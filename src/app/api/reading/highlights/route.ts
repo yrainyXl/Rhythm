@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 /** GET /api/reading/highlights - 列出当前用户的划线/想法(含书名作者封面),按 book/chapter/time 排序。
  *  - 无参数:全量(详情页)。
  *  - ?recentBooks=N:只返回最近 N 本书的词条 + 全局 total(阅读首页,避免一次拉全量)。
- *  - ?book_id=X:只返回该书词条(书籍详情页),与 recentBooks 互斥。
+ *  - ?book_id=X:只返回该书词条(书籍详情页),与 recentBooks 互斥，按笔记时间降序。
  */
 export async function GET(request: NextRequest) {
   const bookId = request.nextUrl.searchParams.get('book_id')
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
          FROM public.reading_highlights h
          JOIN public.reading_books b ON b.id = h.book_id
          WHERE h.user_id = $1 AND h.book_id = $2
-         ORDER BY h.chapter_uid ASC NULLS FIRST, h.highlighted_at ASC NULLS FIRST`,
+         ORDER BY COALESCE(h.highlighted_at, h.created_at) DESC, h.created_at DESC, h.id DESC`,
         [userId, bookId],
       )
       const highlights = res.rows ?? []

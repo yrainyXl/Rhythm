@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { usePracticeStore } from '@/features/practice/store/practice-store'
 
+import { hasReviewContent, summarizePracticeLogs } from '@/features/practice/lib/recording'
+
 export interface ReviewFormSheetProps {
   open: boolean
   /** 关闭回调。result: 'submitted' = 提交/跳过(轮次已结束); 'cancelled' = 点 X/Esc/遮罩取消(无副作用) */
@@ -31,7 +33,7 @@ export function ReviewFormSheet({
   initial,
   roundNumber,
 }: ReviewFormSheetProps) {
-  const { endRound, saveReview } = usePracticeStore()
+  const { endRound, saveReview, logsByRound, logsErrorsByRound, loadLogsForRound, isLoadingLogs, detailPractice } = usePracticeStore()
   const [reality, setReality] = useState('')
   const [effect, setEffect] = useState('')
   const [adjustment, setAdjustment] = useState('')
@@ -40,21 +42,22 @@ export function ReviewFormSheet({
 
   useEffect(() => {
     if (open) {
+      void loadLogsForRound(roundId)
       setReality(initial?.reviewReality ?? '')
       setEffect(initial?.reviewEffect ?? '')
       setAdjustment(initial?.reviewAdjustment ?? '')
       setError(null)
     }
-  }, [open, initial?.reviewReality, initial?.reviewEffect, initial?.reviewAdjustment])
+  }, [open, roundId, loadLogsForRound, initial?.reviewReality, initial?.reviewEffect, initial?.reviewAdjustment])
 
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') cancel()
+      if (e.key === 'Escape' && !saving) onClose('cancelled')
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, saving, onClose])
 
   if (!open) return null
 
@@ -66,33 +69,32 @@ export function ReviewFormSheet({
 
   // 结束模式:跳过复盘,仅结束轮次
   const handleSkip = async () => {
+    if (saving) return
     setSaving(true)
     setError(null)
-    await endRound(roundId)
+    const result = await endRound(roundId)
     setSaving(false)
+    if (result.error) { setError(result.error); return }
     onClose('submitted')
   }
 
   // 提交复盘
   const handleSubmit = async () => {
+    if (saving) return
+    if (!hasReviewContent(reality, effect, adjustment)) { setError('请填写至少一项复盘内容，或选择跳过'); return }
     setSaving(true)
     setError(null)
-    if (mode === 'end') {
-      await endRound(roundId, buildInput())
-      onClose('submitted')
-    } else {
-      const r = await saveReview(roundId, buildInput())
-      if (r.error) {
-        setError(r.error)
-        setSaving(false)
-        return
-      }
-      onClose('submitted')
-    }
+    const result = mode === 'end' ? await endRound(roundId, buildInput()) : await saveReview(roundId, buildInput())
     setSaving(false)
+    if (result.error) { setError(result.error); return }
+    onClose('submitted')
   }
 
-  const cancel = () => onClose('cancelled')
+  const cancel = () => { if (!saving) onClose('cancelled') }
+  const logs = logsByRound[roundId] ?? []
+  const counts = summarizePracticeLogs(logs)
+  const round = detailPractice?.rounds.find((r) => r.id === roundId)
+  const plannedDays = round ? Math.round((Date.parse(`${round.end_date}T00:00:00Z`) - Date.parse(`${round.start_date}T00:00:00Z`)) / 86_400_000) + 1 : null
 
   const title = mode === 'end'
     ? `结束第 ${roundNumber ?? ''} 轮 · 复盘`
@@ -110,6 +112,7 @@ export function ReviewFormSheet({
           <h3 className="font-serifsc text-base font-medium text-rhythm-text-primary m-0">{title}</h3>
           <button
             type="button"
+            disabled={saving}
             aria-label="关闭"
             onClick={cancel}
             className="w-8 h-8 grid place-items-center rounded-full bg-transparent border-0 cursor-pointer text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
@@ -125,12 +128,19 @@ export function ReviewFormSheet({
           </p>
         )}
 
+        <section className="mb-4 rounded-xl bg-rhythm-void/40 p-3 text-xs text-rhythm-text-secondary">
+          <p className="m-0 mb-2">本轮真实记录：{counts.total} 天 · 完成 {counts.done} · 做了一点 {counts.partial} · 没开始 {counts.skipped}{plannedDays !== null && ` · 未记录 ${Math.max(0, plannedDays - counts.total)} 天（按计划周期）`}</p>
+          {logsErrorsByRound[roundId] ? <p role="alert" className="text-rhythm-danger">{logsErrorsByRound[roundId]} <button type="button" onClick={() => void loadLogsForRound(roundId)}>重试</button></p> : isLoadingLogs ? <p>加载记录中...</p> : logs.length === 0 ? <p>还没有记录，可返回详情补记后再复盘。</p> : (
+            <div className="max-h-40 overflow-y-auto space-y-2">{[...logs].sort((a, b) => a.local_date.localeCompare(b.local_date)).map((log) => <p key={log.id} className="m-0 break-words">{log.local_date} · {{ done: '完成', partial: '做了一点', skipped: '没开始' }[log.status]}{log.note ? `：${log.note}` : ''}</p>)}</div>
+          )}
+        </section>
         <div className="space-y-4">
           <div>
             <label className="text-xs text-rhythm-text-secondary tracking-tight block mb-1.5">
               真实情况 <span className="text-rhythm-text-muted">(实际做了什么)</span>
             </label>
             <textarea
+              disabled={saving}
               value={reality}
               onChange={(e) => setReality(e.target.value)}
               placeholder="例如:7 天里完成 4 天,加班两天没做,周末反而坚持了"
@@ -144,6 +154,7 @@ export function ReviewFormSheet({
               效果怎样 <span className="text-rhythm-text-muted">(假设验证了吗)</span>
             </label>
             <textarea
+              disabled={saving}
               value={effect}
               onChange={(e) => setEffect(e.target.value)}
               placeholder="例如:22:30 洗漱确实让入睡更快,但加班日很难做到"
@@ -157,6 +168,7 @@ export function ReviewFormSheet({
               下一轮怎么调整 <span className="text-rhythm-text-muted">(可选)</span>
             </label>
             <textarea
+              disabled={saving}
               value={adjustment}
               onChange={(e) => setAdjustment(e.target.value)}
               placeholder="例如:把目标改成「工作日至少洗漱」,周末单独要求"

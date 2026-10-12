@@ -16,7 +16,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     TZ=Asia/Shanghai \
-    PORT=3000
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 COPY --from=build --chown=nodejs:nodejs /app/.next/standalone ./

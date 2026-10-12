@@ -107,11 +107,11 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
   if (!book) {
     return (
       <AuthGuard>
-        <div className="p-5 space-y-4">
+        <div className="r-subpage space-y-7">
           <div className="flex items-center gap-1">
             <Link
               href="/reading"
-              className="flex items-center gap-1 text-xs text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
+              className="r-back">
               <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
                 <path d="M15 18l-6-6 6-6" />
               </svg>
@@ -130,12 +130,12 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-4">
+      <div className="r-subpage space-y-7">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Link
             href="/reading"
-            className="flex items-center gap-1 text-xs text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
+            className="r-back">
             <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -144,10 +144,10 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
         </div>
 
         {/* Book info card */}
-        <div className="r-card p-4">
+        <div className="rounded-2xl bg-rhythm-glow-soft p-5">
           <div className="flex gap-4">
             {book.cover_url && (
-              <div className="flex-none w-24 h-36">
+              <div className="flex-none w-20 h-28">
                 <img
                   src={book.cover_url}
                   alt={book.title}
@@ -156,27 +156,27 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <h1 className="font-serifsc text-xl font-medium m-0 mb-1">{book.title}</h1>
+              <h1 className="r-detail-title mb-2">{book.title}</h1>
               {book.author && (
                 <p className="text-sm text-rhythm-text-secondary mb-2">{book.author}</p>
               )}
               <div className="flex flex-wrap gap-2 mb-3">
-                <span className={`text-[0.65rem] tracking-tight px-2 py-1 rounded-full border ${STATUS_COLOR[book.status]}`}>
+                <span className={`text-xs px-2 py-1 rounded-full ${STATUS_COLOR[book.status]}`}>
                   {STATUS_LABEL[book.status]}
                 </span>
                 {book.total_pages && (
-                  <span className="text-[0.65rem] text-rhythm-text-muted px-2 py-1 rounded-full border border-rhythm-border bg-transparent">
+                  <span className="text-xs text-rhythm-text-secondary py-1">
                     {book.current_page || 0} / {book.total_pages} 页
                   </span>
                 )}
                 {book.source && (
-                  <span className="text-[0.65rem] text-rhythm-text-muted px-2 py-1 rounded-full border border-rhythm-border bg-transparent">
+                  <span className="text-xs text-rhythm-text-secondary py-1">
                     {book.source === 'weixin_read' ? '微信读书' : book.source}
                   </span>
                 )}
               </div>
               {book.finished_at && (
-                <div className="text-xs text-rhythm-text-muted">
+                <div className="text-xs text-rhythm-text-secondary">
                   读完于 {formatDate(book.finished_at)}
                 </div>
               )}
@@ -185,68 +185,64 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
         </div>
 
         {/* Action row: 记录阅读 + 状态切换 */}
-        <div className="r-card p-4">
+        <div className="space-y-6">
           <button
             type="button"
             onClick={() => setSessionOpen(true)}
-            className="w-full py-2.5 rounded-xl text-sm bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer">
+            className="r-btn-primary w-full">
             记录阅读
           </button>
-          <div className="flex gap-2 mt-3">
-            {STATUS_OPTIONS.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={async () => { await updateBookStatus(book.id, opt.value); handleRecorded() }}
-                className={`flex-1 py-2 rounded-xl text-sm border cursor-pointer transition-colors ${
-                  book.status === opt.value
-                    ? 'bg-rhythm-glow-soft border-rhythm-border-strong text-rhythm-glow'
-                    : 'bg-transparent border-rhythm-border text-rhythm-text-muted hover:text-rhythm-text-secondary'
-                }`}>
-                {opt.label}
-              </button>
-            ))}
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="book-status" className="text-sm text-rhythm-text-secondary">阅读状态</label>
+            <select id="book-status" name="bookStatus" value={book.status}
+              onChange={async (event) => {
+                try { await updateBookStatus(book.id, event.target.value as ReadingBook['status']); handleRecorded() }
+                catch (cause) { setError(cause instanceof Error ? cause.message : '状态更新失败') }
+              }} className="r-input w-auto min-h-11">
+              {STATUS_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+            </select>
           </div>
+          {error && <p role="alert" className="text-sm text-rhythm-danger">{error}</p>}
         </div>
 
         {/* 划线笔记区 */}
         <section>
-          <h2 className="font-serifsc text-sm font-medium m-0 mb-2 px-0.5">划线笔记</h2>
+          <h2 className="r-section-title mb-5">划线笔记</h2>
           {chapterEntries.length === 0 ? (
-            <div className="r-card p-6 text-center">
+            <div className="py-6 text-rhythm-text-secondary">
               <p className="text-sm text-rhythm-text-secondary">
                 还没有划线笔记,同步微信读书后会显示在这里
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-6">
               {chapterEntries.map(([chapter, items], index) => (
                 <div key={`${chapter}-${index}`}>
-                  <p className="text-[0.65rem] tracking-wide text-rhythm-text-muted mb-1.5 px-0.5">
+                  <p className="text-xs font-medium text-rhythm-glow mb-3">
                     {chapter} · {items.length} 条
                   </p>
-                  <div className="space-y-2">
+                  <div className="divide-y divide-rhythm-border">
                     {items.map((h) => (
-                      <div key={h.id} className="r-card p-3">
+                      <div key={h.id} className="py-5 first:pt-0">
                         {h.mark_text && (
-                          <p className="text-sm leading-relaxed text-rhythm-text-primary m-0 whitespace-pre-wrap">
+                          <p className="text-base leading-7 text-rhythm-text-primary m-0 whitespace-pre-wrap break-words">
                             {h.mark_text}
                           </p>
                         )}
                         {h.thought && (
-                          <p className="text-xs leading-relaxed text-rhythm-text-secondary mt-2 mb-0 whitespace-pre-wrap">
-                            💭 {h.thought}
+                          <p className="text-sm leading-6 text-rhythm-text-secondary mt-3 mb-0 whitespace-pre-wrap">
+                            想法：{h.thought}
                           </p>
                         )}
                         <BookPractices practices={current?.practices.filter((p) => p.source_highlight_id === h.id) ?? []} />
                         <div className="flex items-center justify-between mt-2.5">
-                          <span className="text-[0.6rem] text-rhythm-text-muted">
+                          <span className="text-xs text-rhythm-text-secondary">
                             {formatDate(h.highlighted_at || h.created_at)}
                           </span>
                           <button
                             type="button"
                             onClick={() => setPracticeTarget(h)}
-                            className="text-[0.65rem] px-2 py-1 rounded-lg border border-rhythm-border-strong text-rhythm-glow bg-transparent cursor-pointer hover:bg-rhythm-glow-soft transition-colors">
+                            className="r-link rounded-lg px-3 hover:bg-rhythm-glow-soft">
                             发起实践
                           </button>
                         </div>
@@ -261,26 +257,26 @@ export default function BookDetailPage({ params }: { params: { bookId: string } 
 
         {/* 阅读记录区 */}
         <section>
-          <h2 className="font-serifsc text-sm font-medium m-0 mb-2 px-0.5">阅读记录</h2>
+          <h2 className="r-section-title mb-5">阅读记录</h2>
           {bookSessions.length === 0 ? (
-            <div className="r-card p-6 text-center">
+            <div className="py-6 text-rhythm-text-secondary">
               <p className="text-sm text-rhythm-text-secondary">还没有阅读记录</p>
               <p className="text-xs text-rhythm-text-muted mt-1">点击「记录阅读」记录一次阅读时长</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="divide-y divide-rhythm-border">
               {bookSessions.map((s) => (
-                <div key={s.id} className="r-card p-3">
+                <div key={s.id} className="py-5 first:pt-0">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-rhythm-text-primary">
                       {formatDate(s.read_date)}
                     </span>
-                    <span className="text-xs text-rhythm-text-muted">
+                    <span className="text-xs text-rhythm-text-secondary">
                       {s.duration_minutes} 分钟{s.pages_read ? ` · ${s.pages_read} 页` : ''}
                     </span>
                   </div>
                   {s.note && (
-                    <p className="text-xs text-rhythm-text-secondary mt-1.5 mb-0">{s.note}</p>
+                    <p className="text-sm leading-6 text-rhythm-text-secondary mt-2 mb-0">{s.note}</p>
                   )}
                 </div>
               ))}

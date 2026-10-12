@@ -64,7 +64,7 @@ export function RoundTimeline({
   }, [roundId, loadLogsForRound])
 
   const dates = useMemo(() => buildDates(startDate, endDate), [startDate, endDate])
-  const logs = logsByRound[roundId] ?? []
+  const logs = useMemo(() => logsByRound[roundId] ?? [], [logsByRound, roundId])
   const today = todayIso()
   const logByDate = useMemo(() => {
     const map = new Map<string, string>()
@@ -90,14 +90,14 @@ export function RoundTimeline({
                   isToday ? 'ring-2 ring-rhythm-glow ring-offset-2 ring-offset-rhythm-card' : ''
                 }`}
               />
-              <span className={`text-[0.55rem] tracking-tight ${isToday ? 'text-rhythm-glow' : 'text-rhythm-text-muted'}`}>
+              <span className={`text-xs tracking-tight ${isToday ? 'text-rhythm-glow' : 'text-rhythm-text-muted'}`}>
                 {shortDate(iso)}
               </span>
             </div>
           )
         })}
       </div>
-      <div className="flex items-center justify-center gap-3 mt-3 text-[0.6rem] text-rhythm-text-muted">
+      <div className="flex items-center justify-center gap-3 mt-3 text-xs text-rhythm-text-muted">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rhythm-success" />完成</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rhythm-warn" />一点</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-rhythm-danger" />没开始</span>

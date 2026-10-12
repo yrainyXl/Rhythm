@@ -65,10 +65,10 @@ export default function PracticeDetailPage() {
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-4">
+      <div className="r-subpage space-y-6">
         <Link
           href="/habits/practices"
-          className="flex items-center gap-1 text-xs text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors"
+          className="r-back"
         >
           <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
             <path d="M15 18l-6-6 6-6" />
@@ -77,34 +77,34 @@ export default function PracticeDetailPage() {
         </Link>
 
         {(isLoadingDetail || (detailPractice && detailPractice.id !== params.id)) && !detailPractice && (
-          <div className="r-card p-6 text-center text-xs text-rhythm-text-muted">加载中...</div>
+          <div role="status" className="py-8 text-sm text-rhythm-text-muted">加载中…</div>
         )}
 
         {detailError && <div className="r-card p-4 text-sm text-rhythm-danger"><p role="alert">{detailError}</p><button type="button" onClick={() => void loadDetail(params.id)} className="r-btn">重新加载</button></div>}
-        {actionError && <p role="alert" className="text-xs text-rhythm-danger">{actionError}</p>}
+        {actionError && <p role="alert" className="text-sm text-rhythm-danger">{actionError}</p>}
         {detailPractice && detailPractice.id === params.id && (
           <>
-            <div className="r-card p-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between mb-2">
-                <span className={`text-[0.6rem] tracking-[0.12em] uppercase ${
+                <span className={`text-xs font-medium ${
                   isActive ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
                 }`}>
                   {isActive ? '进行中' : '已完成'}
                 </span>
-                <span className="text-[0.62rem] text-rhythm-text-muted">
+                <span className="text-xs text-rhythm-text-muted">
                   {detailPractice.rounds.length} 轮
                 </span>
               </div>
-              <h1 className="font-serifsc text-lg font-medium m-0 mb-1">{detailPractice.title}</h1>
+              <h1 className="r-detail-title">{detailPractice.title}</h1>
               {detailPractice.assumption && (
-                <p className="text-[0.74rem] text-rhythm-text-secondary leading-relaxed m-0">
+                <p className="text-sm text-rhythm-text-secondary leading-relaxed m-0">
                   {detailPractice.assumption}
                 </p>
               )}
             </div>
 
             {detailPractice.sourceHighlight && (
-              <div className="r-card p-4 space-y-2">
+              <div className="border-l-2 border-rhythm-glow/30 pl-4 space-y-2">
                 <Link href={`/reading/${detailPractice.sourceHighlight.book_id}`} className="text-sm text-rhythm-glow">来自《{detailPractice.sourceHighlight.book_title}》 · 回看书籍</Link>
                 <blockquote className="m-0 text-sm text-rhythm-text-secondary whitespace-pre-wrap">{detailPractice.sourceHighlight.mark_text}</blockquote>
                 {detailPractice.sourceHighlight.thought && <p className="text-xs text-rhythm-text-muted whitespace-pre-wrap">当时的想法：{detailPractice.sourceHighlight.thought}</p>}
@@ -115,16 +115,16 @@ export default function PracticeDetailPage() {
               <button
                 type="button"
                 onClick={() => setTab('detail')}
-                className={`flex-1 py-1.5 rounded-lg text-[0.74rem] cursor-pointer transition-colors ${
-                  tab === 'detail' ? 'bg-rhythm-card text-rhythm-text-primary' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
+                className={`flex-1 min-h-[44px] rounded-lg text-sm cursor-pointer transition-colors ${
+                  tab === 'detail' ? 'bg-rhythm-glow-soft text-rhythm-glow font-semibold' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
                 }`}>
                 实践详情
               </button>
               <button
                 type="button"
                 onClick={() => setTab('review')}
-                className={`flex-1 py-1.5 rounded-lg text-[0.74rem] cursor-pointer transition-colors ${
-                  tab === 'review' ? 'bg-rhythm-card text-rhythm-text-primary' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
+                className={`flex-1 min-h-[44px] rounded-lg text-sm cursor-pointer transition-colors ${
+                  tab === 'review' ? 'bg-rhythm-glow-soft text-rhythm-glow font-semibold' : 'text-rhythm-text-muted hover:text-rhythm-text-secondary'
                 }`}>
                 复盘
               </button>
@@ -134,19 +134,19 @@ export default function PracticeDetailPage() {
               <>
                 {/* 实践级别操作:始终可发起新一轮 */}
                 {isActive && !showNewRound && (
-                  <div className="r-card p-4 flex items-center justify-between">
+                  <div className="flex flex-wrap gap-3 items-center justify-between">
                     <div>
-                      <div className="text-[0.66rem] tracking-wide text-rhythm-glow">
+                      <div className="text-sm tracking-wide text-rhythm-glow">
                         {activeRound ? '当前有进行中的轮次' : '当前没有进行中的轮次'}
                       </div>
-                      <div className="text-[0.62rem] text-rhythm-text-muted mt-0.5">
+                      <div className="text-xs text-rhythm-text-muted mt-0.5">
                         {activeRound ? '可以直接结束本轮,或提前调整再试' : '开启新一轮继续验证'}
                       </div>
                     </div>
                     <button
                       type="button"
                       onClick={onClickNewRound}
-                      className="px-3 py-1.5 rounded-full text-[0.66rem] bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow flex-none"
+                      className="min-h-[44px] px-4 py-2 rounded-xl text-sm bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow flex-none"
                     >
                       {activeRound ? '调整再试(新一轮)' : '开启新一轮'}
                     </button>
@@ -155,25 +155,20 @@ export default function PracticeDetailPage() {
 
                 {/* 轮次列表 */}
                 <div className="space-y-3">
-                  {[...detailPractice.rounds].reverse().map((r) => {
+                  {[...detailPractice.rounds].sort((a, b) => b.round_number - a.round_number).map((r, index) => {
                     const roundActive = r.status === 'active'
                     return (
-                      <div key={r.id} className={`r-card p-4 ${roundActive ? 'border-rhythm-glow/40' : ''}`}>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className={`text-[0.66rem] tracking-wide ${
-                            roundActive ? 'text-rhythm-glow' : 'text-rhythm-text-muted'
-                          }`}>
-                            第 {r.round_number} 轮 · {roundActive ? '进行中' : '已结束'}
-                          </span>
-                          <span className="text-[0.62rem] text-rhythm-text-muted">
-                            {formatRange(r.start_date, r.end_date)}
-                          </span>
-                        </div>
+                      <details key={r.id} open={roundActive || index === 0} className={roundActive || index === 0 ? 'r-feature p-5 rounded-2xl' : 'border-b border-rhythm-border py-3'}>
+                        <summary className="flex min-h-[44px] cursor-pointer list-none flex-wrap items-center justify-between gap-2">
+                          <span className="text-base font-semibold">第 {r.round_number} 轮 · {roundActive ? '进行中' : '已结束'}</span>
+                          <span className="text-xs text-rhythm-text-secondary">{formatRange(r.start_date, r.end_date)} · {r.log_count} 条记录 <span aria-hidden="true">⌄</span></span>
+                        </summary>
+                        <div className="pt-4 space-y-3">
                         {r.assumption && (
-                          <p className="text-[0.72rem] text-rhythm-text-secondary m-0 mb-2">{r.assumption}</p>
+                          <p className="text-sm text-rhythm-text-secondary m-0 mb-2">{r.assumption}</p>
                         )}
                         <div className="my-3"><PracticeLogInline roundId={r.id} startDate={r.start_date} endDate={r.end_date} /></div>
-                        <div className="text-[0.66rem] text-rhythm-text-muted">
+                        <div className="text-sm text-rhythm-text-muted">
                           <RoundLogPanel
                             roundId={r.id}
                             startDate={r.start_date}
@@ -182,7 +177,7 @@ export default function PracticeDetailPage() {
                           />
                         </div>
                         {r.conclusion && (
-                          <p className="text-[0.7rem] text-rhythm-text-secondary mt-2 pt-2 border-t border-rhythm-border/60 m-0">
+                          <p className="text-sm text-rhythm-text-secondary mt-2 pt-2 border-t border-rhythm-border/60 m-0">
                             结论:{r.conclusion}
                           </p>
                         )}
@@ -191,13 +186,14 @@ export default function PracticeDetailPage() {
                             <button
                               type="button"
                               onClick={() => onClickEndRound(r.id, r.round_number)}
-                              className="px-3 py-1.5 rounded-full text-[0.66rem] bg-transparent border border-rhythm-border text-rhythm-text-muted"
+                              className="min-h-[44px] px-4 py-2 rounded-xl text-sm bg-transparent border border-rhythm-border text-rhythm-text-muted"
                             >
                               结束本轮
                             </button>
                           </div>
                         )}
-                      </div>
+                        </div>
+                      </details>
                     )
                   })}
                 </div>
@@ -248,6 +244,7 @@ export default function PracticeDetailPage() {
             ) : (
               /* 复盘 tab */
               <ReviewTimeline
+                onReviewSaved={() => void loadDetail(params.id)}
                 rounds={detailPractice.rounds}
                 practiceAssumption={detailPractice.assumption}
               />

@@ -93,12 +93,12 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Sleep & Wake time */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title mb-3">睡眠时间</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="r-label">入睡日期</label>
-            <input
+            <label className="r-field-label">入睡日期</label>
+            <input aria-label="入睡日期" name="sleepDate" autoComplete="off"
               type="date"
               value={sleepDate}
               onChange={(e) => setSleepDate(e.target.value)}
@@ -106,8 +106,8 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
             />
           </div>
           <div>
-            <label className="r-label">入睡时间</label>
-            <input
+            <label className="r-field-label">入睡时间</label>
+            <input aria-label="入睡时间" name="sleepTime" autoComplete="off"
               type="time"
               value={sleepTime}
               onChange={(e) => setSleepTime(e.target.value)}
@@ -115,8 +115,8 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
             />
           </div>
           <div>
-            <label className="r-label">起床日期</label>
-            <input
+            <label className="r-field-label">起床日期</label>
+            <input aria-label="起床日期" name="wakeDate" autoComplete="off"
               type="date"
               value={wakeDate}
               onChange={(e) => setWakeDate(e.target.value)}
@@ -124,8 +124,8 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
             />
           </div>
           <div>
-            <label className="r-label">起床时间</label>
-            <input
+            <label className="r-field-label">起床时间</label>
+            <input aria-label="起床时间" name="wakeTime" autoComplete="off"
               type="time"
               value={wakeTime}
               onChange={(e) => setWakeTime(e.target.value)}
@@ -139,7 +139,7 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Quality */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title mb-3">睡眠质量</h3>
         <div className="flex gap-3">
           {([
@@ -163,7 +163,7 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Pre-sleep activities */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title mb-2">睡前活动</h3>
         <p className="text-xs text-rhythm-text-muted mb-3">选择你在睡前 1 小时做过的事情</p>
         <div className="flex flex-wrap gap-2">
@@ -185,9 +185,9 @@ export function SleepForm({ onBack }: { onBack: () => void }) {
       </div>
 
       {/* Note */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title mb-2">备注（可选）</h3>
-        <input
+        <input aria-label="备注" name="note" autoComplete="off"
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}

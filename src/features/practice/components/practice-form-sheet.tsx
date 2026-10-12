@@ -75,7 +75,7 @@ export function PracticeFormSheet({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !savingRef.current) { e.preventDefault(); closeRef.current() }
       if (e.key !== 'Tab') return
-      const nodes = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex="0"]') ?? [])
+      const nodes = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex="0"]') ?? [])
       const first = nodes[0]
       const last = nodes[nodes.length - 1]
       if (!first) { e.preventDefault(); dialogRef.current?.focus(); return }
@@ -130,11 +130,11 @@ export function PracticeFormSheet({
         aria-modal="true"
         aria-labelledby="practice-form-title"
         tabIndex={-1}
-        className="overscroll-contain w-full sm:max-w-md p-5 rounded-t-2xl sm:rounded-2xl bg-rhythm-card border-t sm:border border-rhythm-border-strong max-h-[85vh] overflow-y-auto"
+        className="overscroll-contain r-sheet"
         style={{ paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
         onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 id="practice-form-title" className="text-xl font-semibold text-rhythm-text-primary m-0">发起新实践</h3>
+          <h3 id="practice-form-title" className="text-[22px] font-semibold text-rhythm-text-primary m-0">发起新实践</h3>
           <button
             type="button"
             aria-label="关闭"
@@ -147,7 +147,7 @@ export function PracticeFormSheet({
         </div>
 
         {sourceLabel && (
-          <div className="mb-4 flex items-start gap-2 text-xs text-rhythm-text-muted bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2">
+          <div className="mb-4 flex items-start gap-2 text-sm text-rhythm-text-secondary bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2">
             <span aria-hidden="true">📌</span>
             <div><span>{sourceLabel}</span>
               {sourceExcerpt && <p className="mt-2 mb-0 whitespace-pre-wrap leading-relaxed">{sourceExcerpt}</p>}
@@ -157,7 +157,7 @@ export function PracticeFormSheet({
 
         <div className="space-y-4">
           <div>
-            <label htmlFor="practice-title" className="text-sm text-rhythm-text-secondary block mb-1.5">实践名称</label>
+            <label htmlFor="practice-title" className="r-field-label">实践名称</label>
             <input
               ref={titleRef}
               id="practice-title"
@@ -168,16 +168,16 @@ export function PracticeFormSheet({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="例如:找回工作日晚上的主动权"
-              className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2.5 text-sm text-rhythm-text-primary placeholder-rhythm-text-muted focus:outline-none focus:border-rhythm-border-strong"
+              className="r-input min-h-11"
             />
           </div>
 
           <fieldset className="border-0 p-0 m-0">
-            <legend className="text-sm text-rhythm-text-secondary block mb-1.5">
+            <legend className="r-field-label">
               关联议题 <span className="text-rhythm-text-muted">(可选)</span>
             </legend>
             {topics.length === 0 ? (
-              <p className="text-xs text-rhythm-text-muted py-2">还没有议题,可以先去「计划 → 议题」创建</p>
+              <p className="text-sm text-rhythm-text-secondary py-2">还没有议题,可以先去「计划 → 议题」创建</p>
             ) : (
               <Dropdown
                 value={topicId}
@@ -189,7 +189,7 @@ export function PracticeFormSheet({
           </fieldset>
 
           <div>
-            <label htmlFor="practice-action" className="text-sm text-rhythm-text-secondary block mb-1.5">
+            <label htmlFor="practice-action" className="r-field-label">
               这次想尝试什么 <span className="text-rhythm-text-muted">{sourceHighlightId ? '(必填)' : '(可选)'}</span>
             </label>
             <textarea
@@ -202,12 +202,12 @@ export function PracticeFormSheet({
               onChange={(e) => setAssumption(e.target.value)}
               placeholder="把书中的启发变成具体行动：什么时候做什么，想观察什么变化？"
               rows={3}
-              className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-xl px-3 py-2.5 text-sm text-rhythm-text-primary placeholder-rhythm-text-muted resize-none focus:outline-none focus:border-rhythm-border-strong"
+              className="r-input resize-none"
             />
           </div>
 
           <fieldset className="border-0 p-0 m-0">
-            <legend className="text-sm text-rhythm-text-secondary block mb-1.5">尝试多久</legend>
+            <legend className="r-field-label">尝试多久</legend>
             <div className="flex gap-2">
               {PERIOD_PRESETS.map((p) => (
                 <button

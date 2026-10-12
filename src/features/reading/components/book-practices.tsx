@@ -8,8 +8,8 @@ export function BookPractices({ practices }: { practices: PracticeWithLatestRoun
       {practices.map((practice) => {
         const round = practice.latestRound
         return (
-          <div key={practice.id} className="text-xs">
-            <Link href={`/habits/practices/${practice.id}`} className="text-rhythm-glow">
+          <div key={practice.id} className="text-sm">
+            <Link href={`/habits/practices/${practice.id}`} className="r-link">
               {practice.title} · {practice.status === 'ended' ? '已结束' : '实践中'} →
             </Link>
             {round && <p className="mt-1 mb-0 text-rhythm-text-muted">第 {round.round_number} 轮 · {round.status === 'ended' ? (round.review_reality || round.review_effect || round.review_adjustment || round.conclusion ? '已复盘' : '已结束') : '记录中'}</p>}

@@ -66,15 +66,15 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center">
-      <div className="r-card w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
+      <div role="dialog" aria-modal="true" aria-label="习惯设置" className="r-sheet w-full max-w-lg rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-rhythm-surface border-b border-rhythm-border px-4 py-3 flex items-center justify-between">
-          <h3 className="r-title">
+          <h3 className="r-detail-title">
             {editHabitId ? '编辑习惯' : '新建习惯'}
           </h3>
           <button
             type="button"
             onClick={() => { resetForm(); onClose() }}
-            className="text-rhythm-text-muted hover:text-rhythm-text-secondary text-lg leading-none"
+            aria-label="关闭习惯设置" className="min-h-11 min-w-11 text-rhythm-text-secondary hover:text-rhythm-glow"
           >
             ✕
           </button>
@@ -83,12 +83,12 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
         <form onSubmit={handleSubmit} className="p-4 space-y-5">
           {/* Name */}
           <div>
-            <label className="r-label">名称</label>
-            <input
+            <label className="r-field-label">名称</label>
+            <input aria-label="名称" name="formData-name" autoComplete="off"
               type="text"
               value={formData.name}
               onChange={(e) => updateFormField('name', e.target.value)}
-              placeholder="如：冥想、晨跑、阅读..."
+              placeholder="如：冥想、晨跑、阅读…"
               maxLength={50}
               required
               className="r-input"
@@ -97,7 +97,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Category */}
           <div>
-            <label className="r-label">分类</label>
+            <label className="r-field-label">分类</label>
             <div className="grid grid-cols-4 gap-2">
               {categoryOptions.map((cat) => (
                 <button
@@ -119,7 +119,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Target Type */}
           <div>
-            <label className="r-label">目标类型</label>
+            <label className="r-field-label">目标类型</label>
             <div className="grid grid-cols-2 gap-2">
               {targetTypeOptions.map((tt) => (
                 <button
@@ -142,10 +142,10 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
           {formData.target_type !== 'boolean' && (
             <div className="flex gap-3 items-start">
               <div className="flex-1">
-                <label className="r-label">
+                <label className="r-field-label">
                   目标值
                 </label>
-                <input
+                <input aria-label="目标值" name="formData-target_value------" autoComplete="off"
                   type="number"
                   value={formData.target_value ?? ''}
                   onChange={(e) => updateFormField('target_value', e.target.value ? Number(e.target.value) : null)}
@@ -157,8 +157,8 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
                 />
               </div>
               <div className="flex-1">
-                <label className="r-label">单位</label>
-                <input
+                <label className="r-field-label">单位</label>
+                <input aria-label="单位" name="formData-target_unit" autoComplete="off"
                   type="text"
                   value={formData.target_unit}
                   onChange={(e) => updateFormField('target_unit', e.target.value)}
@@ -171,7 +171,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Repeat Type */}
           <div>
-            <label className="r-label">重复</label>
+            <label className="r-field-label">重复</label>
             <div className="grid grid-cols-2 gap-2">
               {repeatTypeOptions.map((rt) => (
                 <button
@@ -211,8 +211,8 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
 
           {/* Reminder */}
           <div>
-            <label className="r-label">提醒时间（可选）</label>
-            <input
+            <label className="r-field-label">提醒时间（可选）</label>
+            <input aria-label="提醒时间（可选）" name="formData-schedule_reminder_time" autoComplete="off"
               type="time"
               value={formData.schedule_reminder_time}
               onChange={(e) => updateFormField('schedule_reminder_time', e.target.value)}
@@ -223,7 +223,7 @@ export function HabitForm({ onClose, editHabitId }: HabitFormProps) {
           {/* Important toggle */}
           <div className="flex items-center gap-3">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
+              <input aria-label="输入内容" name="entry" autoComplete="off"
                 type="checkbox"
                 checked={formData.is_important}
                 onChange={(e) => updateFormField('is_important', e.target.checked)}

@@ -68,7 +68,7 @@ export function SleepAnalysis() {
                 <span className="text-xs text-rhythm-text-secondary w-8">{label}</span>
                 <div className="flex-1 bg-rhythm-void/40 rounded-full h-2">
                   <div
-                    className={`${color} rounded-full h-2 transition-all`}
+                    className={`${color} rounded-full h-2 transition-colors`}
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -114,7 +114,7 @@ export function SleepAnalysis() {
                 <div className="flex-1 flex items-center gap-2">
                   <div className="flex-1 bg-rhythm-void/40 rounded-full h-2">
                     <div
-                      className="bg-rhythm-glow rounded-full h-2 transition-all"
+                      className="bg-rhythm-glow rounded-full h-2 transition-colors"
                       style={{ width: `${(day.duration / 480) * 100}%` }}
                     />
                   </div>

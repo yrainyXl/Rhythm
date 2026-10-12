@@ -46,11 +46,11 @@ export default function AllBooksPage() {
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-4">
+      <div className="r-subpage space-y-7">
         <div className="flex items-center justify-between">
           <Link
             href="/reading"
-            className="flex items-center gap-1 text-xs text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
+            className="r-back">
             <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -59,41 +59,41 @@ export default function AllBooksPage() {
         </div>
 
         <div>
-          <h1 className="font-serifsc text-lg font-medium m-0">全部书架</h1>
-          <p className="text-xs text-rhythm-text-muted mt-1">
+          <h1 className="r-detail-title">全部书架</h1>
+          <p className="text-sm text-rhythm-text-secondary mt-2">
             共 {books.length} 本书 · {reading.length} 本在读
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-7 px-5 sm:px-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-7">
           {allBooks.map((b) => (
             <Link
               key={b.id}
               href={`/reading/${b.id}`}
-              className="no-underline text-inherit">
+              className="group no-underline text-inherit rounded-lg hover:text-rhythm-glow transition-colors">
               <div className="w-full aspect-[2/3] rounded-lg relative overflow-hidden mb-2"
                 style={{
                   background: getBookBg(b),
                   backgroundSize: 'cover',
                   backgroundPosition: 'center',
-                  boxShadow: '1px 3px 12px -3px rgba(0,0,0,0.4)',
+                  boxShadow: '0 3px 9px rgba(0,0,0,0.12)',
                 }}>
               </div>
               <div className="space-y-1 px-0.5 pb-2">
-                <h3 className="font-serifsc text-[0.8rem] font-medium tracking-tight leading-tight m-0 truncate">
+                <h3 className="text-sm font-medium tracking-tight leading-6 m-0 line-clamp-2 min-h-12">
                   {b.title}
                 </h3>
                 {b.author && (
-                  <p className="text-[0.6rem] text-rhythm-text-muted m-0 truncate">
+                  <p className="text-xs text-rhythm-text-muted m-0 truncate">
                     {b.author}
                   </p>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className={`text-[0.6rem] tracking-tight px-1.5 py-0.5 rounded-full ${STATUS_COLOR[b.status]}`}>
+                  <span className={`text-xs tracking-tight px-1.5 py-0.5 rounded-full ${STATUS_COLOR[b.status]}`}>
                     {STATUS_LABEL[b.status]}
                   </span>
                   {b.current_page && b.total_pages && (
-                    <span className="text-[0.6rem] text-rhythm-text-muted">
+                    <span className="text-xs text-rhythm-text-muted">
                       {Math.round((b.current_page / b.total_pages) * 100)}%
                     </span>
                   )}

@@ -124,14 +124,14 @@ export function GoalView() {
 
           {showCreate && (
             <div className="r-card p-4 space-y-3">
-              <input
+              <input aria-label="目标名称" name="newTitle" autoComplete="off"
                 type="text"
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="目标名称*"
                 className="r-input"
               />
-              <textarea
+              <textarea aria-label="目标说明" name="newDesc" autoComplete="off"
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="描述（为什么想实现这个目标）"
@@ -157,7 +157,7 @@ export function GoalView() {
                   ))}
                 </div>
               </div>
-              <input
+              <input aria-label="目标日期" name="newTargetDate" autoComplete="off"
                 type="date"
                 value={newTargetDate}
                 onChange={(e) => setNewTargetDate(e.target.value)}
@@ -210,7 +210,7 @@ export function GoalView() {
           </button>
 
           <div className="r-card p-4 bg-rhythm-glow-soft">
-            <p className="r-title text-lg">{activeGoal.title}</p>
+            <p className="r-detail-title">{activeGoal.title}</p>
             {activeGoal.description && (
               <p className="text-sm text-rhythm-text-secondary mt-1">{activeGoal.description}</p>
             )}
@@ -233,7 +233,7 @@ export function GoalView() {
           </div>
 
           {/* Key Results */}
-          <div className="r-card p-4">
+          <div className="r-flat-row">
             <div className="flex items-center justify-between mb-3">
               <h3 className="r-title text-sm">关键结果</h3>
               <button
@@ -261,7 +261,7 @@ export function GoalView() {
                   </div>
                   <div className="w-full bg-rhythm-void/40 border border-rhythm-border rounded-full h-1.5 mt-1">
                     <div
-                      className="bg-rhythm-glow rounded-full h-1.5 transition-all"
+                      className="bg-rhythm-glow rounded-full h-1.5 transition-colors"
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>
@@ -282,7 +282,7 @@ export function GoalView() {
 
             {showKrInput && (
               <div className="mt-3 pt-3 border-t border-rhythm-border space-y-2">
-                <input
+                <input aria-label="关键结果名称" name="newKrTitle" autoComplete="off"
                   type="text"
                   value={newKrTitle}
                   onChange={(e) => setNewKrTitle(e.target.value)}
@@ -290,14 +290,14 @@ export function GoalView() {
                   className="r-input"
                 />
                 <div className="grid grid-cols-2 gap-2">
-                  <input
+                  <input aria-label="目标数值" name="newKrTarget" autoComplete="off"
                     type="number"
                     value={newKrTarget}
                     onChange={(e) => setNewKrTarget(e.target.value)}
                     placeholder="目标值"
                     className="r-input"
                   />
-                  <input
+                  <input aria-label="单位" name="newKrUnit" autoComplete="off"
                     type="text"
                     value={newKrUnit}
                     onChange={(e) => setNewKrUnit(e.target.value)}
@@ -317,7 +317,7 @@ export function GoalView() {
           </div>
 
           {/* Milestones */}
-          <div className="r-card p-4">
+          <div className="r-flat-row">
             <div className="flex items-center justify-between mb-3">
               <h3 className="r-title text-sm">里程碑</h3>
               <button
@@ -359,7 +359,7 @@ export function GoalView() {
 
             {showMilestoneInput && (
               <div className="mt-3 pt-3 border-t border-rhythm-border space-y-2">
-                <input
+                <input aria-label="里程碑名称" name="newMsTitle" autoComplete="off"
                   type="text"
                   value={newMsTitle}
                   onChange={(e) => setNewMsTitle(e.target.value)}

@@ -30,8 +30,8 @@ export function MethodsList() {
         <button
           type="button"
           onClick={() => setSheetOpen(true)}
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs bg-rhythm-glow-soft border border-rhythm-border-strong text-rhythm-glow cursor-pointer">
-          <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2.2, fill: 'none' }}>
+          className="r-btn-primary gap-2">
+          <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 2.2, fill: 'none' }}>
             <path d="M12 5v14M5 12h14" />
           </svg>
           写下方法
@@ -39,13 +39,13 @@ export function MethodsList() {
       </div>
 
       {isLoadingMethods && (
-        <div className="r-card p-6 text-center text-xs text-rhythm-text-muted">加载中...</div>
+        <div className="py-6 text-center text-sm text-rhythm-text-muted">加载中…</div>
       )}
 
       {!isLoadingMethods && methods.length === 0 && (
-        <div className="r-card p-8 text-center">
+        <div className="rounded-2xl bg-rhythm-glow-soft p-6 text-center">
           <p className="text-sm text-rhythm-text-secondary">还没有方法</p>
-          <p className="text-xs text-rhythm-text-muted mt-1">从实践复盘中沉淀真正有效的做法</p>
+          <p className="text-sm text-rhythm-text-secondary mt-2">从实践复盘中沉淀真正有效的做法</p>
         </div>
       )}
 
@@ -54,18 +54,18 @@ export function MethodsList() {
         const toggleTarget: 'confirmed' | 'validating' = m.status === 'confirmed' ? 'validating' : 'confirmed'
         const toggleLabel = m.status === 'confirmed' ? '改为验证中' : '标记已确认'
         return (
-          <div key={m.id} className="r-card p-4">
+          <div key={m.id} className="py-5 border-b border-rhythm-border">
             <div className="flex items-center justify-between mb-2">
-              <span className={`text-[0.6rem] tracking-[0.12em] uppercase px-2 py-0.5 rounded-full border ${meta.className}`}>
+              <span className={`text-xs  px-2 py-0.5 rounded-full border ${meta.className}`}>
                 {meta.label}
               </span>
-              <span className="text-[0.62rem] text-rhythm-text-muted">
+              <span className="text-sm text-rhythm-text-muted">
                 {new Date(m.created_at).toLocaleDateString('zh-CN')}
               </span>
             </div>
-            <h3 className="font-serifsc text-[0.9rem] font-medium m-0 mb-1 leading-relaxed">{m.title}</h3>
+            <h3 className="text-lg font-semibold m-0 mb-1 leading-relaxed">{m.title}</h3>
             {m.condition && (
-              <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 mb-3">
+              <p className="text-sm text-rhythm-text-secondary leading-relaxed m-0 mb-3">
                 <span className="text-rhythm-text-muted tracking-wider">适用　</span>{m.condition}
               </p>
             )}
@@ -75,13 +75,13 @@ export function MethodsList() {
                   <button
                     type="button"
                     onClick={() => { deleteMethod(m.id); setConfirmDelete(null) }}
-                    className="px-2 py-1 rounded text-[0.62rem] bg-rhythm-danger-soft border border-rhythm-danger text-rhythm-danger cursor-pointer">
+                    className="min-h-11 px-3 py-2 rounded-lg text-sm bg-rhythm-danger-soft border border-rhythm-danger text-rhythm-danger cursor-pointer">
                     确认删除
                   </button>
                   <button
                     type="button"
                     onClick={() => setConfirmDelete(null)}
-                    className="px-2 py-1 rounded text-[0.62rem] bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer">
+                    className="min-h-11 px-3 py-2 rounded-lg text-sm bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer">
                     取消
                   </button>
                 </>
@@ -90,7 +90,7 @@ export function MethodsList() {
                   <button
                     type="button"
                     onClick={() => updateMethodStatus(m.id, toggleTarget)}
-                    className="px-2 py-1 rounded text-[0.62rem] bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-border-strong hover:text-rhythm-text-secondary transition-colors">
+                    className="min-h-11 px-3 py-2 rounded-lg text-sm bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-border-strong hover:text-rhythm-text-secondary transition-colors">
                     {toggleLabel}
                   </button>
                   <button
@@ -98,8 +98,8 @@ export function MethodsList() {
                     onClick={() => updateMethodStatus(m.id, 'archived')}
                     aria-label="归档"
                     title="归档"
-                    className="w-6 h-6 grid place-items-center rounded bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-border-strong hover:text-rhythm-text-secondary transition-colors">
-                    <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
+                    className="w-11 h-11 grid place-items-center rounded-xl bg-transparent border-0 text-rhythm-text-muted cursor-pointer hover:border-rhythm-border-strong hover:text-rhythm-text-secondary transition-colors">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
                       <path d="M21 8v13H3V8" />
                       <path d="M1 3h22v5H1z" />
                       <path d="M10 12h4" />
@@ -110,8 +110,8 @@ export function MethodsList() {
                     onClick={() => setConfirmDelete(m.id)}
                     aria-label="删除"
                     title="删除"
-                    className="w-6 h-6 grid place-items-center rounded bg-transparent border border-rhythm-border text-rhythm-text-muted cursor-pointer hover:border-rhythm-danger hover:text-rhythm-danger transition-colors">
-                    <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
+                    className="w-11 h-11 grid place-items-center rounded-xl bg-transparent border-0 text-rhythm-text-muted cursor-pointer hover:border-rhythm-danger hover:text-rhythm-danger transition-colors">
+                    <svg viewBox="0 0 24 24" className="w-4 h-4" style={{ stroke: 'currentColor', strokeWidth: 1.8, fill: 'none' }}>
                       <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6" />
                     </svg>
                   </button>

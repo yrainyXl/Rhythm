@@ -31,11 +31,11 @@ export default function AllHighlightsPage() {
 
   return (
     <AuthGuard>
-      <div className="p-5 space-y-4">
+      <div className="r-subpage space-y-7">
         <div className="flex items-center justify-between">
           <Link
             href="/reading"
-            className="flex items-center gap-1 text-xs text-rhythm-text-muted hover:text-rhythm-text-primary transition-colors">
+            className="r-back">
             <svg viewBox="0 0 24 24" className="w-3 h-3" style={{ stroke: 'currentColor', strokeWidth: 2, fill: 'none' }}>
               <path d="M15 18l-6-6 6-6" />
             </svg>
@@ -44,17 +44,17 @@ export default function AllHighlightsPage() {
         </div>
 
         <div>
-          <h1 className="font-serifsc text-lg font-medium m-0">全部词条</h1>
-          <p className="text-xs text-rhythm-text-muted mt-1">
+          <h1 className="r-detail-title">全部划线</h1>
+          <p className="text-sm text-rhythm-text-secondary mt-2">
             共 {highlights.length} 条划线笔记 · {books.length} 本书
           </p>
         </div>
 
         {/* 微信读书同步 */}
-        <div className="r-card p-4">
-          <div className="flex items-center justify-between gap-3">
+        <div className="rounded-2xl bg-rhythm-glow-soft p-5">
+          <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
-              <p className="r-title text-sm">微信读书词条</p>
+              <p className="font-semibold text-base">微信读书</p>
               <p className="text-xs text-rhythm-text-muted mt-0.5">
                 同步在读书籍的划线与想法
               </p>
@@ -65,21 +65,21 @@ export default function AllHighlightsPage() {
               disabled={isSyncing}
               className="r-btn-primary px-4 py-2 text-sm disabled:opacity-50 whitespace-nowrap"
             >
-              {isSyncing ? '同步中...' : '从微信读书同步'}
+              {isSyncing ? '同步中…' : '从微信读书同步'}
             </button>
           </div>
 
           {lastSyncResult && !syncError && (
-            <p className="text-xs text-rhythm-success mt-3">
+            <p role="status" className="text-sm text-rhythm-success mt-3">
               已同步 {lastSyncResult.books} 本书 · {lastSyncResult.highlights} 条划线 ·{' '}
               {lastSyncResult.thoughts} 条想法
               {lastSyncResult.skipped ? ` · ${lastSyncResult.skipped} 本无更新已跳过` : ''}
             </p>
           )}
-          {syncError && <p className="text-xs text-rhythm-danger mt-3">{syncError}</p>}
+          {syncError && <p role="alert" className="text-sm text-rhythm-danger mt-3">{syncError}</p>}
         </div>
 
-        <div className="space-y-2">
+        <div className="divide-y divide-rhythm-border">
           {books.map(([bookId, bookHighlights]) => {
             const first = bookHighlights[0]
             const book = first.reading_books
@@ -88,24 +88,24 @@ export default function AllHighlightsPage() {
               <Link
                 key={bookId}
                 href={`/reading/${bookId}`}
-                className="block p-3 rounded-xl border border-rhythm-border bg-rhythm-card/40 hover:bg-rhythm-void/40 transition-colors">
+                className="block py-5 hover:bg-rhythm-glow-soft transition-colors">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-14 rounded-sm flex-none"
+                  <div className="w-12 h-16 rounded-sm flex-none"
                     style={{ background: getBookBg(book.status, book.cover_url) }} />
                   <div className="flex-1 min-w-0">
-                    <b className="block text-[0.8rem] tracking-tight font-medium truncate">
+                    <b className="block text-sm tracking-tight font-medium truncate">
                       {book.title}
                     </b>
                     {book.author && (
-                      <small className="block text-[0.65rem] text-rhythm-text-muted mt-0.5">
+                      <small className="block text-xs text-rhythm-text-muted mt-0.5">
                         {book.author}
                       </small>
                     )}
-                    <div className="text-[0.6rem] text-rhythm-text-muted mt-1">
-                      {bookHighlights.length} {bookHighlights.length === 1 ? '条' : '条'}
+                    <div className="text-xs text-rhythm-text-muted mt-1">
+                      {bookHighlights.length} 条划线
                     </div>
                   </div>
-                  <span className="text-[0.6rem] text-rhythm-text-muted">→</span>
+                  <span className="text-xl text-rhythm-glow" aria-hidden="true">→</span>
                 </div>
               </Link>
           )})}

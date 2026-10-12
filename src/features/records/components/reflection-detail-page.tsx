@@ -69,15 +69,15 @@ export function ReflectionDetailPage() {
 
   return (
     <AuthGuard>
-      <div className="p-5 pb-24 space-y-6">
-        <div className="text-center pt-2">
-          <p className="r-eyebrow">Today</p>
-          <h1 className="r-title text-xl mt-1">{dateDisplay}</h1>
+      <div className="r-subpage">
+        <div className="pt-2">
+          <p className="text-sm text-rhythm-text-secondary">今天的复盘</p>
+          <h1 className="r-detail-title mt-1">{dateDisplay}</h1>
           <p className="text-xs text-rhythm-text-muted mt-1">此刻 · 记下今天的收获与念头</p>
         </div>
 
-        <div className="r-card p-4">
-          <p className="r-label text-center mb-3">今天整体状态</p>
+        <div className="space-y-3">
+          <p className="r-section-title mb-3">今天整体状态</p>
           <div className="flex gap-2">
             {([
               { value: 'great', label: '很好', icon: '😊' },
@@ -101,20 +101,20 @@ export function ReflectionDetailPage() {
           </div>
         </div>
 
-        <div className="r-card p-4">
-          <label className="r-label">今天最满意的一件事</label>
-          <input
+        <div className="space-y-3">
+          <label className="r-field-label">今天最满意的一件事</label>
+          <input aria-label="今天最满意的一件事" name="bestThing" autoComplete="off"
             type="text"
             value={bestThing}
             onChange={(e) => setBestThing(e.target.value)}
-            placeholder="无论多小都行..."
+            placeholder="无论多小都行…"
             className="r-input"
           />
         </div>
 
-        <div className="r-card p-4">
-          <label className="r-label">今天最需要改进的</label>
-          <input
+        <div className="space-y-3">
+          <label className="r-field-label">今天最需要改进的</label>
+          <input aria-label="今天最需要改进的" name="improveThing" autoComplete="off"
             type="text"
             value={improveThing}
             onChange={(e) => setImproveThing(e.target.value)}
@@ -123,9 +123,9 @@ export function ReflectionDetailPage() {
           />
         </div>
 
-        <div className="r-card p-4">
-          <label className="r-label">明天最重要的一件事</label>
-          <input
+        <div className="space-y-3">
+          <label className="r-field-label">明天最重要的一件事</label>
+          <input aria-label="明天最重要的一件事" name="tomorrowFocus" autoComplete="off"
             type="text"
             value={tomorrowFocus}
             onChange={(e) => setTomorrowFocus(e.target.value)}
@@ -134,12 +134,12 @@ export function ReflectionDetailPage() {
           />
         </div>
 
-        <div className="r-card p-4">
-          <label className="r-label">自由备注</label>
-          <textarea
+        <div className="space-y-3">
+          <label className="r-field-label">自由备注</label>
+          <textarea aria-label="自由备注" name="note" autoComplete="off"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="随便说点什么..."
+            placeholder="随便说点什么…"
             rows={4}
             className="r-input resize-none"
           />

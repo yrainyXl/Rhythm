@@ -45,7 +45,7 @@ export function QuickLogButtons({ roundId }: { roundId: string }) {
   }, [roundId, loadLogsForRound])
 
   const today = todayIso()
-  const logs = logsByRound[roundId] ?? []
+  const logs = useMemo(() => logsByRound[roundId] ?? [], [logsByRound, roundId])
   const todayLog = useMemo(() => logs.find((l) => l.local_date === today), [logs, today])
 
   const onPick = async (status: LogStatus) => {
@@ -61,7 +61,7 @@ export function QuickLogButtons({ roundId }: { roundId: string }) {
             key={s.value}
             type="button"
             onClick={() => onPick(s.value)}
-            className={`px-2 py-2.5 rounded-xl border cursor-pointer transition-colors text-[0.75rem] font-medium text-center ${
+            className={`min-h-[44px] px-2 py-2.5 rounded-xl border cursor-pointer transition-colors text-sm font-medium text-center ${
               isActive
                 ? s.active
                 : `border-rhythm-border bg-rhythm-void/40 ${s.inactive}`

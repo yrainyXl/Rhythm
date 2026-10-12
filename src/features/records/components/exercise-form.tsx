@@ -156,9 +156,9 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Date */}
-      <div className="r-card p-4">
-        <label className="r-label">运动日期</label>
-        <input
+      <div className="space-y-4">
+        <label className="r-field-label">运动日期</label>
+        <input aria-label="运动日期" name="exerciseDate" autoComplete="off"
           type="date"
           value={exerciseDate}
           onChange={(e) => setExerciseDate(e.target.value)}
@@ -167,7 +167,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       </div>
 
       {/* Template selection */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title text-sm mb-3">运动类型</h3>
 
         <div className="space-y-2">
@@ -203,17 +203,17 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
         {showCreateTemplate && (
           <div className="mt-3 pt-3 border-t border-rhythm-border space-y-3">
             <div>
-              <label className="r-label">运动名称</label>
-              <input
+              <label className="r-field-label">运动名称</label>
+              <input aria-label="运动名称" name="customName" autoComplete="off"
                 type="text"
                 value={customName}
                 onChange={(e) => setCustomName(e.target.value)}
-                placeholder="如：晨跑、游泳..."
+                placeholder="如：晨跑、游泳…"
                 className="r-input"
               />
             </div>
             <div>
-              <label className="r-label">分类</label>
+              <label className="r-field-label">分类</label>
               <div className="grid grid-cols-5 gap-1.5">
                 {categoryOptions.map((cat) => (
                   <button
@@ -255,7 +255,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
 
       {/* Rehab sets */}
       {isRehabMode && (
-        <div className="r-card p-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="r-title text-sm">
               训练组 (康复)
@@ -271,7 +271,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
                 <span className="text-xs text-rhythm-text-muted w-6">#{set.set_number}</span>
                 <div className="flex-1">
                   <label className="block text-xs text-rhythm-text-secondary">次数</label>
-                  <input
+                  <input aria-label="次数" name="set-reps" autoComplete="off"
                     type="number"
                     value={set.reps}
                     onChange={(e) => handleUpdateSet(index, 'reps', e.target.value)}
@@ -281,7 +281,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
                 </div>
                 <div className="flex-1">
                   <label className="block text-xs text-rhythm-text-secondary">感受</label>
-                  <select
+                  <select aria-label="感受" name="set-feeling" autoComplete="off"
                     value={set.feeling}
                     onChange={(e) => handleUpdateSet(index, 'feeling', e.target.value)}
                     className="r-input"
@@ -308,12 +308,12 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       )}
 
       {/* Duration & Distance */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title text-sm mb-3">运动数据</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="r-label">时长（分钟）</label>
-            <input
+            <label className="r-field-label">时长（分钟）</label>
+            <input aria-label="时长（分钟）" name="duration" autoComplete="off"
               type="number"
               value={duration}
               onChange={(e) => setDuration(e.target.value)}
@@ -323,8 +323,8 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
             />
           </div>
           <div>
-            <label className="r-label">距离（公里）</label>
-            <input
+            <label className="r-field-label">距离（公里）</label>
+            <input aria-label="距离（公里）" name="distance" autoComplete="off"
               type="number"
               step="0.1"
               value={distance}
@@ -337,7 +337,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       </div>
 
       {/* Intensity */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title text-sm mb-3">强度</h3>
         <div className="flex gap-3">
           {([
@@ -363,7 +363,7 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       </div>
 
       {/* Feeling */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title text-sm mb-2">体感评分</h3>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map((v) => (
@@ -384,9 +384,9 @@ export function ExerciseForm({ onBack }: ExerciseFormProps) {
       </div>
 
       {/* Note */}
-      <div className="r-card p-4">
+      <div className="space-y-4">
         <h3 className="r-title text-sm mb-2">备注（可选）</h3>
-        <input
+        <input aria-label="备注" name="note" autoComplete="off"
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}

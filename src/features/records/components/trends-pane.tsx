@@ -13,7 +13,7 @@ function Section({ title, subtitle, children, empty }: {
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1.5 px-0.5">
-        <span className="text-[0.62rem] tracking-[0.14em] uppercase text-rhythm-text-secondary">{title}</span>
+        <span className="text-xs tracking-normal text-rhythm-text-secondary">{title}</span>
         <span className="text-[0.6rem] text-rhythm-text-muted">{subtitle}</span>
       </div>
       <div className="r-card p-4">

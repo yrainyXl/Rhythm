@@ -35,7 +35,7 @@ export function ReviewTimeline({
     : null
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {ordered.map((r, idx) => {
         const hasReview = !!(r.review_reality || r.review_effect || r.review_adjustment)
         return (
@@ -46,24 +46,24 @@ export function ReviewTimeline({
               <span className="absolute left-2 top-5 bottom-0 w-px bg-rhythm-border-strong" />
             )}
 
-            <div className="r-card p-4">
+            <div className="pb-5 border-b border-rhythm-border">
               {/* 实践内容 */}
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[0.66rem] tracking-wide text-rhythm-glow">
+                <span className="text-base font-semibold text-rhythm-glow">
                   第 {r.round_number} 轮
                 </span>
-                <span className="text-[0.62rem] text-rhythm-text-muted">
+                <span className="text-xs text-rhythm-text-muted">
                   {formatRange(r.start_date, r.end_date)} · {r.log_count} 条记录
                 </span>
               </div>
-              <div className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed pl-2 border-l-2 border-rhythm-border mb-3">
-                <span className="text-rhythm-text-muted tracking-wider">假设　</span>
+              <div className="text-sm text-rhythm-text-secondary leading-relaxed my-3">
                 {r.assumption ?? practiceAssumption ?? '—'}
               </div>
 
               {/* 复盘 */}
               {hasReview ? (
-                <div className="space-y-2">
+                <details className="space-y-3">
+                  <summary className="min-h-[44px] cursor-pointer text-sm text-rhythm-text-primary">{r.review_effect || r.review_reality || '查看复盘'} <span className="text-rhythm-glow">· 展开</span></summary>
                   {r.review_reality && (
                     <ReviewField label="真实情况" value={r.review_reality} />
                   )}
@@ -77,16 +77,16 @@ export function ReviewTimeline({
                     type="button"
                     disabled={r.status === 'active'}
                     onClick={() => setReviewTarget({ roundId: r.id, roundNumber: r.round_number })}
-                    className="text-[0.62rem] text-rhythm-text-muted hover:text-rhythm-glow cursor-pointer mt-1">
+                    className="min-h-[44px] text-sm text-rhythm-glow hover:underline cursor-pointer mt-1">
                     编辑复盘
                   </button>
-                </div>
+                </details>
               ) : (
                 <button
                   type="button"
                   disabled={r.status === 'active'}
                     onClick={() => setReviewTarget({ roundId: r.id, roundNumber: r.round_number })}
-                  className="w-full py-2 rounded-xl text-[0.7rem] bg-rhythm-void/40 border border-dashed border-rhythm-border text-rhythm-text-muted hover:text-rhythm-glow hover:border-rhythm-glow/40 cursor-pointer transition-colors">
+                  className="min-h-[44px] px-3 py-2 rounded-xl text-sm bg-rhythm-glow-soft text-rhythm-text-muted hover:text-rhythm-glow hover:border-rhythm-glow/40 cursor-pointer transition-colors">
                   {r.status === 'active' ? '本轮结束后可写复盘' : '补填这轮复盘'}
                 </button>
               )}
@@ -117,9 +117,9 @@ export function ReviewTimeline({
 
 function ReviewField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="px-2 py-1.5 rounded-lg bg-rhythm-void/30">
-      <div className="text-[0.6rem] text-rhythm-text-muted mb-0.5">{label}</div>
-      <p className="text-[0.72rem] text-rhythm-text-secondary leading-relaxed m-0 break-words">{value}</p>
+    <div className="space-y-1">
+      <div className="text-xs text-rhythm-text-muted mb-0.5">{label}</div>
+      <p className="text-sm text-rhythm-text-secondary leading-relaxed m-0 break-words">{value}</p>
     </div>
   )
 }

@@ -52,9 +52,9 @@ export default function HabitsPageClient() {
   )
 
   return (
-    <div className="p-5 space-y-5">
+    <div className="r-subpage">
       <div className="flex items-center justify-between pt-2">
-        <h2 className="r-title text-lg">我的习惯</h2>
+        <h1 className="r-detail-title">日常习惯</h1>
         <button
           type="button"
           onClick={() => { resetForm(); setEditId(null); setShowForm(true) }}
@@ -80,14 +80,14 @@ export default function HabitsPageClient() {
 
           return (
             <div key={category}>
-              <h3 className="r-eyebrow mb-3">
+              <h3 className="r-section-title mb-2">
                 {catInfo.label}
               </h3>
               <div className="space-y-2.5">
                 {enabledHabits.map((habit) => (
                   <div
                     key={habit.id}
-                    className="r-card p-4 flex items-center justify-between"
+                    className="r-flat-row flex flex-wrap items-center justify-between gap-3"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export default function HabitsPageClient() {
                           {habit.name}
                         </p>
                         {habit.is_important && (
-                          <span className="text-[0.68rem] text-rhythm-warn shrink-0">★ 重要</span>
+                          <span className="text-xs text-rhythm-warn shrink-0">★ 重要</span>
                         )}
                       </div>
                       <p className="text-xs text-rhythm-text-muted mt-1">
@@ -117,14 +117,14 @@ export default function HabitsPageClient() {
                       <button
                         type="button"
                         onClick={() => handleEdit(habit)}
-                        className="px-2.5 py-1 text-xs text-rhythm-text-secondary hover:text-rhythm-glow transition-colors"
+                        className="min-h-11 px-3 py-2 text-sm text-rhythm-text-secondary hover:text-rhythm-glow transition-colors"
                       >
                         编辑
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirmDelete(habit.id)}
-                        className="px-2.5 py-1 text-xs text-rhythm-text-muted hover:text-rhythm-danger transition-colors"
+                        className="min-h-11 px-3 py-2 text-sm text-rhythm-text-muted hover:text-rhythm-danger transition-colors"
                       >
                         停用
                       </button>
@@ -146,7 +146,7 @@ export default function HabitsPageClient() {
                         <button
                           type="button"
                           onClick={() => toggleHabitEnabled(habit.id, true)}
-                          className="text-xs text-rhythm-glow hover:text-rhythm-text-primary transition-colors"
+                          className="r-link hover:text-rhythm-text-primary transition-colors"
                         >
                           启用
                         </button>
@@ -163,7 +163,7 @@ export default function HabitsPageClient() {
       {/* Confirmation dialog */}
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="r-card p-5 max-w-xs w-full">
+          <div role="dialog" aria-modal="true" aria-label="停用习惯" className="r-sheet max-w-sm w-full">
             <h3 className="r-title text-base mb-2">停用习惯</h3>
             <p className="text-sm text-rhythm-text-secondary mb-5 leading-relaxed">
               停用后不会再生成新的待办，但历史记录会保留。

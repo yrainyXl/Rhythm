@@ -8,7 +8,7 @@ type LogStatus = 'done' | 'partial' | 'skipped'
 const STATUS_META: Record<LogStatus, { label: string; dot: string; text: string }> = {
   done: { label: '完成', dot: 'bg-rhythm-success', text: 'text-rhythm-success' },
   partial: { label: '做了一点', dot: 'bg-rhythm-warn', text: 'text-rhythm-warn' },
-  skipped: { label: '没开始', dot: 'bg-rhythm-danger', text: 'text-rhythm-danger' },
+  skipped: { label: '没开始', dot: 'bg-rhythm-text-muted', text: 'text-rhythm-text-secondary' },
 }
 
 function totalDays(start: string, end: string): number {
@@ -53,8 +53,9 @@ export function RoundLogPanel({
     return (
       <button
         type="button"
+        aria-expanded={false}
         onClick={() => setExpanded(true)}
-        className="text-[0.66rem] text-rhythm-text-muted hover:text-rhythm-glow cursor-pointer"
+        className="min-h-[44px] text-sm text-rhythm-text-muted hover:text-rhythm-glow cursor-pointer"
       >
         {logCount} 条记录 · 展开
       </button>
@@ -69,7 +70,7 @@ export function RoundLogPanel({
   return (
     <div className="space-y-2.5">
       {/* 汇总 */}
-      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.62rem] text-rhythm-text-muted">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-rhythm-text-muted">
         <span>
           已记录 <span className="text-rhythm-text-secondary">{logs.length}</span> / {total} 天
         </span>
@@ -85,7 +86,7 @@ export function RoundLogPanel({
         )}
         {counts.skipped > 0 && (
           <span className="flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-rhythm-danger" />没开始 {counts.skipped}
+            <span className="w-1.5 h-1.5 rounded-full bg-rhythm-text-muted" />没开始 {counts.skipped}
           </span>
         )}
       </div>
@@ -96,19 +97,19 @@ export function RoundLogPanel({
           {logs.map((log) => {
             const meta = STATUS_META[log.status]
             return (
-              <div key={log.id} className="flex gap-2 px-2 py-1.5 rounded-lg bg-rhythm-void/30">
+              <div key={log.id} className="flex gap-2 py-3 border-b border-rhythm-border">
                 <span className={`flex-none w-1.5 h-1.5 rounded-full mt-1 ${meta.dot}`} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[0.66rem] text-rhythm-text-secondary">{shortDate(log.local_date)}</span>
-                    <span className={`text-[0.6rem] ${meta.text}`}>{meta.label}</span>
+                    <span className="text-xs text-rhythm-text-secondary">{shortDate(log.local_date)}</span>
+                    <span className={`text-xs ${meta.text}`}>{meta.label}</span>
                   </div>
                   {log.note ? (
-                    <p className="text-[0.7rem] text-rhythm-text-secondary leading-relaxed m-0 mt-0.5 break-words">
+                    <p className="text-sm text-rhythm-text-secondary leading-relaxed m-0 mt-0.5 break-words">
                       {log.note}
                     </p>
                   ) : (
-                    <p className="text-[0.7rem] text-rhythm-text-faint leading-relaxed m-0 mt-0.5">
+                    <p className="text-sm text-rhythm-text-faint leading-relaxed m-0 mt-0.5">
                       无补充说明
                     </p>
                   )}
@@ -119,14 +120,15 @@ export function RoundLogPanel({
         </div>
       ) : (
         <div className="px-2 py-3 rounded-lg bg-rhythm-void/30 flex items-center justify-center">
-          <p className="text-[0.66rem] text-rhythm-text-muted m-0">还没有记录</p>
+          <p className="text-xs text-rhythm-text-muted m-0">还没有记录</p>
         </div>
       )}
 
       <button
         type="button"
+        aria-expanded={true}
         onClick={() => setExpanded(false)}
-        className="text-[0.62rem] text-rhythm-text-muted hover:text-rhythm-text-secondary cursor-pointer"
+        className="min-h-[44px] text-sm text-rhythm-text-muted hover:text-rhythm-text-secondary cursor-pointer"
       >
         收起
       </button>

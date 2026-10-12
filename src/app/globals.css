@@ -239,3 +239,16 @@ button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent
 .r-beats i:nth-child(3) { height: 12px; }
 .r-scroll-row { scrollbar-width: none; }
 .r-scroll-row::-webkit-scrollbar { display: none; }
+
+@layer components {
+  .r-subpage { @apply px-5 pt-4 pb-6 space-y-6; }
+  .r-back { @apply inline-flex min-h-[44px] items-center gap-2 text-sm text-rhythm-text-secondary hover:text-rhythm-glow; }
+  .r-detail-title { @apply text-2xl font-semibold leading-snug tracking-tight break-words; }
+  .r-field-label { @apply block text-sm font-medium mb-2 text-rhythm-text-primary; }
+  .r-sheet { @apply rounded-t-[24px] sm:rounded-[24px] bg-rhythm-card p-5 sm:p-6; }
+  .r-tabs { @apply flex gap-1 rounded-2xl bg-rhythm-glow-soft p-1; }
+  .r-flat-row { @apply border-b border-rhythm-border py-4; }
+}
+.r-subpage button, .r-sheet button { min-height: 44px; }
+.r-sheet { overscroll-behavior: contain; }
+.r-subpage summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }

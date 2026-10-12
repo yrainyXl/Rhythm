@@ -50,10 +50,10 @@ export function WeeklyReviewFeed() {
               onClick={() => setExpandedId(isExpanded ? null : r.id)}
               className="w-full flex justify-between items-baseline mb-2 bg-transparent border-0 p-0 cursor-pointer text-left">
               <div>
-                <div className="text-[0.6rem] tracking-[0.12em] uppercase text-rhythm-text-muted">
+                <div className="text-[0.6rem] tracking-normal text-rhythm-text-muted">
                   {r.status === 'confirmed' ? '已确认' : '未读'}
                 </div>
-                <h3 className="font-serifsc text-[0.95rem] font-medium m-0 mt-0.5">
+                <h3 className="font-sans text-[0.95rem] font-medium m-0 mt-0.5">
                   {formatWeek(r.week_start, r.week_end)}
                 </h3>
               </div>
@@ -67,7 +67,7 @@ export function WeeklyReviewFeed() {
                   <Stat label="平均睡眠" value={r.average_sleep_hours != null ? `${r.average_sleep_hours.toFixed(1)}h` : '—'} />
                 </div>
                 {r.ai_body_md && (
-                  <p className="text-[0.78rem] text-rhythm-text-secondary leading-relaxed whitespace-pre-line">
+                  <p className="text-sm text-rhythm-text-secondary leading-relaxed whitespace-pre-line">
                     {r.ai_body_md}
                   </p>
                 )}
@@ -95,7 +95,7 @@ export function WeeklyReviewFeed() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="text-center p-2 rounded-lg bg-rhythm-void/40 border border-rhythm-border">
-      <div className="font-serifsc text-[1rem] text-rhythm-text-primary">{value}</div>
+      <div className="font-sans text-[1rem] text-rhythm-text-primary">{value}</div>
       <div className="text-[0.6rem] text-rhythm-text-muted mt-0.5">{label}</div>
     </div>
   )

@@ -34,7 +34,7 @@ export default function TodayPage() {
   return (
     <AuthGuard>
       <div className="r-page">
-        <DayHead dateText={dateText} completed={completed} total={total} />
+        <DayHead dateText={dateText} />
 
         <section>
           <SectionHeader label="今天的实践" actionLabel="全部" onAction={() => router.push('/habits/practices')} />
@@ -43,6 +43,7 @@ export default function TodayPage() {
 
         <section>
           <SectionHeader label="日常习惯" actionLabel="管理" onAction={() => router.push('/habits/manage')} />
+          {total > 0 && <div className="-mt-2 mb-2 flex items-center gap-3 text-xs text-rhythm-text-secondary"><span>{completed} / {total} 已完成</span><progress aria-label="今日习惯完成进度" value={completed} max={total} className="h-1 w-16 rounded-full" /></div>}
           <TodayHabits />
         </section>
 

@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       condition?: string
       status?: string
     }
-    const trimmed = title?.trim()
+    if (typeof title !== 'string' || (condition != null && typeof condition !== 'string') || (status != null && !['confirmed', 'validating', 'archived'].includes(status))) return NextResponse.json({ error: '方法参数格式不正确' }, { status: 400 })
+    const trimmed = title.trim()
     if (!trimmed) return NextResponse.json({ error: '方法标题不能为空' }, { status: 400 })
     const res = await db.query(
       `INSERT INTO methods (user_id, title, condition, status)

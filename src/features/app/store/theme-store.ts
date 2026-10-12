@@ -11,6 +11,7 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement
   root.classList.remove('dark', 'light')
   root.classList.add(theme)
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#FFFFFF' : '#121214')
 }
 
 function readStored(): Theme {

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import { useReadingStore } from '@/features/records/store/reading-store'
 import { groupHighlightsByBook, sortBookGroupsByLatest } from '@/features/reading/lib/highlight-groups'
 
@@ -48,19 +49,19 @@ export function HighlightsStream() {
           <Link
             key={bookId}
             href={`/reading/${bookId}`}
-            className="block py-5 transition-colors hover:text-rhythm-glow">
+            className="group block rounded-lg py-4 transition-colors hover:bg-rhythm-glow/5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-11 rounded-sm flex-none"
+              <div aria-hidden="true" className="w-8 h-11 rounded-sm flex-none"
                 style={{ background: getBookBg(bookStatus, coverUrl) }} />
               <div className="flex-1 min-w-0">
-                <b className="block font-semibold text-base truncate">《{bookTitle}》</b>
-                <small className="block text-sm text-rhythm-text-secondary mt-0.5">
-                  {bookAuthor ?? '未知作者'} · {bookHighlights.length} {bookHighlights.length === 1 ? '条' : '条'}
+                <b className="block line-clamp-2 font-semibold text-[15px] leading-snug transition-colors group-hover:text-rhythm-glow">《{bookTitle}》</b>
+                <small className="block truncate text-xs text-rhythm-text-secondary mt-1">
+                  {bookAuthor ?? '未知作者'} · {bookHighlights.length} 条划线
                 </small>
               </div>
-              <span className="text-lg text-rhythm-text-secondary">→</span>
+              <ArrowRight size={20} className="shrink-0 text-rhythm-glow" aria-hidden="true" />
             </div>
-            <p className="mt-3 line-clamp-2 text-[15px] leading-relaxed text-rhythm-text-secondary">{firstHighlight.mark_text || firstHighlight.thought}</p>
+            <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-rhythm-text-secondary">{firstHighlight.mark_text || firstHighlight.thought}</p>
           </Link>
         )
       })}

@@ -13,13 +13,13 @@ export function BookshelfRow() {
   }
 
   return (
-    <div className="flex gap-3 overflow-x-auto py-2 -mx-1 px-1 snap-x snap-mandatory">
+    <div className="flex gap-4 overflow-x-auto py-2 -mx-1 px-1 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {readingBooks.map((b) => (
         <Link
           key={b.id}
           href={`/reading/${b.id}`}
-          className="flex-none w-[116px] snap-start no-underline text-inherit cursor-pointer">
-          <div className="w-full aspect-[2/3] rounded-lg relative overflow-hidden"
+          className="group flex-none w-[116px] snap-start rounded-lg no-underline text-inherit cursor-pointer">
+          <div className="w-full aspect-[2/3] rounded-lg relative overflow-hidden transition-shadow group-hover:shadow-md"
             style={{
               background: b.cover_url ? `url(${JSON.stringify(b.cover_url)})` : 'var(--r-subtle-background)',
               backgroundSize: 'cover',
@@ -33,8 +33,8 @@ export function BookshelfRow() {
               </div>
             )}
           </div>
-          <p className="mt-3 truncate text-sm font-semibold text-rhythm-text-primary">{b.title}</p>
-          <div className="mt-1 text-sm text-rhythm-text-secondary">
+          <p className="mt-3 h-10 line-clamp-2 text-sm font-semibold leading-5 text-rhythm-text-primary transition-colors group-hover:text-rhythm-glow">{b.title}</p>
+          <div className="mt-1 text-xs text-rhythm-text-secondary">
             {b.current_page && b.total_pages ? (
               <b className="text-rhythm-text-secondary font-medium">
                 {Math.round((b.current_page / b.total_pages) * 100)}%

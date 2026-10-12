@@ -22,7 +22,7 @@ function PracticeSlide({ practice }: { practice: PracticeWithLatestRound }) {
   const round = practice.latestRound
   const dayInfo = round ? daysBetween(round.start_date, round.end_date) : null
   return (
-    <article className="r-panel flex flex-col gap-4">
+    <article className="r-feature flex flex-col gap-4">
       <h3 className="text-2xl font-semibold leading-snug break-words">{practice.title}</h3>
       {practice.assumption && <p className="text-[15px] leading-relaxed text-rhythm-text-secondary">{practice.assumption}</p>}
       {dayInfo && <p className="text-sm text-rhythm-text-secondary">已进行 {dayInfo.elapsed} 天 · 本次计划 {dayInfo.total} 天</p>}
@@ -41,7 +41,7 @@ export function PracticeCurrentCard() {
   return (
     <div className="space-y-4">
       {activePractices.length ? activePractices.map((practice) => <PracticeSlide key={practice.id} practice={practice} />) : (
-        <div className="r-panel space-y-4">
+        <div className="r-feature space-y-4">
           <h3 className="text-xl font-semibold">从一件小事开始</h3>
           <p className="text-[15px] leading-relaxed text-rhythm-text-secondary">选一个你想尝试的行动，记录每天的结果，再看看它是否适合自己。</p>
           <button type="button" onClick={() => setSheetOpen(true)} className="r-btn-primary">创建实践</button>

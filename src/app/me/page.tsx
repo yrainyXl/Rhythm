@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { apiFetch, ApiError } from '@/lib/api-client'
 import { GoalView } from '@/features/records/components/goal-view'
 import { useThemeStore } from '@/features/app/store/theme-store'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, ArrowRight } from 'lucide-react'
 
 export default function MePage() {
   const router = useRouter()
@@ -76,9 +76,9 @@ export default function MePage() {
           <p className="r-page-description">个人资料与应用设置。</p>
         </header>
         {/* Profile Card */}
-        <div className="r-panel">
+        <div className="rounded-[20px] bg-rhythm-glow/10 p-5">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-semibold border border-rhythm-border bg-rhythm-card-hover text-rhythm-text-primary">
+            <div className="w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center text-xl font-semibold bg-rhythm-glow/15 text-rhythm-glow">
               {profile?.nickname?.[0] ?? user?.email?.[0].toUpperCase() ?? '·'}
             </div>
             <div className="flex-1 min-w-0">
@@ -112,6 +112,8 @@ export default function MePage() {
               <input
                 type="text"
                 id="profile-nickname"
+                name="nickname"
+                autoComplete="nickname"
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 maxLength={20}
@@ -123,6 +125,8 @@ export default function MePage() {
               <label htmlFor="profile-timezone" className="block text-sm font-medium mb-2">时区</label>
               <select
                 id="profile-timezone"
+                name="timezone"
+                autoComplete="off"
                 value={timezone}
                 onChange={(e) => setTimezone(e.target.value)}
                 className="r-input"
@@ -140,6 +144,8 @@ export default function MePage() {
               <input
                 type="time"
                 id="profile-wakeTime"
+                name="wakeTime"
+                autoComplete="off"
                 value={wakeTime}
                 onChange={(e) => setWakeTime(e.target.value)}
                 className="r-input"
@@ -151,6 +157,8 @@ export default function MePage() {
               <input
                 type="time"
                 id="profile-sleepTime"
+                name="sleepTime"
+                autoComplete="off"
                 value={sleepTime}
                 onChange={(e) => setSleepTime(e.target.value)}
                 className="r-input"
@@ -174,6 +182,7 @@ export default function MePage() {
           </div>
         )}
 
+        <section className="space-y-3">
         <h2 className="r-section-title">设置</h2>
         {/* Menu items */}
         <div className="rounded-[20px] border border-rhythm-border divide-y divide-rhythm-border overflow-hidden">
@@ -183,7 +192,7 @@ export default function MePage() {
             className="w-full px-5 py-4 text-[15px] text-rhythm-text-primary text-left hover:bg-rhythm-card-hover/60 flex items-center justify-between transition-colors"
           >
             <span>目标和里程碑</span>
-            <span className="text-rhythm-text-secondary">→</span>
+            <ArrowRight size={20} className="text-rhythm-glow" aria-hidden="true" />
           </button>
           <div className="px-5 py-4 flex items-center justify-between">
             <span className="text-sm text-rhythm-text-primary">外观</span>
@@ -193,7 +202,7 @@ export default function MePage() {
               aria-label={`切换到${theme === 'dark' ? '白天' : '黑夜'}模式`}
               className="flex min-h-[44px] items-center gap-2 text-sm text-rhythm-text-primary border border-rhythm-border rounded-full px-4 transition-colors hover:bg-rhythm-card-hover"
             >
-              {theme === 'dark' ? <Moon size={14} /> : <Sun size={14} />}
+              {theme === 'dark' ? <Moon size={18} aria-hidden="true" /> : <Sun size={18} aria-hidden="true" />}
               {theme === 'dark' ? '黑夜' : '白天'}
             </button>
           </div>
@@ -207,18 +216,21 @@ export default function MePage() {
           </div>
         </div>
 
+        </section>
+
+        <section className="space-y-3">
         <h2 className="r-section-title">个人信息</h2>
         {/* Info */}
-        <div className="rounded-[20px] border border-rhythm-border divide-y divide-rhythm-border overflow-hidden">
-          <div className="px-5 py-4 text-[15px]">
+        <div className="divide-y divide-rhythm-border">
+          <div className="py-3 text-[15px]">
             <span className="text-rhythm-text-secondary text-sm">邮箱</span>
-            <p className="text-rhythm-text-primary mt-1 break-words">{user?.email}</p>
+            <p className="text-rhythm-text-primary mt-1 break-all">{user?.email}</p>
           </div>
-          <div className="px-5 py-4 text-[15px]">
+          <div className="py-3 text-[15px]">
             <span className="text-rhythm-text-secondary text-sm">时区</span>
             <p className="text-rhythm-text-primary mt-1 break-words">{profile?.timezone ?? '未设置'}</p>
           </div>
-          <div className="px-5 py-4 text-[15px]">
+          <div className="py-3 text-[15px]">
             <span className="text-rhythm-text-secondary text-sm">作息</span>
             <p className="text-rhythm-text-primary mt-1 break-words">
               {profile?.preferred_wake_time?.slice(0, 5) ?? '--'} 起床 / {profile?.preferred_sleep_time?.slice(0, 5) ?? '--'} 睡觉
@@ -226,13 +238,14 @@ export default function MePage() {
           </div>
         </div>
 
+        </section>
+
         {saveMessage && !isEditing && <p role="status" className="text-sm text-rhythm-success">{saveMessage}</p>}
         {/* Sign out */}
         <button
           type="button"
           onClick={handleSignOut}
-          className="r-btn w-full text-rhythm-danger"
-          style={{ border: '1px solid rgb(var(--r-danger-rgb) / 0.3)' }}
+          className="r-btn w-full text-rhythm-text-secondary hover:bg-rhythm-danger/5 hover:text-rhythm-danger"
         >
           退出登录
         </button>

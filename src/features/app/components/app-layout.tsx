@@ -32,7 +32,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {showNav && (
         <header className="sticky top-0 z-20 px-6 pb-2 pt-[calc(0.5rem+env(safe-area-inset-top))] bg-rhythm-void border-b border-rhythm-border">
           <div className="flex items-center justify-between">
-            <Link href="/today" className="inline-flex min-h-[44px] items-center text-lg font-semibold tracking-tight text-rhythm-text-primary no-underline">Rhythm</Link>
+            <Link href="/today" className="inline-flex min-h-[44px] items-center text-lg font-semibold tracking-tight text-rhythm-text-primary no-underline gap-2 hover:text-rhythm-glow" translate="no"><span className="r-beats" aria-hidden="true"><i /><i /><i /></span>Rhythm</Link>
             <Link
               href="/me"
               aria-label="我的资料与设置"
@@ -59,10 +59,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   href={href}
                   aria-current={isActive ? 'page' : undefined}
                   className={`flex min-h-[48px] flex-1 flex-col justify-center items-center gap-1 px-1 py-1 text-xs transition-colors ${
-                    isActive ? 'text-rhythm-text-primary font-semibold' : 'text-rhythm-text-secondary hover:text-rhythm-text-primary'
+                    isActive ? 'text-rhythm-glow font-semibold' : 'text-rhythm-text-secondary hover:text-rhythm-text-primary'
                   }`}
                 >
-                  <Icon aria-hidden="true" size={22} strokeWidth={isActive ? 2 : 1.7} />
+                  <span className={`flex h-8 w-12 items-center justify-center rounded-full ${isActive ? 'bg-rhythm-glow-soft' : ''}`}><Icon aria-hidden="true" size={22} strokeWidth={isActive ? 2 : 1.7} /></span>
                   <span>{label}</span>
                 </Link>
               )

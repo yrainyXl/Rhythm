@@ -14,6 +14,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare offline Git bundle
+        run: git bundle create rhythm-deploy.bundle HEAD refs/heads/main
+      - name: Upload release bundle
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ vars.SERVER_HOST }}
+          username: ${{ vars.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ vars.SERVER_PORT }}
+          source: rhythm-deploy.bundle
+          target: /tmp/rhythm-deploy
+          overwrite: true
       - name: Deploy to Tencent Cloud
         uses: appleboy/ssh-action@v1
         with:
@@ -26,10 +41,13 @@ jobs:
 
             cd /opt/apps/Rhythm
 
-            git pull --ff-only origin main
+            git fetch /tmp/rhythm-deploy/rhythm-deploy.bundle refs/heads/main
+            git merge --ff-only FETCH_HEAD
+            test "$(git rev-parse HEAD)" = "${{ github.sha }}"
 
-            docker compose up -d --build
+            docker compose up -d --build --wait --wait-timeout 120
 
             docker compose ps
 
             docker image prune -f
+            rm /tmp/rhythm-deploy/rhythm-deploy.bundle

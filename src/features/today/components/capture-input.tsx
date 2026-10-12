@@ -46,6 +46,8 @@ export function CaptureInput() {
       <div className="flex items-center gap-2 rounded-2xl border border-rhythm-border bg-rhythm-card px-3 py-1 transition-colors focus-within:border-[rgb(var(--r-glow)_/_0.4)]">
         <input
           type="text"
+          name="capture"
+          autoComplete="off"
           aria-label="记录此刻的想法"
           disabled={isSaving}
           value={value}
@@ -59,7 +61,7 @@ export function CaptureInput() {
         <button
           type="button"
           onClick={() => void submit()}
-          disabled={isSaving || !value.trim()}
+          disabled={isSaving}
           className="r-link flex-none min-h-11 px-2 disabled:opacity-40"
         >
           {isSaving ? '保存中…' : '保存'}

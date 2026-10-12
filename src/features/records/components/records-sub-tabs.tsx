@@ -21,10 +21,27 @@ export function RecordsSubTabs({
         <button
           key={tab.id}
           type="button"
+          id={`records-sub-tab-${tab.id}`}
+          aria-controls={`records-view-${tab.id}`}
+          tabIndex={active === tab.id ? 0 : -1}
+          onKeyDown={(event) => {
+            const items = RECORDS_SUB_TABS
+            const current = items.findIndex((item) => item.id === tab.id)
+            let index = current
+            if (event.key === 'ArrowRight') index = (current + 1) % items.length
+            else if (event.key === 'ArrowLeft') index = (current + items.length - 1) % items.length
+            else if (event.key === 'Home') index = 0
+            else if (event.key === 'End') index = items.length - 1
+            else return
+            event.preventDefault()
+            onChange(items[index].id)
+            const buttons = event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+            buttons?.[index]?.focus()
+          }}
           role="tab"
           aria-selected={active === tab.id}
           onClick={() => onChange(tab.id)}
-          className={`pb-2 text-xs tracking-[0.06em] transition-colors border-b-2 -mb-px ${
+          className={`min-h-[44px] px-1 text-sm font-medium transition-colors border-b-2 -mb-px ${
             active === tab.id
               ? 'text-rhythm-glow border-rhythm-glow'
               : 'text-rhythm-text-muted border-transparent hover:text-rhythm-text-secondary'

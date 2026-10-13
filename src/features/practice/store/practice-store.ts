@@ -42,6 +42,9 @@ export interface PracticeRound {
   user_id: string
   practice_id: string
   round_number: number
+  done_count?: number
+  partial_count?: number
+  skipped_count?: number
   start_date: string
   end_date: string
   assumption: string | null
@@ -429,7 +432,7 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
           ? list.map((l) => (l.local_date === localDate ? data : l))
           : [data, ...list]
       const detail = get().detailPractice
-      set({ logsByRound: { ...get().logsByRound, [roundId]: newList }, detailPractice: detail ? { ...detail, rounds: detail.rounds.map((r) => r.id === roundId ? { ...r, log_count: newList.length } : r) } : null })
+      set({ logsByRound: { ...get().logsByRound, [roundId]: newList }, detailPractice: detail ? { ...detail, rounds: detail.rounds.map((r) => r.id === roundId ? { ...r, log_count: newList.length, done_count: newList.filter((l) => l.status === 'done').length, partial_count: newList.filter((l) => l.status === 'partial').length, skipped_count: newList.filter((l) => l.status === 'skipped').length } : r) } : null })
       return { error: null }
     } catch (e) {
       return { error: toErr(e, '保存失败') }
@@ -445,6 +448,8 @@ export const usePracticeStore = create<PracticeState>((set, get) => ({
         newMap[k] = list.filter((l) => l.id !== id)
       }
       set({ logsByRound: newMap })
+      const detail = get().detailPractice
+      if (detail) await get().loadDetail(detail.id)
     } catch {}
   },
 }))

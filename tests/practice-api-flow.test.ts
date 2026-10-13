@@ -103,7 +103,10 @@ test('practice detail retains its reading source and all round summaries', async
   const db = { query: async (sql: string, params: unknown[]) => {
     assert.equal(params[1], 'user-a')
     if (sql.includes('FROM practices')) return { rows: [{ id: 'practice-a', source_highlight_id: 'highlight-a' }] }
-    if (sql.includes('FROM practice_rounds r')) return { rows: [{ id: 'round-a', log_count: 3 }] }
+    if (sql.includes('FROM practice_rounds r')) {
+      for (const status of ['done', 'partial', 'skipped']) assert.ok(sql.includes(`l.status = '${status}'`))
+      return { rows: [{ id: 'round-a', log_count: 3, done_count: 1, partial_count: 1, skipped_count: 1 }] }
+    }
     assert.equal(params[0], 'highlight-a')
     return { rows: [source] }
   } }
@@ -111,6 +114,7 @@ test('practice detail retains its reading source and all round summaries', async
   const body = await res.json()
   assert.equal(body.sourceHighlight.book_id, 'book-a')
   assert.equal(body.rounds[0].log_count, 3)
+  assert.deepEqual([body.rounds[0].done_count, body.rounds[0].partial_count, body.rounds[0].skipped_count], [1, 1, 1])
 })
 
 test('an unowned round cannot receive a daily log', async () => {

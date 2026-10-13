@@ -16,7 +16,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
     const roundsRes = await db.query(
       `SELECT r.*,
-              (SELECT count(*)::int FROM practice_logs l WHERE l.round_id = r.id) AS log_count
+              (SELECT count(*)::int FROM practice_logs l WHERE l.round_id = r.id) AS log_count,
+              (SELECT count(*)::int FROM practice_logs l WHERE l.round_id = r.id AND l.status = 'done') AS done_count,
+              (SELECT count(*)::int FROM practice_logs l WHERE l.round_id = r.id AND l.status = 'partial') AS partial_count,
+              (SELECT count(*)::int FROM practice_logs l WHERE l.round_id = r.id AND l.status = 'skipped') AS skipped_count
        FROM practice_rounds r
        WHERE r.practice_id = $1 AND r.user_id = $2
        ORDER BY r.round_number ASC`,

@@ -39,6 +39,8 @@ export default function PracticeDetailPage() {
   }, [params.id, loadDetail])
 
   const activeRound = detailPractice?.rounds.find((r) => r.status === 'active')
+  const sortedRounds = [...(detailPractice?.rounds ?? [])].sort((a, b) => b.round_number - a.round_number)
+  const emptyRounds = sortedRounds.filter((r, i) => i > 0 && r.status !== 'active' && !r.log_count && ![r.conclusion, r.review_reality, r.review_effect, r.review_adjustment].some((v) => v?.trim()))
   const isActive = detailPractice?.status === 'active'
   const nextRoundNumber = (detailPractice?.rounds.at(-1)?.round_number ?? 0) + 1
 
@@ -155,13 +157,17 @@ export default function PracticeDetailPage() {
 
                 {/* 轮次列表 */}
                 <div className="space-y-3">
-                  {[...detailPractice.rounds].sort((a, b) => b.round_number - a.round_number).map((r, index) => {
+                  {sortedRounds.filter((r) => !emptyRounds.includes(r)).map((r, index) => {
                     const roundActive = r.status === 'active'
                     return (
                       <details key={r.id} open={roundActive || index === 0} className={roundActive || index === 0 ? 'r-feature p-5 rounded-2xl' : 'border-b border-rhythm-border py-3'}>
-                        <summary className="flex min-h-[44px] cursor-pointer list-none flex-wrap items-center justify-between gap-2">
-                          <span className="text-base font-semibold">第 {r.round_number} 轮 · {roundActive ? '进行中' : '已结束'}</span>
-                          <span className="text-xs text-rhythm-text-secondary">{formatRange(r.start_date, r.end_date)} · {r.log_count} 条记录 <span aria-hidden="true">⌄</span></span>
+                        <summary className="min-h-[44px] cursor-pointer list-none">
+                          <div className="w-full space-y-2">
+                            <div className="flex items-start justify-between gap-3"><span className="text-base font-semibold">{r.assumption || '这次尝试'}</span><span aria-hidden="true">⌄</span></div>
+                            <p className="text-sm text-rhythm-glow">{r.log_count ? `完成 ${r.done_count ?? 0} 天 · 做了一点 ${r.partial_count ?? 0} 天 · 没开始 ${r.skipped_count ?? 0} 天` : '尚无行动记录'}</p>
+                            <p className="text-sm leading-6 text-rhythm-text-secondary whitespace-pre-wrap">{r.conclusion?.trim() || r.review_effect?.trim() || r.review_reality?.trim() || r.review_adjustment?.trim() || '尚未复盘'}</p>
+                            <p className="text-xs text-rhythm-text-muted">第 {r.round_number} 次尝试 · {formatRange(r.start_date, r.end_date)} · {roundActive ? '进行中' : '已结束'}</p>
+                          </div>
                         </summary>
                         <div className="pt-4 space-y-3">
                         {r.assumption && (
@@ -196,6 +202,20 @@ export default function PracticeDetailPage() {
                       </details>
                     )
                   })}
+                  {emptyRounds.length > 0 && (
+                    <details className="border-b border-rhythm-border py-3">
+                      <summary className="text-sm text-rhythm-text-secondary">其他 {emptyRounds.length} 次尝试 · 没有记录或复盘</summary>
+                      <p className="text-xs text-rhythm-text-muted py-3">这些尝试尚未留下结果，展开对应轮次仍可补记。</p>
+                      {emptyRounds.map((r) => (
+                        <details key={r.id} className="py-2 border-t border-rhythm-border">
+                          <summary className="text-sm">第 {r.round_number} 次 · {formatRange(r.start_date, r.end_date)}</summary>
+                          <p className="text-sm text-rhythm-text-secondary py-2">{r.assumption}</p>
+                          <PracticeLogInline roundId={r.id} startDate={r.start_date} endDate={r.end_date} />
+                          <RoundLogPanel roundId={r.id} startDate={r.start_date} endDate={r.end_date} logCount={r.log_count} />
+                        </details>
+                      ))}
+                    </details>
+                  )}
                 </div>
 
                 {/* 创建下一轮表单已移至 NewRoundSheet 弹窗 */}

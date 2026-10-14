@@ -35,6 +35,9 @@ module.exports = {
           accent: 'var(--r-accent)',
           // Cool accent for interactive elements
           glow: 'rgb(var(--r-glow) / <alpha-value>)',
+          practice: 'rgb(var(--r-practice) / <alpha-value>)',
+          habit: 'rgb(var(--r-habit) / <alpha-value>)',
+          fill: 'var(--r-fill)',
           'glow-soft': 'var(--r-glow-soft)',
           // Text ramp
           'text-primary': 'var(--r-text-primary)',

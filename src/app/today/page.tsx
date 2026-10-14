@@ -1,57 +1,55 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useCallback, useEffect, useState } from 'react'
 import { AuthGuard } from '@/features/app/components/auth-guard'
-import { useHabitStore } from '@/features/habits/store/habit-store'
-import { DayHead } from '@/features/today/components/day-head'
-import { SectionHeader } from '@/features/today/components/section-header.tsx'
-import { PracticeHero } from '@/features/today/components/practice-hero'
+import { usePracticeStore } from '@/features/practice/store/practice-store'
+import { TodayHeader } from '@/features/today/components/today-header'
+import { TonightCard } from '@/features/today/components/tonight-card'
+import { OtherPractices } from '@/features/today/components/other-practices'
+import { InsightCard } from '@/features/today/components/insight-card'
 import { TodayHabits } from '@/features/today/components/today-habits'
 import { CaptureInput } from '@/features/today/components/capture-input'
+import { todayIso } from '@/features/today/lib/dates'
 
-function todayIsoDate() {
-  const date = new Date()
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-}
-
-function formatDate(iso: string) {
-  const [y, m, d] = iso.split('-').map(Number)
-  const date = new Date(y, m - 1, d)
-  const weekday = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'][date.getDay()]
-  return `${m}月${d}日 · ${weekday}`
-}
-
+/**
+ * 今天：按「现在该做什么」排，不按时段分组。
+ * 首屏只有一张主卡「今晚」；反思类内容同一时间最多一张（检查点在今晚卡里，优先于这周发现）。
+ */
 export default function TodayPage() {
-  const router = useRouter()
-  const { occurrences } = useHabitStore()
-  const [todayDate] = useState(todayIsoDate)
+  const [today] = useState(() => todayIso())
+  const [refreshKey, setRefreshKey] = useState(0)
+  const { practices, practicesError, isLoadingPractices, loadPractices, logsByRound } = usePracticeStore()
 
-  const total = occurrences.length
-  const completed = occurrences.filter((o) => o.status === 'done').length
-  const dateText = formatDate(todayDate)
+  useEffect(() => {
+    void loadPractices()
+  }, [loadPractices])
+
+  const onRecorded = useCallback(() => setRefreshKey((k) => k + 1), [])
+
+  const active = practices.filter((p) => p.status === 'active' && p.latestRound?.status === 'active')
+  const primary = active[0] ?? null
+  const primaryRound = primary?.latestRound
+  const primaryLoggedToday = !!primaryRound && (logsByRound[primaryRound.id] ?? []).some((l) => l.local_date === today)
 
   return (
     <AuthGuard>
-      <div className="r-page">
-        <DayHead dateText={dateText} />
+      <TodayHeader today={today} refreshKey={refreshKey} />
 
-        <section>
-          <SectionHeader label="今天的实践" actionLabel="全部" onAction={() => router.push('/habits/practices')} />
-          <PracticeHero />
-        </section>
+      {practicesError && (
+        <p role="alert" className="mx-5 mb-3 text-sm text-rhythm-danger">
+          实践没有加载出来。<button type="button" className="font-semibold" onClick={() => void loadPractices()}>重试</button>
+        </p>
+      )}
+      {isLoadingPractices && practices.length === 0 ? (
+        <div className="mx-4 mb-3 h-40 animate-pulse rounded-[22px] bg-rhythm-card" aria-label="正在加载" />
+      ) : (
+        <TonightCard today={today} practice={primary} onRecorded={onRecorded} />
+      )}
+      <OtherPractices practices={active.slice(1)} today={today} onRecorded={onRecorded} />
 
-        <section>
-          <SectionHeader label="日常习惯" actionLabel="管理" onAction={() => router.push('/habits/manage')} />
-          {total > 0 && <div className="-mt-2 mb-2 flex items-center gap-3 text-xs text-rhythm-text-secondary"><span>{completed} / {total} 已完成</span><progress aria-label="今日习惯完成进度" value={completed} max={total} className="h-1 w-16 rounded-full" /></div>}
-          <TodayHabits />
-        </section>
-
-        <section>
-          <SectionHeader label="记下一个想法" />
-          <CaptureInput />
-        </section>
-      </div>
+      <InsightCard hidden={primaryLoggedToday} />
+      <TodayHabits today={today} onRecorded={onRecorded} />
+      <CaptureInput today={today} onRecorded={onRecorded} />
     </AuthGuard>
   )
 }

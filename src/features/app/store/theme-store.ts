@@ -11,12 +11,12 @@ function applyTheme(theme: Theme) {
   const root = document.documentElement
   root.classList.remove('dark', 'light')
   root.classList.add(theme)
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#FFFFFF' : '#121214')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'light' ? '#F2F2F7' : '#000000')
 }
 
 function readStored(): Theme {
-  if (typeof window === 'undefined') return 'dark'
-  return window.localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark'
+  if (typeof window === 'undefined') return 'light'
+  return window.localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light'
 }
 
 interface ThemeState {
@@ -27,7 +27,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  theme: 'dark',
+  theme: 'light',
 
   setTheme: (theme) => {
     applyTheme(theme)

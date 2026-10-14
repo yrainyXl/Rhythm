@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: '发现你的生活节奏',
     start_url: '/today',
     display: 'standalone',
-    background_color: '#0B1019',
-    theme_color: '#0B1019',
+    background_color: '#F2F2F7',
+    theme_color: '#F2F2F7',
     orientation: 'portrait',
     icons: [
       {

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rhythm D 日记流</title>
+<style>
+:root { --bg: #F2F2F7; --card: #FFFFFF; --label: #000; --label-2: #8A8A8E; --sep: #E3E3E8; --tint: #5E5CE6; --teal: #0C9483; --orange: #FF9500; }
+* { box-sizing: border-box; margin: 0; }
+body { background: var(--bg); color: var(--label); font-family: -apple-system, "SF Pro Text", "PingFang SC", sans-serif; font-size: 17px; line-height: 1.4; -webkit-font-smoothing: antialiased; }
+button { font: inherit; border: 0; background: none; color: inherit; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; padding-bottom: 120px; }
+
+.status { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 6px 30px 0 36px; font-weight: 600; font-size: 16px; }
+.status .ic { display: flex; gap: 6px; align-items: center; }
+.status svg { fill: currentColor; }
+.nav { display: flex; justify-content: space-between; align-items: center; padding: 4px 16px 0 20px; }
+.logo { display: inline-flex; align-items: center; gap: 7px; font-weight: 600; font-size: 17px; }
+.logo span { display: inline-flex; gap: 3px; align-items: center; }
+.logo i { width: 3px; border-radius: 2px; background: var(--teal); }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(#A6A6AD, #85858C); color: #fff; display: grid; place-items: center; font-size: 15px; font-weight: 600; }
+.title { padding: 14px 20px 4px; }
+.title h1 { font-size: 34px; font-weight: 700; line-height: 1.2; }
+.title p { font-size: 15px; color: var(--label-2); margin-top: 2px; }
+
+.streak { margin: 16px 16px 12px; border-radius: 22px; padding: 16px; background: var(--card); }
+.streak .top { display: flex; justify-content: space-between; align-items: baseline; }
+.streak .n { font-family: ui-rounded, "SF Pro Rounded", -apple-system, sans-serif; font-size: 40px; font-weight: 700; line-height: 1; color: var(--tint); }
+.streak .n small { font-family: -apple-system, "PingFang SC", sans-serif; font-size: 17px; color: var(--label); margin-left: 4px; font-weight: 600; }
+.streak .side { text-align: right; font-size: 13px; color: var(--label-2); line-height: 1.5; }
+.streak .side b { color: var(--label); font-weight: 600; }
+.dots { display: grid; grid-template-columns: repeat(7, 1fr); margin-top: 16px; text-align: center; font-size: 11px; color: var(--label-2); }
+.dots i { display: block; width: 26px; height: 26px; border-radius: 50%; margin: 0 auto 5px; background: #E5E5EA; }
+.dots i.on { background: var(--tint); }
+.dots i.now { background: none; box-shadow: inset 0 0 0 2px var(--tint); }
+
+.insight { margin: 0 16px 4px; border-radius: 22px; padding: 16px; background: linear-gradient(150deg, #ECEBFF 0%, #E2F3EF 100%); }
+.insight small { font-size: 13px; font-weight: 600; color: var(--tint); }
+.insight p { margin-top: 8px; font-size: 19px; font-weight: 600; line-height: 1.45; }
+.insight .acts { display: flex; gap: 8px; margin-top: 14px; }
+.insight .acts button { height: 38px; padding: 0 16px; border-radius: 19px; font-size: 15px; font-weight: 600; }
+.insight .a1 { background: var(--tint); color: #fff; }
+.insight .a2 { background: rgb(255 255 255 / .7); color: #3C3C43; }
+
+.when { padding: 24px 20px 8px; font-size: 22px; font-weight: 700; display: flex; align-items: baseline; gap: 8px; }
+.when span { font-size: 15px; font-weight: 400; color: var(--label-2); }
+
+.entry { background: var(--card); border-radius: 20px; margin: 0 16px 10px; padding: 14px 16px 16px; }
+.meta { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--label-2); }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 2px 9px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+.t-plan { background: rgb(94 92 230 / .12); color: var(--tint); }
+.t-idea { background: rgb(255 204 0 / .2); color: #9A7400; }
+.t-prac { background: rgb(12 148 131 / .12); color: var(--teal); }
+.entry p.txt { margin-top: 8px; font-size: 17px; }
+.voice { margin-top: 12px; display: flex; align-items: center; gap: 10px; background: var(--bg); border-radius: 14px; padding: 8px 12px; }
+.voice .play { width: 30px; height: 30px; border-radius: 50%; background: var(--tint); display: grid; place-items: center; }
+.wave { flex: 1; display: flex; align-items: center; gap: 2px; height: 22px; }
+.wave i { flex: 1; border-radius: 1px; background: #B9B9C3; }
+.voice small { font-size: 13px; color: var(--label-2); }
+
+.mini { display: flex; align-items: center; gap: 12px; margin: 0 16px 10px; padding: 0 16px; min-height: 52px; border-radius: 16px; background: var(--card); font-size: 15px; }
+.mini .ck { width: 22px; height: 22px; border-radius: 50%; background: var(--orange); display: grid; place-items: center; flex: none; }
+.mini .ck::after { content: ""; width: 8px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: translateY(-1px) rotate(-45deg); }
+.mini.todo .ck { background: none; box-shadow: inset 0 0 0 1.5px #C7C7CC; }
+.mini.todo .ck::after { display: none; }
+.mini span { flex: 1; }
+.mini em { font-style: normal; color: var(--label-2); font-size: 13px; }
+
+.now { border: 1.5px solid rgb(12 148 131 / .35); }
+.now h3 { margin-top: 8px; font-size: 20px; font-weight: 700; }
+.now .q { font-size: 15px; color: var(--label-2); margin-top: 2px; }
+.btns { display: flex; gap: 8px; margin-top: 14px; }
+.btns button { flex: 1; height: 42px; border-radius: 21px; font-size: 15px; font-weight: 600; }
+.b1 { background: var(--teal); color: #fff; }
+.b2 { background: rgb(255 149 0 / .15); color: #C26E00; }
+.b3 { background: #EFEFF4; color: #3C3C43; }
+
+.tabs { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom)); width: min(398px, calc(100% - 24px)); display: flex; gap: 10px; z-index: 10; }
+.cap-bar { flex: 1; display: flex; height: 62px; padding: 4px; border-radius: 31px; background: rgb(255 255 255 / .72); backdrop-filter: blur(24px) saturate(1.8); -webkit-backdrop-filter: blur(24px) saturate(1.8); box-shadow: 0 0 0 .5px rgb(0 0 0 / .08), 0 10px 30px rgb(0 0 0 / .12); }
+.cap-bar a { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 10px; font-weight: 600; border-radius: 27px; color: #1C1C1E; }
+.cap-bar a.on { background: rgb(0 0 0 / .06); color: var(--tint); }
+.cap-bar svg, .fab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.cap-bar svg { stroke-width: 1.8; }
+.fab { width: 62px; height: 62px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: var(--tint); box-shadow: 0 10px 24px rgb(94 92 230 / .4); }
+.fab svg { stroke-width: 2.6; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="status"><span>9:41</span><span class="ic">
+    <svg width="18" height="12" viewBox="0 0 18 12"><rect y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" width="3" height="12" rx="1"/></svg>
+    <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 9.2a1.4 1.4 0 1 1 0 2.8 1.4 1.4 0 0 1 0-2.8zM3.6 7.2a6.2 6.2 0 0 1 8.8 0l-1.3 1.3a4.4 4.4 0 0 0-6.2 0zM.8 4.4a10.2 10.2 0 0 1 14.4 0l-1.3 1.3a8.4 8.4 0 0 0-11.8 0z"/></svg>
+    <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="8" rx="1.6"/><rect x="24" y="4" width="1.6" height="4" rx=".8" opacity=".4"/></svg>
+  </span></div>
+
+  <div class="nav">
+    <a class="logo" href="#"><span aria-hidden="true"><i style="height:9px"></i><i style="height:17px"></i><i style="height:12px"></i></span>Rhythm</a>
+    <a class="avatar" href="#" aria-label="我的">小</a>
+  </div>
+
+  <header class="title"><h1>今天</h1><p>10月13日 星期二</p></header>
+
+  <section class="streak">
+    <div class="top">
+      <div class="n">5<small>天连续记录</small></div>
+      <p class="side">本周 <b>14</b> 条记录<br>实践完成 <b>3 / 4</b> 天</p>
+    </div>
+    <div class="dots" aria-label="最近 7 天记录情况">
+      <div><i></i>三</div><div><i class="on"></i>四</div><div><i class="on"></i>五</div><div><i class="on"></i>六</div><div><i class="on"></i>日</div><div><i class="on"></i>一</div><div><i class="now"></i>今天</div>
+    </div>
+  </section>
+
+  <section class="insight">
+    <small>这周发现</small>
+    <p>有 3 个晚上，你先吃完饭再决定玩不玩游戏。这 3 天都读了书。</p>
+    <div class="acts"><button class="a1">记成我的方法</button><button class="a2">再观察几天</button></div>
+  </section>
+
+  <h2 class="when">现在<span>19:05</span></h2>
+  <article class="entry now">
+    <div class="meta"><span class="tag t-prac">实践 · 第 4 天</span></div>
+    <h3>让阅读成为日常</h3>
+    <p class="q">每天读 5 分钟，看看能不能更容易开始。今天读了吗？</p>
+    <div class="btns"><button class="b1">完成了</button><button class="b2">做了一点</button><button class="b3">没开始</button></div>
+  </article>
+  <div class="mini todo"><span class="ck"></span><span>读几页书</span><em>还没做</em></div>
+
+  <h2 class="when">傍晚</h2>
+  <article class="entry">
+    <div class="meta"><span class="tag t-idea">想法</span>18:42</div>
+    <p class="txt">下班路上又想打游戏，但今天先吃了饭。</p>
+    <div class="voice"><span class="play"><svg width="12" height="12" viewBox="0 0 12 12" fill="#fff"><path d="M3 1.5v9l7.5-4.5z"/></svg></span>
+      <span class="wave" aria-hidden="true"><i style="height:30%"></i><i style="height:60%"></i><i style="height:90%"></i><i style="height:50%"></i><i style="height:70%"></i><i style="height:40%"></i><i style="height:80%"></i><i style="height:35%"></i><i style="height:65%"></i><i style="height:45%"></i><i style="height:85%"></i><i style="height:30%"></i><i style="height:55%"></i><i style="height:25%"></i><i style="height:60%"></i><i style="height:40%"></i></span>
+      <small>0:12</small></div>
+  </article>
+
+  <h2 class="when">中午</h2>
+  <div class="mini"><span class="ck"></span><span>喝一杯水</span><em>12:30</em></div>
+
+  <h2 class="when">早上</h2>
+  <article class="entry">
+    <div class="meta"><span class="tag t-plan">今晚的安排</span>08:12</div>
+    <p class="txt">19:30 读 15 分钟。游戏玩到 21:30 就停。</p>
+  </article>
+</div>
+
+<nav class="tabs" aria-label="主要导航">
+  <div class="cap-bar">
+    <a class="on" href="#" aria-current="page"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3.5"/><path d="M8 3v4M16 3v4M3.5 10h17"/></svg>今天</a>
+    <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/></svg>计划</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M5 20V13M10 20V8M15 20v-9M20 20V4"/></svg>记录</a>
+    <a href="#"><svg viewBox="0 0 24 24"><path d="M3 5.5C6 4 9 4.3 12 6c3-1.7 6-2 9-.5V19.5c-3-1.2-6-1-9 .5-3-1.5-6-1.7-9-.5z"/><path d="M12 6v14"/></svg>阅读</a>
+  </div>
+  <button class="fab" aria-label="记一句"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+</nav>
+</body>
+</html>
